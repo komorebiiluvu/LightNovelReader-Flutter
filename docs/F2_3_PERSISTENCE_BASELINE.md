@@ -9,7 +9,7 @@ does not approve F2.3 and does not start F2.4.
 
 - Starting commit: `83757cc3571b4f7f63fc80eecdebc504def7c045`.
 - Current implementation commit under review: `1aecee148002ae1969cd03dab5e781f222ca60b4`.
-- Review-fix commit: pending.
+- Review-fix commit: `6da74f8` (`fix: close F2.3 persistence review gaps`).
 - Branch at entry: `main`; `origin/main` matched the starting commit.
 - Legacy reference inspected by the preceding F2 work: `d90d4d090c85a0a9c374684696c34befe12636d1`.
 - F2.3 boundary: Drift/SQLite connection lifecycle, schema v1, migration
@@ -144,6 +144,7 @@ Observed run: [GitHub Actions run 35110324488](https://github.com/komorebiiluvu/
 | iOS simulator packaged storage smoke | PASS |
 
 The review fix sets the emulator data disk to `1024M` to address the reported
-runner resource failure. A new run is required before Android smoke can be
-called PASS. Human F2.3 schema review and exit approval are still required;
-F2.4 is **NOT STARTED**.
+runner resource failure. A new run for `6da74f8` was not observable through the
+connected Actions interface at review time, so Android smoke remains
+unverified after the fix. Human F2.3 schema review and exit approval are still
+required; F2.4 is **NOT STARTED**.
