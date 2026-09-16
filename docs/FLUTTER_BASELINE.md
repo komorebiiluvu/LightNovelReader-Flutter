@@ -2,10 +2,11 @@
 
 Recorded: 2026-09-16, Asia/Shanghai (UTC+08:00)
 
-Status: **F1 implementation foundation ready for cross-platform validation**.
+Status: **F1 — Flutter Foundation: EXIT APPROVED**.
 
-F1 final exit is **not approved**. iOS is **Validation Pending — requires macOS**.
-No F2 work has started.
+The F1 exit was approved by the human project owner on 2026-09-16. This closes
+the foundation phase only; it is not product-complete or release-ready. No F2
+work has started.
 
 ## 1. Revision and repository identity
 
@@ -13,13 +14,13 @@ No F2 work has started.
 - Origin: `https://github.com/komorebiiluvu/LightNovelReader-Flutter.git`
 - Initial baseline commit: `278f3ec814fdb158331ee3b2294a2d4addd41c23`
 - Baseline subject: `chore: establish cross-platform Flutter baseline`
-- Working HEAD during validation: `278f3ec814fdb158331ee3b2294a2d4addd41c23`,
-  with the F1 worktree changes delivered in the same commit as this record.
-- The worktree was clean before implementation. The initial commit was preserved.
-- Resolve the F1 implementation commit after checkout with:
-  `git log --diff-filter=A -1 --format=%H -- docs/FLUTTER_BASELINE.md`.
-  This record was prepared before the single implementation commit; results below
-  apply to its code/configuration changes, not just the unmodified initial HEAD.
+- F1 implementation commit: `3d0392249719eb51fb42f29f820af730051e849e`
+  (`feat: establish Flutter application foundation`).
+- F1 exit documentation commit: the documentation-only commit with subject
+  `docs: approve F1 Flutter foundation exit`; its full SHA is reported in the
+  final closure message. It is distinct from both earlier milestones.
+- The initial baseline commit is preserved and neither earlier commit was amended,
+  rewritten, or squashed.
 - Legacy reference: `C:\Projects\LightNovelReader-Legacy`, read-only.
 - Legacy HEAD and frozen commit both verified as
   `d90d4d090c85a0a9c374684696c34befe12636d1`; its worktree was clean and unchanged.
@@ -40,13 +41,14 @@ No F2 work has started.
 | Android Java | Android Studio bundled OpenJDK `21.0.10` |
 | Windows toolchain | Visual Studio Community 2026 `18.10.12201.205` |
 | Windows SDK | `10.0.26100.0` |
-| macOS / Xcode | Not available on this Windows host |
+| macOS / Xcode | GitHub Actions `macos-15` runner used for the unsigned iOS Debug build |
 
-`flutter doctor -v` reported no issues for the available Windows environment:
+Local `flutter doctor -v` reported no issues for the available Windows environment:
 Flutter, Windows, Android toolchain, Visual Studio, network resources and proxy
-configuration passed. This does **not** validate iOS. Connected targets listed
-Windows, Chrome and Edge; no Android physical device/emulator was connected.
-No device install/run, signed distribution or release-performance claim is made.
+configuration passed. Connected local targets listed Windows, Chrome and Edge; no
+Android physical device/emulator was connected. iOS was validated separately by
+the macOS CI job described in section 5. No device install/run, signed
+distribution or release-performance claim is made.
 
 Environment notes: an HTTP proxy is configured; its value is not recorded.
 Pub reported four newer versions outside existing constraints. No unrelated
@@ -61,7 +63,7 @@ declarations are distinct from actual project build evidence in section 5.
 | Package / API | Purpose | iOS | Android | Windows | Required/Optional |
 | --- | --- | --- | --- | --- | --- |
 | `flutter_riverpod` `3.4.3` (new) | Root dependency/state composition | Declared support | Declared support | Declared support | Required |
-| Flutter SDK `3.47.4` (existing) | Widgets, built-in Navigator, runner tooling | Supported target; build pending | Local debug build passed | Local debug build passed | Required |
+| Flutter SDK `3.47.4` (existing) | Widgets, built-in Navigator, runner tooling | macOS CI unsigned Debug build passed | Local debug build passed | Local debug build passed | Required |
 | `cupertino_icons` `1.0.8` (existing) | Template icon assets | Portable assets | Portable assets | Portable assets | Existing runtime dependency; not used by F1 home |
 | `flutter_test` (SDK, existing) | Unit/widget verification | Shared Dart test layer | Shared Dart test layer | Shared Dart test layer | Required for development |
 | `flutter_lints` `6.0.0` (existing) | Static analysis rules | Platform-neutral | Platform-neutral | Platform-neutral | Required for development |
@@ -135,9 +137,9 @@ Every command below exited with code `0` where marked PASS.
 | `flutter test` | PASS — 5 tests |
 | `flutter build windows --debug` | PASS — completed 2026-09-16 16:04:20 +08:00 |
 | `flutter build apk --debug` | PASS — completed 2026-09-16 16:04:44 +08:00 |
-| iOS build | **Validation Pending — requires macOS**; not attempted |
-| CI configuration | YAML parsed; four matrix entries and embedded PowerShell syntax checked |
-| Remote GitHub Actions run | **Validation Pending** — configured, not run or claimed green |
+| iOS build | **PASS** — GitHub Actions macOS runner, unsigned iOS Debug build |
+| CI configuration | PASS — YAML parsed; four matrix entries and embedded PowerShell syntax checked |
+| Remote GitHub Actions run | **PASS** — implementation commit validated; Quality, Android debug, Windows debug and iOS debug unsigned all passed; overall workflow `SUCCESS` |
 
 The five tests verify root-scope/router home rendering, unknown-route fallback
 and back navigation with provider override, structured diagnostic records with
@@ -182,29 +184,40 @@ Check each command's exit code before proceeding. Use the pinned Flutter 3.47.4
 SDK and the committed lockfile. The CI format check adds `--output=none` so it
 cannot rewrite files. Do not run the iOS build on Windows.
 
-CI is triggered by push, pull request or manual dispatch; no remote run was
-triggered during this local implementation. The workflow separately assigns:
+CI is triggered by push, pull request or manual dispatch. The successful remote
+run for the F1 implementation revision used the workflow's separate assignments:
 
 - quality to `ubuntu-24.04`;
 - Android debug to `ubuntu-24.04` with Temurin JDK 21;
 - Windows debug to `windows-2025`;
 - unsigned iOS debug to `macos-15`.
 
-The future macOS job runs `flutter build ios --debug --no-codesign --no-pub`
-after locked dependency restoration. A workflow definition is not iOS evidence.
-No signing, upload, deployment or release automation is included.
+The macOS job ran `flutter build ios --debug --no-codesign --no-pub` after locked
+dependency restoration. This proves the Flutter iOS project builds successfully
+on macOS for an unsigned Debug configuration. It does **not** prove App Store
+signing, physical-device installation, Simulator interaction, a production
+release archive, Reader behavior, performance, or real-device regressions. No
+signing, upload, deployment or release automation is included.
+
+The exact Actions run URL was not safely determinable from the available local
+repository metadata, so no URL or run ID is invented here. The verified run was
+triggered from the F1 implementation commit above.
 
 ## 7. Known exceptions, blockers and exit approval
 
 - Local Windows/Android implementation validation: PASS.
 - No known local F1 implementation blocker remains.
-- iOS is not waived or approved: successful macOS build evidence for the F1
-  revision is still required before final F1 exit.
-- Remote CI execution is pending. Attach actual job URLs and tested commit before
-  claiming CI is green; a Windows build cannot stand in for macOS validation.
-- Human owner F1 exit approval remains pending under `docs/GOVERNANCE.md`.
+- iOS unsigned Debug build evidence: PASS on the GitHub Actions macOS runner.
+- No iOS physical-device validation or signed release validation has occurred.
+- No performance validation has occurred.
+- Remote CI matrix: PASS for the implementation revision; exact URL was not
+  available from local metadata.
+- Human owner F1 exit approval: APPROVED on 2026-09-16.
 - No future-phase contract was promoted to an F1 blocker. No F2 work is authorized
   by this baseline record.
 
-**Exit Approval: PENDING.** Foundation implementation is ready for cross-platform
-validation; F1 is not fully complete.
+**Exit Approval: APPROVED — Human project owner, 2026-09-16.**
+
+Foundation implementation is complete for F1. The application is not described
+as product-complete or release-ready; Reader, Source, persistence/domain,
+plugins, performance and real-device validation belong to later phases.
