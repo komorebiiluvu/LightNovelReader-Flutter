@@ -1,8 +1,13 @@
 # F2 — Domain + Persistence Foundation entry contract
 
-Status: **PROPOSED — HUMAN APPROVAL REQUIRED**
+Status: **ACCEPTED**
 
-Contract revision: **1**. Prepared: **2026-09-16**. Approval: **PENDING**.
+Contract revision: **1**. Prepared: **2026-09-16**.
+
+Human approval: **APPROVED**. Approval date: **2026-09-16**.
+Approved by: Human project owner. Current implementation authorization: **F2.1 only**.
+The proposal-stage approval conditions below are satisfied by this record;
+they do not authorize implementation beyond the current slice or F2 exit.
 
 This is a proposed normative contract: MUST/MUST NOT become implementation
 requirements only after explicit human acceptance of this document and

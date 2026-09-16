@@ -39,7 +39,7 @@ contracts. [ADR 0003](adr/0003-f2-persistence-stack.md) proposes the database st
 and migration boundary. The [frozen legacy data inventory](legacy/swift/LEGACY_DATA_MIGRATION_INVENTORY.md)
 supplies the observed data formats and iOS container feasibility evidence.
 
-These documents are **PROPOSED, not accepted or frozen**. Explicit human approval
-of the entry contract and ADR is required before any F2 production implementation.
+The entry contract and ADR were **ACCEPTED** by the human project owner on
+2026-09-16. Current implementation authorization is **F2.1 only**.
 This checkpoint does not advance the Source, Reader, image/offline, plugin or
-performance freeze dates. F1 exit remains approved; F2 implementation has not begun.
+performance freeze dates. F1 exit remains approved; F2 exit is not approved.

@@ -1,8 +1,13 @@
 # ADR 0003 — F2 persistence stack and migration boundary
 
-Status: **PROPOSED**
+Status: **ACCEPTED**
 
-Date / research checked: 2026-09-16. Human acceptance: **PENDING**.
+Date / research checked: 2026-09-16.
+
+Human approval: **APPROVED**. Approval date: **2026-09-16**.
+Approved by: Human project owner. Approved direction: **Drift + SQLite NativeDatabase**.
+The approval gate described below has been satisfied. Current implementation
+authorization is **F2.1 only**, with no persistence dependencies added in this slice.
 
 This proposal implements the Constitution's versioned, cross-platform storage
 policy. It does not override the Constitution or authorize dependencies/code
