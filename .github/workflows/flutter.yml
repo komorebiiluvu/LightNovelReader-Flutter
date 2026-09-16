@@ -73,6 +73,10 @@ jobs:
         if: matrix.check == 'Quality'
         run: dart format --output=none --set-exit-if-changed .
 
+      - name: Verify Drift generation and schema snapshots
+        if: matrix.check == 'Quality'
+        run: ./tool/verify_generated.ps1
+
       - name: Analyze
         if: matrix.check == 'Quality'
         run: flutter analyze --no-pub
@@ -89,6 +93,49 @@ jobs:
         if: matrix.check == 'Windows debug'
         run: flutter build windows --debug --no-pub
 
+      - name: Windows packaged storage smoke
+        if: matrix.check == 'Windows debug'
+        run: flutter test integration_test/storage_smoke_test.dart -d windows --no-pub
+
+      - name: Enable Android emulator acceleration
+        if: matrix.check == 'Android debug'
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Android packaged storage smoke
+        if: matrix.check == 'Android debug'
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: flutter test integration_test/storage_smoke_test.dart -d emulator-5554 --no-pub
+
       - name: Build iOS debug without signing
         if: matrix.check == 'iOS debug unsigned'
         run: flutter build ios --debug --no-codesign --no-pub
+
+      - name: Boot available iOS simulator
+        if: matrix.check == 'iOS debug unsigned'
+        run: |
+          $inventory = xcrun simctl list devices available --json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $runtime = $inventory.devices.PSObject.Properties | Where-Object { $_.Name -like '*iOS*' } | Sort-Object Name -Descending | Select-Object -First 1
+          $device = $runtime.Value | Where-Object { $_.isAvailable -and $_.name -like 'iPhone*' } | Select-Object -First 1
+          if (-not $device) { throw 'No available iPhone simulator; storage smoke cannot run.' }
+          if ($device.state -ne 'Booted') {
+            xcrun simctl boot $device.udid
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          xcrun simctl bootstatus $device.udid -b
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value "IOS_SMOKE_DEVICE=$($device.udid)"
+
+      - name: iOS simulator packaged storage smoke
+        if: matrix.check == 'iOS debug unsigned'
+        run: flutter test integration_test/storage_smoke_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub

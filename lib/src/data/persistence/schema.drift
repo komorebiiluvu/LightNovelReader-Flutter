@@ -1,0 +1,237 @@
+CREATE TABLE source_registrations (
+  source_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(source_id) > 0 AND instr(source_id, char(0)) = 0),
+  display_name TEXT,
+  availability TEXT NOT NULL CHECK(availability IN ('available', 'unavailable', 'unresolved'))
+);
+
+CREATE TABLE library_entries (
+  source_id TEXT NOT NULL COLLATE BINARY REFERENCES source_registrations(source_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  book_id TEXT NOT NULL COLLATE BINARY CHECK(length(book_id) > 0 AND instr(book_id, char(0)) = 0),
+  saved INTEGER NOT NULL DEFAULT 0 CHECK(saved IN (0, 1)),
+  metadata_state TEXT NOT NULL CHECK(metadata_state IN ('known', 'stub')),
+  title TEXT,
+  author TEXT,
+  description TEXT,
+  cover_asset_id TEXT COLLATE BINARY CHECK(cover_asset_id IS NULL OR (length(cover_asset_id) > 0 AND instr(cover_asset_id, char(0)) = 0)),
+  known_total_chapters INTEGER,
+  update_flag INTEGER CHECK(update_flag IS NULL OR update_flag IN (0, 1)),
+  PRIMARY KEY(source_id, book_id)
+);
+
+CREATE TABLE book_tags (
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+  tag TEXT NOT NULL,
+  PRIMARY KEY(source_id, book_id, ordinal),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE legacy_book_metadata (
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  legacy_source_name TEXT,
+  total_chapters INTEGER,
+  last_chapter INTEGER,
+  hits INTEGER,
+  cover_index INTEGER,
+  has_update INTEGER CHECK(has_update IS NULL OR has_update IN (0, 1)),
+  cover_reference TEXT,
+  publishing_house TEXT,
+  last_update TEXT,
+  is_completed INTEGER CHECK(is_completed IS NULL OR is_completed IN (0, 1)),
+  word_count_k INTEGER,
+  PRIMARY KEY(source_id, book_id),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE shelves (
+  shelf_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(shelf_id) > 0 AND instr(shelf_id, char(0)) = 0),
+  name TEXT NOT NULL,
+  ordinal INTEGER NOT NULL CHECK(ordinal >= 0)
+);
+
+CREATE TABLE shelf_members (
+  shelf_id TEXT NOT NULL COLLATE BINARY REFERENCES shelves(shelf_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+  PRIMARY KEY(shelf_id, source_id, book_id),
+  UNIQUE(shelf_id, ordinal),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE manual_groups (
+  group_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(group_id) > 0 AND instr(group_id, char(0)) = 0),
+  display_name TEXT
+);
+
+CREATE TABLE group_members (
+  group_id TEXT NOT NULL COLLATE BINARY REFERENCES manual_groups(group_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  PRIMARY KEY(group_id, source_id, book_id),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE split_overrides (
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  is_split INTEGER NOT NULL CHECK(is_split IN (0, 1)),
+  PRIMARY KEY(source_id, book_id),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE migration_datasets (
+  dataset_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(dataset_id) > 0 AND instr(dataset_id, char(0)) = 0)
+);
+
+CREATE TABLE migration_runs (
+  dataset_id TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  importer_version INTEGER NOT NULL CHECK(importer_version > 0),
+  input_digest TEXT NOT NULL CHECK(length(input_digest) = 64 AND input_digest NOT GLOB '*[^0-9a-f]*'),
+  mapping_version INTEGER NOT NULL CHECK(mapping_version > 0),
+  state TEXT NOT NULL CHECK(state IN ('pending', 'applying', 'verifying', 'complete', 'partial', 'failed')),
+  expected_units INTEGER NOT NULL DEFAULT 0 CHECK(expected_units >= 0),
+  verified_units INTEGER NOT NULL DEFAULT 0 CHECK(verified_units >= 0),
+  PRIMARY KEY(dataset_id, importer_version, input_digest)
+);
+
+CREATE TABLE record_receipts (
+  dataset_id TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  importer_version INTEGER NOT NULL CHECK(importer_version > 0),
+  entity_kind TEXT NOT NULL CHECK(entity_kind IN ('source', 'book', 'shelf', 'group', 'split', 'progress', 'readerPreferences', 'appPreferences', 'statistics', 'searchHistory', 'catalog')),
+  legacy_key TEXT NOT NULL COLLATE BINARY,
+  PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key)
+);
+
+CREATE TABLE record_outcomes (
+  dataset_id TEXT NOT NULL COLLATE BINARY,
+  importer_version INTEGER NOT NULL,
+  input_digest TEXT NOT NULL,
+  entity_kind TEXT NOT NULL,
+  legacy_key TEXT NOT NULL COLLATE BINARY,
+  outcome TEXT NOT NULL CHECK(outcome IN ('imported', 'unchanged', 'preserved-unresolved', 'deferred-preserved', 'intentionally-excluded', 'failed', 'conflict')),
+  diagnostic_code TEXT CHECK(diagnostic_code IS NULL OR diagnostic_code IN ('invalid-field', 'unknown-field', 'unsupported', 'missing-evidence', 'conflicting-evidence', 'verification-failed', 'secret-excluded')),
+  omitted_field_count INTEGER NOT NULL DEFAULT 0 CHECK(omitted_field_count >= 0),
+  PRIMARY KEY(dataset_id, importer_version, input_digest, entity_kind, legacy_key),
+  FOREIGN KEY(dataset_id, importer_version, input_digest) REFERENCES migration_runs(dataset_id, importer_version, input_digest) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key) REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+-- Finite allowlist of scalar evidence cells, not arbitrary JSON or backup storage.
+-- Candidate IDs retain separate conflicting alternatives. Arrays use ordinal;
+-- map_key carries an exact declared legacy map key, not a user-chosen field name.
+CREATE TABLE safe_legacy_values (
+  dataset_id TEXT NOT NULL COLLATE BINARY,
+  importer_version INTEGER NOT NULL,
+  entity_kind TEXT NOT NULL,
+  legacy_key TEXT NOT NULL COLLATE BINARY,
+  candidate_id TEXT NOT NULL COLLATE BINARY CHECK(length(candidate_id) > 0),
+  field TEXT NOT NULL CHECK(field IN (
+    'book.id', 'book.title', 'book.author', 'book.source', 'book.intro', 'book.tag',
+    'book.totalChapters', 'book.lastChapter', 'book.hits', 'book.coverIndex',
+    'book.hasUpdate', 'book.coverReference', 'book.publishingHouse', 'book.lastUpdate',
+    'book.isCompleted', 'book.wordCountK', 'book.saved', 'source.name', 'source.byIdName',
+    'source.preferred', 'shelf.id', 'shelf.name', 'shelf.ordinal', 'shelf.member',
+    'group.id', 'group.name', 'group.member', 'group.autoRename', 'split.bookId',
+    'progress.lastChapter', 'progress.bookLastChapter', 'progress.offset',
+    'progress.hasRead', 'progress.appleDate', 'progress.knownTotal', 'progress.updateFlag',
+    'reader.fontSize', 'reader.lineSpacing', 'reader.backgroundIndex', 'reader.mode',
+    'reader.fontFamily', 'reader.bold', 'reader.marginLeft', 'reader.marginRight',
+    'reader.marginTop', 'reader.marginBottom', 'app.theme', 'app.selectedShelf',
+    'app.accent', 'stats.dailySeconds', 'stats.dailyChapters', 'stats.bookSeconds',
+    'search.term', 'catalog.index', 'catalog.title', 'catalog.volume', 'catalog.remoteId')),
+  map_key TEXT NOT NULL DEFAULT '' COLLATE BINARY,
+  ordinal INTEGER NOT NULL DEFAULT 0 CHECK(ordinal >= 0),
+  value_type TEXT NOT NULL CHECK(value_type IN ('string', 'integer', 'number', 'boolean', 'null')),
+  text_value TEXT,
+  integer_value INTEGER,
+  number_value REAL CHECK(number_value IS NULL OR (number_value - number_value) IS NOT NULL),
+  boolean_value INTEGER CHECK(boolean_value IS NULL OR boolean_value IN (0, 1)),
+  PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, candidate_id, field, map_key, ordinal),
+  FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key) REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CHECK((value_type = 'string' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)
+    OR (value_type = 'integer' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)
+    OR (value_type = 'number' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NOT NULL AND boolean_value IS NULL)
+    OR (value_type = 'boolean' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NOT NULL)
+    OR (value_type = 'null' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL))
+);
+
+CREATE TABLE legacy_identity_mappings (
+  mapping_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(mapping_id) > 0),
+  dataset_id TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  entity_kind TEXT NOT NULL CHECK(entity_kind IN ('source', 'book', 'shelf', 'group')),
+  legacy_key TEXT NOT NULL COLLATE BINARY,
+  mapping_version INTEGER NOT NULL CHECK(mapping_version > 0),
+  resolution TEXT NOT NULL CHECK(resolution IN ('unresolved', 'resolved', 'conflict')),
+  source_by_id_name TEXT,
+  book_source_name TEXT,
+  target_source_id TEXT COLLATE BINARY REFERENCES source_registrations(source_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  target_book_id TEXT COLLATE BINARY,
+  target_shelf_id TEXT COLLATE BINARY REFERENCES shelves(shelf_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  target_group_id TEXT COLLATE BINARY REFERENCES manual_groups(group_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  UNIQUE(dataset_id, entity_kind, legacy_key, mapping_version),
+  FOREIGN KEY(target_source_id, target_book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CHECK(target_book_id IS NULL OR target_source_id IS NOT NULL),
+  CHECK(resolution != 'resolved' OR
+    (entity_kind = 'source' AND target_source_id IS NOT NULL) OR
+    (entity_kind = 'book' AND target_source_id IS NOT NULL AND target_book_id IS NOT NULL) OR
+    (entity_kind = 'shelf' AND target_shelf_id IS NOT NULL) OR
+    (entity_kind = 'group' AND target_group_id IS NOT NULL))
+);
+
+CREATE TABLE legacy_chapter_locators (
+  locator_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(locator_id) > 0),
+  version INTEGER NOT NULL DEFAULT 1 CHECK(version = 1),
+  dataset_id TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  legacy_book_id TEXT NOT NULL COLLATE BINARY CHECK(length(legacy_book_id) > 0),
+  chapter_index INTEGER NOT NULL CHECK(chapter_index >= 0),
+  raw_offset_key TEXT,
+  fraction REAL CHECK(fraction IS NULL OR fraction BETWEEN 0 AND 1),
+  remote_id_evidence TEXT,
+  chapter_title_evidence TEXT,
+  volume_title_evidence TEXT,
+  catalog_digest TEXT,
+  UNIQUE(source_id, book_id, locator_id),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE reading_progress (
+  source_id TEXT NOT NULL COLLATE BINARY,
+  book_id TEXT NOT NULL COLLATE BINARY,
+  version INTEGER NOT NULL DEFAULT 1 CHECK(version = 1),
+  has_read INTEGER NOT NULL CHECK(has_read IN (0, 1)),
+  chapter_id TEXT COLLATE BINARY CHECK(chapter_id IS NULL OR (length(chapter_id) > 0 AND instr(chapter_id, char(0)) = 0)),
+  legacy_locator_id TEXT COLLATE BINARY,
+  last_read_at TEXT CHECK(last_read_at IS NULL OR (last_read_at GLOB '????-??-??T??:??:??.*Z' AND julianday(last_read_at) IS NOT NULL)),
+  PRIMARY KEY(source_id, book_id),
+  FOREIGN KEY(source_id, book_id) REFERENCES library_entries(source_id, book_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  FOREIGN KEY(source_id, book_id, legacy_locator_id) REFERENCES legacy_chapter_locators(source_id, book_id, locator_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE reader_preferences (
+  singleton INTEGER NOT NULL PRIMARY KEY CHECK(singleton = 1),
+  version INTEGER NOT NULL DEFAULT 1 CHECK(version = 1),
+  font_size REAL NOT NULL DEFAULT 22 CHECK(font_size > 0 AND (font_size - font_size) IS NOT NULL),
+  line_spacing REAL NOT NULL DEFAULT 8 CHECK(line_spacing >= 0 AND (line_spacing - line_spacing) IS NOT NULL),
+  background TEXT NOT NULL DEFAULT 'paperWhite' CHECK(background IN ('paperWhite', 'parchment', 'darkGray', 'black', 'eyeCare')),
+  mode TEXT NOT NULL DEFAULT 'pageCurl' CHECK(mode IN ('pageCurl', 'scroll')),
+  font_family TEXT NOT NULL DEFAULT 'kaiti' CHECK(font_family IN ('system', 'songti', 'kaiti', 'yuanti')),
+  bold INTEGER NOT NULL DEFAULT 0 CHECK(bold IN (0, 1)),
+  margin_left REAL NOT NULL DEFAULT 35 CHECK(margin_left >= 0 AND (margin_left - margin_left) IS NOT NULL),
+  margin_right REAL NOT NULL DEFAULT 35 CHECK(margin_right >= 0 AND (margin_right - margin_right) IS NOT NULL),
+  margin_top REAL NOT NULL DEFAULT 72 CHECK(margin_top >= 0 AND (margin_top - margin_top) IS NOT NULL),
+  margin_bottom REAL NOT NULL DEFAULT 24 CHECK(margin_bottom >= 0 AND (margin_bottom - margin_bottom) IS NOT NULL)
+);
+
+CREATE TABLE app_preferences (
+  singleton INTEGER NOT NULL PRIMARY KEY CHECK(singleton = 1),
+  version INTEGER NOT NULL DEFAULT 1 CHECK(version = 1),
+  theme TEXT NOT NULL CHECK(theme IN ('system', 'light', 'dark')),
+  preferred_source_id TEXT COLLATE BINARY REFERENCES source_registrations(source_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  selected_shelf_id TEXT COLLATE BINARY REFERENCES shelves(shelf_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  accent TEXT CHECK(accent IS NULL OR accent IN ('purple', 'blue', 'teal', 'pink', 'orange', 'red'))
+);
