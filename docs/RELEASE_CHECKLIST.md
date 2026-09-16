@@ -1,13 +1,15 @@
 # Cross-Platform Release Checklist
 
-A release claiming iOS, Android, and Windows support is not ready until all required cells are explicitly resolved.
+A release claiming iOS, Android, and Windows support can be APPROVED only when every required checklist cell is PASS, justified NOT APPLICABLE, or explicitly allowed WAIVED.
 
 Allowed statuses:
 
 - PASS
 - FAIL
 - NOT APPLICABLE (must include reason)
-- WAIVED (must include owner/reason/follow-up; not allowed for data-loss/security blockers)
+- WAIVED (must include owner/reason/follow-up; never allowed for any blocker in section 7)
+
+FAIL, blank, or unverified required cells cannot produce APPROVED. Recording a result alone does not satisfy release approval, and the blockers in section 7 remain non-waivable.
 
 ## 1. Build and launch matrix
 

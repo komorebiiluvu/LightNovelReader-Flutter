@@ -15,7 +15,9 @@ Use:
 - constrained JavaScript/script runtime
 - optional future declarative rules
 
-The host is Dart; runtime implementation may use a platform adapter when needed.
+The first-party plugin host and runtime integration are Dart. A third-party Flutter runtime package may contain native internals only when its Dart API and required functionality support iOS, Android, and Windows. This does not authorize a project-owned native plugin host or other native product implementation.
+
+Runtime choices remain subject to the Constitution. An ADR cannot override it; changing a Constitution-level rule requires explicit human approval and synchronized governance updates under `docs/GOVERNANCE.md`.
 
 ## 3. Package
 

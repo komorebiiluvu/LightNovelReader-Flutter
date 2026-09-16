@@ -40,6 +40,8 @@ An ADR is required when changing any of the following:
 
 Agents may propose such changes but must not adopt them silently.
 
+An ADR cannot override the Constitution. Changing a Constitution-level rule requires explicit human approval and synchronized updates to the Constitution, ADR, and all affected governance documents in the same change. An accepted ADR alone does not authorize first-party native product implementations forbidden by the Constitution.
+
 ## 3. Required synchronization
 
 When a change modifies a contract or architecture boundary, update all affected normative documents in the same change.

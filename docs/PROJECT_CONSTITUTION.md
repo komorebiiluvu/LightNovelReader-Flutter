@@ -370,15 +370,18 @@ Required before F2:
 - iOS, Android, Windows targets are generated/configured
 - dependency support matrix exists for required F1 packages
 - format/analyze/test baseline passes
-- each target has an explicit build status; unavailable local toolchains are backed by CI/another environment before F1 exit
+- CI baseline is established for format/analyze/test and platform builds on appropriate runners
+- successful build evidence exists for each of iOS, Android, and Windows, identifying the tested revision and toolchain; unavailable local toolchains are backed by CI/another environment before F1 exit
 - logging/error/bootstrap/routing/state foundation is documented
 - no core feature implementation has introduced platform-specific business forks
+
+A recorded failed, blank, or unverified build status does not satisfy F1 exit. On Windows, iOS remains **Validation Pending — requires macOS** until it is actually built successfully on macOS. F1 implementation may proceed, but final exit cannot be approved until all three target build results pass.
 
 ### F2 — Domain + Persistence exit
 
 Required before F3:
 
-- source-aware opaque identity contract accepted
+- source-aware opaque identity and persistence serialization contracts accepted; rules required by persistence must be finalized before dependent F2 implementation
 - ordered content model accepted
 - structured persistence schema/versioning accepted
 - migration/import commitment documented
@@ -445,6 +448,7 @@ Required before F9:
 
 Required before F10:
 
+- Plugin API v1 manifest, host API, and output schema were frozen before F9 production plugin host implementation
 - runtime supports iOS/Android/Windows
 - permissions, termination, validation, and resource limits are specified
 - malformed/hostile plugin tests demonstrate isolation

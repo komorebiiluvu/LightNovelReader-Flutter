@@ -93,6 +93,7 @@ Establish:
 - error/logging primitives
 - default test
 - iOS/Android/Windows project targets
+- CI baseline from `docs/BUILD.md`: format, analyze, and tests, with platform builds on appropriate runners
 
 Do not pre-create dozens of empty files.
 
@@ -111,6 +112,8 @@ Record:
 - Android build result where Android toolchain exists
 - Windows build result where Windows toolchain exists
 - unresolved tooling blockers
+
+F1 exit requires successful build evidence for iOS, Android, and Windows. A failed or merely recorded build status is insufficient. On Windows, record iOS as **Validation Pending — requires macOS** until an actual macOS build passes. F1 implementation may proceed while that evidence is pending, but final F1 exit cannot be approved.
 
 ## Stop
 

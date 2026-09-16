@@ -7,7 +7,7 @@ This document identifies decisions that may remain open during F1 but must be fi
 | Cross-platform dependency support matrix | F1 implementation dependencies are added | iOS/Android/Windows support, maintenance, fallback |
 | Persistent database/package choice | F2 | target support, migration/versioning strategy |
 | Legacy iOS import commitment | F2 migration implementation | which assets are imported and failure semantics |
-| Source identity/model v1 | F2/F3 boundary | opaque IDs, source-aware references, serialization |
+| Source identity/model v1 | before dependent F2 persistence implementation; accepted by F2 exit | opaque IDs, source-aware references, persistence serialization rules |
 | Source capability and unsupported-operation semantics | F3 | capability declaration, call behavior, structured failure |
 | Source transport/session contract | F3 | headers, cookies, redirect, retry, cancellation, diagnostics |
 | Reader logical position/anchor model | F4 | cross-renderer position, restore, content/layout changes |
@@ -17,6 +17,7 @@ This document identifies decisions that may remain open during F1 but must be fi
 | Download/offline completeness contract | F6 | required assets, partial/failure state, restart semantics |
 | Export completeness/error policy | F7 | missing chapter/image behavior and user-visible result |
 | Second-source neutrality acceptance | F8 | criteria proving no Wenku8-specific core branching |
+| Plugin API v1 | before F9 production plugin host implementation | frozen manifest, host API, and output schema |
 | Plugin runtime technology | F9 | iOS/Android/Windows support, sandbox feasibility |
 | Plugin execution/resource quotas | F9 | timeout/termination, output validation, resource limits |
 | Plugin permission-upgrade semantics | F9 | install/update permission behavior |

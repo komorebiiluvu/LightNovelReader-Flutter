@@ -48,8 +48,10 @@ Cover:
 - source switch/isolation
 - plugin -> normalized Source models
 
-### Native iOS tests
-Only for native adapters where Dart tests cannot exercise the underlying state machine.
+### Platform integration validation
+Use Flutter integration tests and platform build/run checks on iOS, Android, and Windows for behavior that unit/widget tests cannot exercise, including generated runners and approved third-party package integrations.
+
+Third-party native internals do not authorize first-party native product implementations. This validation category remains subject to the Constitution and the change-authority rules in `docs/GOVERNANCE.md`.
 
 ### Real-device regression
 Required for:

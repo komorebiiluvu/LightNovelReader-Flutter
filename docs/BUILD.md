@@ -83,6 +83,43 @@ Platform jobs:
 
 Do not require one OS runner to prove another OS build.
 
+### F1 workflow
+
+`.github/workflows/flutter.yml` runs on push, pull request, or manual dispatch.
+It pins Flutter in `FLUTTER_VERSION`, restores the committed `pubspec.lock` with
+`flutter pub get --enforce-lockfile`, and uses four independent jobs:
+
+| Check | Runner | Command |
+| --- | --- | --- |
+| Common quality | `ubuntu-24.04` | format check, analyze, unit/widget tests |
+| Android debug | `ubuntu-24.04`, Temurin JDK 21, hosted Android SDK | `flutter build apk --debug --no-pub` |
+| Windows debug | `windows-2025`, hosted Visual Studio desktop tools | `flutter build windows --debug --no-pub` |
+| iOS debug unsigned | `macos-15`, hosted Xcode | `flutter build ios --debug --no-codesign --no-pub` |
+
+The workflow uses the official Flutter Git repository and GitHub's
+[checkout](https://github.com/actions/checkout) and
+[setup-java](https://github.com/actions/setup-java) actions. PowerShell steps run
+one native command each, or explicitly check its exit code, so an earlier failure
+cannot be hidden by a later successful command. Each job records SDK versions and
+`flutter doctor -v`; runner image contents can change between runs.
+
+Reproduce the common CI gate using the pinned SDK:
+
+```bash
+flutter pub get --enforce-lockfile
+dart format --output=none --set-exit-if-changed .
+flutter analyze --no-pub
+flutter test --no-pub
+```
+
+Run each platform build on the corresponding host with its toolchain. CI only
+checks unsigned/debug builds; it does not sign, deploy, or establish device-level
+behavior or release readiness. A workflow file is implementation, not execution
+evidence. Record actual run links/results against the validated commit in
+`docs/FLUTTER_BASELINE.md`. iOS remains **Validation Pending — requires macOS**
+until a macOS build succeeds; F1 exit also requires successful Android and Windows
+build evidence and human approval.
+
 ## 9. Generated platform code
 
 `ios/`, `android/`, `windows/` may contain Flutter-generated build/bootstrap code.

@@ -1,30 +1,52 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:light_novel_reader/main.dart';
+import 'package:light_novel_reader/src/app/app.dart';
+import 'package:light_novel_reader/src/app/app_providers.dart';
+import 'package:light_novel_reader/src/app/home_screen.dart';
+import 'package:light_novel_reader/src/core/app_logger.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Home renders through the root scope and router', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: LightNovelReaderApp()));
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('LightNovelReader'), findsOneWidget);
+    expect(find.text('Welcome to LightNovelReader.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('Unknown route uses overridden diagnostics and returns home', (
+    tester,
+  ) async {
+    final records = <String>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appLoggerProvider.overrideWithValue(AppLogger(write: records.add)),
+        ],
+        child: const LightNovelReaderApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    // External route data must never be echoed to diagnostics.
+    navigator.pushNamed<void>('/missing?token=private');
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(
+      ModalRoute.of(tester.element(find.byType(HomeScreen)))!.settings.name,
+      '/',
+    );
+    expect(records, hasLength(1));
+    expect(jsonDecode(records.single)['errorCode'], 'route_not_found');
+    expect(records.single, isNot(contains('private')));
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(navigator.canPop(), isFalse);
+    expect(tester.takeException(), isNull);
   });
 }

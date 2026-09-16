@@ -1,0 +1,94 @@
+name: Flutter foundation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.4'
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  validate:
+    name: ${{ matrix.check }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: Quality
+            runner: ubuntu-24.04
+          - check: Android debug
+            runner: ubuntu-24.04
+          - check: Windows debug
+            runner: windows-2025
+          - check: iOS debug unsigned
+            runner: macos-15
+    steps:
+      - name: Check out application
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Android JDK
+        if: matrix.check == 'Android debug'
+        uses: actions/setup-java@v5.6.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install pinned Flutter SDK
+        run: |
+          $flutterSdk = Join-Path $env:RUNNER_TEMP 'flutter-sdk'
+          git clone --depth 1 --branch $env:FLUTTER_VERSION https://github.com/flutter/flutter.git $flutterSdk
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value (Join-Path $flutterSdk 'bin')
+
+      - name: Record Flutter and Dart versions
+        run: flutter --version
+
+      - name: Use configured Android JDK
+        if: matrix.check == 'Android debug'
+        run: flutter config --jdk-dir="$env:JAVA_HOME"
+
+      - name: Enable Windows desktop
+        if: matrix.check == 'Windows debug'
+        run: flutter config --enable-windows-desktop
+
+      - name: Record runner toolchains
+        run: flutter doctor -v
+
+      - name: Restore locked dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Check formatting
+        if: matrix.check == 'Quality'
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        if: matrix.check == 'Quality'
+        run: flutter analyze --no-pub
+
+      - name: Unit and widget tests
+        if: matrix.check == 'Quality'
+        run: flutter test --no-pub
+
+      - name: Build Android debug APK
+        if: matrix.check == 'Android debug'
+        run: flutter build apk --debug --no-pub
+
+      - name: Build Windows debug
+        if: matrix.check == 'Windows debug'
+        run: flutter build windows --debug --no-pub
+
+      - name: Build iOS debug without signing
+        if: matrix.check == 'iOS debug unsigned'
+        run: flutter build ios --debug --no-codesign --no-pub

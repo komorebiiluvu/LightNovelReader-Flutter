@@ -186,9 +186,11 @@ This makes the effect testable without three native implementations.
 
 ## 12. Platform integration
 
-Platform folders contain only what Flutter/platform build systems require plus narrowly approved OS integration.
+Platform folders contain Flutter-generated runner/bootstrap code and required build configuration. OS integrations must use compliant cross-platform Flutter packages through Dart APIs.
 
-No first-party core feature may depend on custom platform-channel code unless an ADR explicitly changes this policy.
+Third-party packages may contain native internals only when their Dart API and required functionality support iOS, Android, and Windows. Those internals do not authorize project-owned native product implementations or custom platform-channel core feature implementations.
+
+An ADR cannot override the Constitution. Changing a Constitution-level rule requires explicit human approval and synchronized governance updates as defined in `docs/GOVERNANCE.md`.
 
 ## 13. Packages
 
