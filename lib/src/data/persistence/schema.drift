@@ -128,6 +128,7 @@ CREATE TABLE safe_legacy_values (
   entity_kind TEXT NOT NULL,
   legacy_key TEXT NOT NULL COLLATE BINARY,
   candidate_id TEXT NOT NULL COLLATE BINARY CHECK(length(candidate_id) > 0),
+  purpose TEXT NOT NULL DEFAULT 'unresolved-evidence' CHECK(purpose IN ('accepted-baseline', 'unresolved-evidence', 'conflict-candidate')),
   field TEXT NOT NULL CHECK(field IN (
     'book.id', 'book.title', 'book.author', 'book.source', 'book.intro', 'book.tag',
     'book.totalChapters', 'book.lastChapter', 'book.hits', 'book.coverIndex',
@@ -149,7 +150,7 @@ CREATE TABLE safe_legacy_values (
   integer_value INTEGER,
   number_value REAL CHECK(number_value IS NULL OR (number_value - number_value) IS NOT NULL),
   boolean_value INTEGER CHECK(boolean_value IS NULL OR boolean_value IN (0, 1)),
-  PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, candidate_id, field, map_key, ordinal),
+  PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, purpose, candidate_id, field, map_key, ordinal),
   FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key) REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CHECK((value_type = 'string' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)
     OR (value_type = 'integer' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)

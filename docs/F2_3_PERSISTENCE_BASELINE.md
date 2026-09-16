@@ -1,6 +1,6 @@
 # F2.3 Persistence Baseline
 
-Status: IMPLEMENTED — VALIDATION PENDING
+Status: IMPLEMENTED — REVIEW / VALIDATION PENDING
 
 This document records observed F2.3 implementation and validation evidence. It
 does not approve F2.3 and does not start F2.4.
@@ -8,6 +8,8 @@ does not approve F2.3 and does not start F2.4.
 ## Scope and starting point
 
 - Starting commit: `83757cc3571b4f7f63fc80eecdebc504def7c045`.
+- Current implementation commit under review: `1aecee148002ae1969cd03dab5e781f222ca60b4`.
+- Review-fix commit: pending.
 - Branch at entry: `main`; `origin/main` matched the starting commit.
 - Legacy reference inspected by the preceding F2 work: `d90d4d090c85a0a9c374684696c34befe12636d1`.
 - F2.3 boundary: Drift/SQLite connection lifecycle, schema v1, migration
@@ -34,6 +36,17 @@ are surfaced; there is no reset, delete-and-recreate, or in-memory fallback.
 The transitive `jni` FFI plugin is registered by Flutter's generated Windows
 plugin file as part of the current package graph. No project-owned native
 business or persistence code was added.
+
+## Architecture review correction
+
+The accepted migration contract requires a typed accepted legacy baseline to be
+kept separately from unresolved evidence and conflict alternatives. Schema v1
+now gives `safe_legacy_values` the constrained `purpose` values
+`accepted-baseline`, `unresolved-evidence`, and `conflict-candidate`, and
+includes that discriminator in the primary key. This is the smallest change
+needed to preserve a previous accepted value when the current application value
+and a new legacy value differ. The allowlisted typed value columns and secret
+exclusions are unchanged.
 
 ## Schema v1 evidence
 
@@ -74,13 +87,20 @@ Observed on the Windows development host:
 
 - `flutter pub get --enforce-lockfile`: PASS.
 - `dart format --set-exit-if-changed .`: PASS.
-- `flutter analyze --no-pub`: PASS.
-- `flutter test --no-pub`: PASS, 99 tests.
+- `flutter analyze`: PASS.
+- `flutter test`: PASS, 100 tests.
 - Drift generation, schema dump/generation, and clean second-generation check:
   PASS using `tool/verify_generated.ps1` and the supported JIT build-runner mode.
 - `git diff --check`: PASS before commit.
 - `flutter build windows --debug --no-pub`: PASS.
-- `flutter build apk --debug --no-pub`: PASS.
+- `flutter build apk --debug --no-pub`: PASS with an ASCII `PUB_CACHE` root.
+  With the default cache under the Unicode Windows user path, the transitive
+  `jni` CMake build fails in its ANSI file lookup; this is a host path/tooling
+  limitation, not an application or schema failure.
+- Exact AOT command `dart run build_runner build --delete-conflicting-outputs`:
+  fails on this Windows host while reading the build script's temporary
+  `program.dill`; the supported `--force-jit` generation path passes and is the
+  path used by `tool/verify_generated.ps1`.
 
 The database tests cover clean creation, schema snapshot verification,
 composite opaque identity, foreign-key restrictions, transaction rollback,
@@ -110,7 +130,20 @@ Android emulator smoke, and iOS simulator smoke. The Android emulator action is
 pinned to immutable commit
 `a421e43855164a8197daf9d8d40fe71c6996bb0d`.
 
-Remote CI results must be recorded only after they are observed for the pushed
-commit. Until Android and iOS device/simulator execution is observed, the
-overall F2.3 status remains **IMPLEMENTED — VALIDATION PENDING**. Human F2.3
-schema review and approval are still required; F2.4 is **NOT STARTED**.
+Observed run: [GitHub Actions run 35110324488](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35110324488) for implementation commit
+`1aecee148002ae1969cd03dab5e781f222ca60b4`.
+
+| Check | Observed result |
+| --- | --- |
+| Quality | PASS |
+| Windows debug build | PASS |
+| Windows packaged storage smoke | PASS |
+| Android debug build | PASS |
+| Android packaged storage smoke | FAIL — emulator did not boot because the runner reported insufficient disk space; the smoke test did not execute |
+| iOS debug unsigned build | PASS |
+| iOS simulator packaged storage smoke | PASS |
+
+The review fix sets the emulator data disk to `1024M` to address the reported
+runner resource failure. A new run is required before Android smoke can be
+called PASS. Human F2.3 schema review and exit approval are still required;
+F2.4 is **NOT STARTED**.

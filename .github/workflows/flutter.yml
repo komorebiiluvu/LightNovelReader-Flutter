@@ -113,6 +113,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
+          disk-size: '1024M'
           disable-animations: true
           script: flutter test integration_test/storage_smoke_test.dart -d emulator-5554 --no-pub
 

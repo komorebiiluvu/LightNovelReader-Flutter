@@ -5059,6 +5059,18 @@ class SafeLegacyValues extends Table
     $customConstraints:
         'NOT NULL COLLATE BINARY CHECK (length(candidate_id) > 0)',
   );
+  static const VerificationMeta _purposeMeta = const VerificationMeta(
+    'purpose',
+  );
+  late final GeneratedColumn<String> purpose = GeneratedColumn<String>(
+    'purpose',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT \'unresolved-evidence\' CHECK (purpose IN (\'accepted-baseline\', \'unresolved-evidence\', \'conflict-candidate\'))',
+    defaultValue: const CustomExpression('\'unresolved-evidence\''),
+  );
   static const VerificationMeta _fieldMeta = const VerificationMeta('field');
   late final GeneratedColumn<String> field = GeneratedColumn<String>(
     'field',
@@ -5153,6 +5165,7 @@ class SafeLegacyValues extends Table
     entityKind,
     legacyKey,
     candidateId,
+    purpose,
     field,
     mapKey,
     ordinal,
@@ -5219,6 +5232,12 @@ class SafeLegacyValues extends Table
       );
     } else if (isInserting) {
       context.missing(_candidateIdMeta);
+    }
+    if (data.containsKey('purpose')) {
+      context.handle(
+        _purposeMeta,
+        purpose.isAcceptableOrUnknown(data['purpose']!, _purposeMeta),
+      );
     }
     if (data.containsKey('field')) {
       context.handle(
@@ -5290,6 +5309,7 @@ class SafeLegacyValues extends Table
     importerVersion,
     entityKind,
     legacyKey,
+    purpose,
     candidateId,
     field,
     mapKey,
@@ -5318,6 +5338,10 @@ class SafeLegacyValues extends Table
       candidateId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}candidate_id'],
+      )!,
+      purpose: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}purpose'],
       )!,
       field: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -5361,7 +5385,7 @@ class SafeLegacyValues extends Table
 
   @override
   List<String> get customConstraints => const [
-    'PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, candidate_id, field, map_key, ordinal)',
+    'PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, purpose, candidate_id, field, map_key, ordinal)',
     'FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key)REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key)ON UPDATE RESTRICT ON DELETE RESTRICT',
     'CHECK((value_type = \'string\' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = \'integer\' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = \'number\' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NOT NULL AND boolean_value IS NULL)OR(value_type = \'boolean\' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NOT NULL)OR(value_type = \'null\' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL))',
   ];
@@ -5375,6 +5399,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
   final String entityKind;
   final String legacyKey;
   final String candidateId;
+  final String purpose;
   final String field;
   final String mapKey;
   final int ordinal;
@@ -5389,6 +5414,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
     required this.entityKind,
     required this.legacyKey,
     required this.candidateId,
+    required this.purpose,
     required this.field,
     required this.mapKey,
     required this.ordinal,
@@ -5406,6 +5432,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
     map['entity_kind'] = Variable<String>(entityKind);
     map['legacy_key'] = Variable<String>(legacyKey);
     map['candidate_id'] = Variable<String>(candidateId);
+    map['purpose'] = Variable<String>(purpose);
     map['field'] = Variable<String>(field);
     map['map_key'] = Variable<String>(mapKey);
     map['ordinal'] = Variable<int>(ordinal);
@@ -5432,6 +5459,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
       entityKind: Value(entityKind),
       legacyKey: Value(legacyKey),
       candidateId: Value(candidateId),
+      purpose: Value(purpose),
       field: Value(field),
       mapKey: Value(mapKey),
       ordinal: Value(ordinal),
@@ -5462,6 +5490,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
       entityKind: serializer.fromJson<String>(json['entity_kind']),
       legacyKey: serializer.fromJson<String>(json['legacy_key']),
       candidateId: serializer.fromJson<String>(json['candidate_id']),
+      purpose: serializer.fromJson<String>(json['purpose']),
       field: serializer.fromJson<String>(json['field']),
       mapKey: serializer.fromJson<String>(json['map_key']),
       ordinal: serializer.fromJson<int>(json['ordinal']),
@@ -5481,6 +5510,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
       'entity_kind': serializer.toJson<String>(entityKind),
       'legacy_key': serializer.toJson<String>(legacyKey),
       'candidate_id': serializer.toJson<String>(candidateId),
+      'purpose': serializer.toJson<String>(purpose),
       'field': serializer.toJson<String>(field),
       'map_key': serializer.toJson<String>(mapKey),
       'ordinal': serializer.toJson<int>(ordinal),
@@ -5498,6 +5528,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
     String? entityKind,
     String? legacyKey,
     String? candidateId,
+    String? purpose,
     String? field,
     String? mapKey,
     int? ordinal,
@@ -5512,6 +5543,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
     entityKind: entityKind ?? this.entityKind,
     legacyKey: legacyKey ?? this.legacyKey,
     candidateId: candidateId ?? this.candidateId,
+    purpose: purpose ?? this.purpose,
     field: field ?? this.field,
     mapKey: mapKey ?? this.mapKey,
     ordinal: ordinal ?? this.ordinal,
@@ -5534,6 +5566,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
       candidateId: data.candidateId.present
           ? data.candidateId.value
           : this.candidateId,
+      purpose: data.purpose.present ? data.purpose.value : this.purpose,
       field: data.field.present ? data.field.value : this.field,
       mapKey: data.mapKey.present ? data.mapKey.value : this.mapKey,
       ordinal: data.ordinal.present ? data.ordinal.value : this.ordinal,
@@ -5559,6 +5592,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
           ..write('entityKind: $entityKind, ')
           ..write('legacyKey: $legacyKey, ')
           ..write('candidateId: $candidateId, ')
+          ..write('purpose: $purpose, ')
           ..write('field: $field, ')
           ..write('mapKey: $mapKey, ')
           ..write('ordinal: $ordinal, ')
@@ -5578,6 +5612,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
     entityKind,
     legacyKey,
     candidateId,
+    purpose,
     field,
     mapKey,
     ordinal,
@@ -5596,6 +5631,7 @@ class SafeLegacyValue extends DataClass implements Insertable<SafeLegacyValue> {
           other.entityKind == this.entityKind &&
           other.legacyKey == this.legacyKey &&
           other.candidateId == this.candidateId &&
+          other.purpose == this.purpose &&
           other.field == this.field &&
           other.mapKey == this.mapKey &&
           other.ordinal == this.ordinal &&
@@ -5612,6 +5648,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
   final Value<String> entityKind;
   final Value<String> legacyKey;
   final Value<String> candidateId;
+  final Value<String> purpose;
   final Value<String> field;
   final Value<String> mapKey;
   final Value<int> ordinal;
@@ -5627,6 +5664,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
     this.entityKind = const Value.absent(),
     this.legacyKey = const Value.absent(),
     this.candidateId = const Value.absent(),
+    this.purpose = const Value.absent(),
     this.field = const Value.absent(),
     this.mapKey = const Value.absent(),
     this.ordinal = const Value.absent(),
@@ -5643,6 +5681,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
     required String entityKind,
     required String legacyKey,
     required String candidateId,
+    this.purpose = const Value.absent(),
     required String field,
     this.mapKey = const Value.absent(),
     this.ordinal = const Value.absent(),
@@ -5665,6 +5704,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
     Expression<String>? entityKind,
     Expression<String>? legacyKey,
     Expression<String>? candidateId,
+    Expression<String>? purpose,
     Expression<String>? field,
     Expression<String>? mapKey,
     Expression<int>? ordinal,
@@ -5681,6 +5721,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
       if (entityKind != null) 'entity_kind': entityKind,
       if (legacyKey != null) 'legacy_key': legacyKey,
       if (candidateId != null) 'candidate_id': candidateId,
+      if (purpose != null) 'purpose': purpose,
       if (field != null) 'field': field,
       if (mapKey != null) 'map_key': mapKey,
       if (ordinal != null) 'ordinal': ordinal,
@@ -5699,6 +5740,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
     Value<String>? entityKind,
     Value<String>? legacyKey,
     Value<String>? candidateId,
+    Value<String>? purpose,
     Value<String>? field,
     Value<String>? mapKey,
     Value<int>? ordinal,
@@ -5715,6 +5757,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
       entityKind: entityKind ?? this.entityKind,
       legacyKey: legacyKey ?? this.legacyKey,
       candidateId: candidateId ?? this.candidateId,
+      purpose: purpose ?? this.purpose,
       field: field ?? this.field,
       mapKey: mapKey ?? this.mapKey,
       ordinal: ordinal ?? this.ordinal,
@@ -5744,6 +5787,9 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
     }
     if (candidateId.present) {
       map['candidate_id'] = Variable<String>(candidateId.value);
+    }
+    if (purpose.present) {
+      map['purpose'] = Variable<String>(purpose.value);
     }
     if (field.present) {
       map['field'] = Variable<String>(field.value);
@@ -5783,6 +5829,7 @@ class SafeLegacyValuesCompanion extends UpdateCompanion<SafeLegacyValue> {
           ..write('entityKind: $entityKind, ')
           ..write('legacyKey: $legacyKey, ')
           ..write('candidateId: $candidateId, ')
+          ..write('purpose: $purpose, ')
           ..write('field: $field, ')
           ..write('mapKey: $mapKey, ')
           ..write('ordinal: $ordinal, ')

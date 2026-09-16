@@ -1066,6 +1066,16 @@
             "dsl_features": []
           },
           {
+            "name": "purpose",
+            "getter_name": "purpose",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 'unresolved-evidence' CHECK (purpose IN ('accepted-baseline', 'unresolved-evidence', 'conflict-candidate'))",
+            "default_dart": "const CustomExpression('\\'unresolved-evidence\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
             "name": "field",
             "getter_name": "field",
             "moor_type": "string",
@@ -1149,7 +1159,7 @@
         "is_virtual": false,
         "without_rowid": false,
         "constraints": [
-          "PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, candidate_id, field, map_key, ordinal)",
+          "PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, purpose, candidate_id, field, map_key, ordinal)",
           "FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key)REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key)ON UPDATE RESTRICT ON DELETE RESTRICT",
           "CHECK((value_type = 'string' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = 'integer' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = 'number' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NOT NULL AND boolean_value IS NULL)OR(value_type = 'boolean' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NOT NULL)OR(value_type = 'null' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL))"
         ],
@@ -1158,6 +1168,7 @@
           "importer_version",
           "entity_kind",
           "legacy_key",
+          "purpose",
           "candidate_id",
           "field",
           "map_key",
@@ -1997,7 +2008,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"safe_legacy_values\" (\"dataset_id\" TEXT NOT NULL COLLATE BINARY, \"importer_version\" INTEGER NOT NULL, \"entity_kind\" TEXT NOT NULL, \"legacy_key\" TEXT NOT NULL COLLATE BINARY, \"candidate_id\" TEXT NOT NULL COLLATE BINARY CHECK (length(candidate_id) > 0), \"field\" TEXT NOT NULL CHECK (field IN ('book.id', 'book.title', 'book.author', 'book.source', 'book.intro', 'book.tag', 'book.totalChapters', 'book.lastChapter', 'book.hits', 'book.coverIndex', 'book.hasUpdate', 'book.coverReference', 'book.publishingHouse', 'book.lastUpdate', 'book.isCompleted', 'book.wordCountK', 'book.saved', 'source.name', 'source.byIdName', 'source.preferred', 'shelf.id', 'shelf.name', 'shelf.ordinal', 'shelf.member', 'group.id', 'group.name', 'group.member', 'group.autoRename', 'split.bookId', 'progress.lastChapter', 'progress.bookLastChapter', 'progress.offset', 'progress.hasRead', 'progress.appleDate', 'progress.knownTotal', 'progress.updateFlag', 'reader.fontSize', 'reader.lineSpacing', 'reader.backgroundIndex', 'reader.mode', 'reader.fontFamily', 'reader.bold', 'reader.marginLeft', 'reader.marginRight', 'reader.marginTop', 'reader.marginBottom', 'app.theme', 'app.selectedShelf', 'app.accent', 'stats.dailySeconds', 'stats.dailyChapters', 'stats.bookSeconds', 'search.term', 'catalog.index', 'catalog.title', 'catalog.volume', 'catalog.remoteId')), \"map_key\" TEXT NOT NULL DEFAULT '' COLLATE BINARY, \"ordinal\" INTEGER NOT NULL DEFAULT 0 CHECK (ordinal >= 0), \"value_type\" TEXT NOT NULL CHECK (value_type IN ('string', 'integer', 'number', 'boolean', 'null')), \"text_value\" TEXT, \"integer_value\" INTEGER, \"number_value\" REAL CHECK (number_value IS NULL OR(number_value - number_value)IS NOT NULL), \"boolean_value\" INTEGER CHECK (boolean_value IS NULL OR boolean_value IN (0, 1)), PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, candidate_id, field, map_key, ordinal), FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key)REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key)ON UPDATE RESTRICT ON DELETE RESTRICT, CHECK((value_type = 'string' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = 'integer' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = 'number' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NOT NULL AND boolean_value IS NULL)OR(value_type = 'boolean' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NOT NULL)OR(value_type = 'null' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"safe_legacy_values\" (\"dataset_id\" TEXT NOT NULL COLLATE BINARY, \"importer_version\" INTEGER NOT NULL, \"entity_kind\" TEXT NOT NULL, \"legacy_key\" TEXT NOT NULL COLLATE BINARY, \"candidate_id\" TEXT NOT NULL COLLATE BINARY CHECK (length(candidate_id) > 0), \"purpose\" TEXT NOT NULL DEFAULT 'unresolved-evidence' CHECK (purpose IN ('accepted-baseline', 'unresolved-evidence', 'conflict-candidate')), \"field\" TEXT NOT NULL CHECK (field IN ('book.id', 'book.title', 'book.author', 'book.source', 'book.intro', 'book.tag', 'book.totalChapters', 'book.lastChapter', 'book.hits', 'book.coverIndex', 'book.hasUpdate', 'book.coverReference', 'book.publishingHouse', 'book.lastUpdate', 'book.isCompleted', 'book.wordCountK', 'book.saved', 'source.name', 'source.byIdName', 'source.preferred', 'shelf.id', 'shelf.name', 'shelf.ordinal', 'shelf.member', 'group.id', 'group.name', 'group.member', 'group.autoRename', 'split.bookId', 'progress.lastChapter', 'progress.bookLastChapter', 'progress.offset', 'progress.hasRead', 'progress.appleDate', 'progress.knownTotal', 'progress.updateFlag', 'reader.fontSize', 'reader.lineSpacing', 'reader.backgroundIndex', 'reader.mode', 'reader.fontFamily', 'reader.bold', 'reader.marginLeft', 'reader.marginRight', 'reader.marginTop', 'reader.marginBottom', 'app.theme', 'app.selectedShelf', 'app.accent', 'stats.dailySeconds', 'stats.dailyChapters', 'stats.bookSeconds', 'search.term', 'catalog.index', 'catalog.title', 'catalog.volume', 'catalog.remoteId')), \"map_key\" TEXT NOT NULL DEFAULT '' COLLATE BINARY, \"ordinal\" INTEGER NOT NULL DEFAULT 0 CHECK (ordinal >= 0), \"value_type\" TEXT NOT NULL CHECK (value_type IN ('string', 'integer', 'number', 'boolean', 'null')), \"text_value\" TEXT, \"integer_value\" INTEGER, \"number_value\" REAL CHECK (number_value IS NULL OR(number_value - number_value)IS NOT NULL), \"boolean_value\" INTEGER CHECK (boolean_value IS NULL OR boolean_value IN (0, 1)), PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, purpose, candidate_id, field, map_key, ordinal), FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key)REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key)ON UPDATE RESTRICT ON DELETE RESTRICT, CHECK((value_type = 'string' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = 'integer' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = 'number' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NOT NULL AND boolean_value IS NULL)OR(value_type = 'boolean' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NOT NULL)OR(value_type = 'null' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)));"
         }
       ]
     },

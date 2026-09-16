@@ -40,6 +40,8 @@ and migration boundary. The [frozen legacy data inventory](legacy/swift/LEGACY_D
 supplies the observed data formats and iOS container feasibility evidence.
 
 The entry contract and ADR were **ACCEPTED** by the human project owner on
-2026-09-16. Current implementation authorization is **F2.1 only**.
+2026-09-16. Current implementation status is **F2.1 IMPLEMENTED; F2.2
+IMPLEMENTED; F2.3 IMPLEMENTED — REVIEW / VALIDATION PENDING; F2.4 NOT
+AUTHORIZED**.
 This checkpoint does not advance the Source, Reader, image/offline, plugin or
 performance freeze dates. F1 exit remains approved; F2 exit is not approved.

@@ -5,7 +5,9 @@ Status: **ACCEPTED**
 Contract revision: **1**. Prepared: **2026-09-16**.
 
 Human approval: **APPROVED**. Approval date: **2026-09-16**.
-Approved by: Human project owner. Current implementation authorization: **F2.1 only**.
+Approved by: Human project owner.
+Current implementation status: **F2.1 IMPLEMENTED; F2.2 IMPLEMENTED; F2.3
+IMPLEMENTED — REVIEW / VALIDATION PENDING; F2.4 NOT AUTHORIZED**.
 The proposal-stage approval conditions below are satisfied by this record;
 they do not authorize implementation beyond the current slice or F2 exit.
 

@@ -7,7 +7,9 @@ Date / research checked: 2026-09-16.
 Human approval: **APPROVED**. Approval date: **2026-09-16**.
 Approved by: Human project owner. Approved direction: **Drift + SQLite NativeDatabase**.
 The approval gate described below has been satisfied. Current implementation
-authorization is **F2.1 only**, with no persistence dependencies added in this slice.
+status is **F2.1 IMPLEMENTED; F2.2 IMPLEMENTED; F2.3 IMPLEMENTED — REVIEW /
+VALIDATION PENDING; F2.4 NOT AUTHORIZED**. This ADR does not by itself approve
+F2.3 exit.
 
 This proposal implements the Constitution's versioned, cross-platform storage
 policy. It does not override the Constitution or authorize dependencies/code

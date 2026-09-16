@@ -423,6 +423,188 @@ void main() {
     }
   });
 
+  test('safe values distinguish accepted baselines from evidence and conflicts', () async {
+    await db.customStatement("INSERT INTO migration_datasets VALUES ('d')");
+    for (final key in ['source-a/book-1', 'source-b/book-1']) {
+      await db.customStatement('INSERT INTO record_receipts VALUES (?,?,?,?)', [
+        'd',
+        1,
+        'book',
+        key,
+      ]);
+    }
+
+    Future<void> insertValue({
+      required String key,
+      required String candidate,
+      required String purpose,
+      required String field,
+      required String type,
+      String? text,
+      int? integer,
+      double? number,
+      int? boolean,
+    }) => db.customStatement(
+      'INSERT INTO safe_legacy_values(dataset_id,importer_version,entity_kind,legacy_key,candidate_id,purpose,field,value_type,text_value,integer_value,number_value,boolean_value) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+      [
+        'd',
+        1,
+        'book',
+        key,
+        candidate,
+        purpose,
+        field,
+        type,
+        text,
+        integer,
+        number,
+        boolean,
+      ],
+    );
+
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'accepted-baseline',
+      field: 'book.title',
+      type: 'string',
+      text: 'A',
+    );
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'accepted-baseline',
+      field: 'book.totalChapters',
+      type: 'integer',
+      integer: 42,
+    );
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'accepted-baseline',
+      field: 'progress.offset',
+      type: 'number',
+      number: .5,
+    );
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'accepted-baseline',
+      field: 'book.saved',
+      type: 'boolean',
+      boolean: 1,
+    );
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'accepted-baseline',
+      field: 'book.intro',
+      type: 'null',
+    );
+
+    // The same candidate/field tuple is legal for each explicit semantic role.
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'unresolved-evidence',
+      field: 'book.title',
+      type: 'string',
+      text: 'observed',
+    );
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'baseline',
+      purpose: 'conflict-candidate',
+      field: 'book.title',
+      type: 'string',
+      text: 'C',
+    );
+    await insertValue(
+      key: 'source-a/book-1',
+      candidate: 'alternate',
+      purpose: 'conflict-candidate',
+      field: 'book.title',
+      type: 'string',
+      text: 'D',
+    );
+    await insertValue(
+      key: 'source-b/book-1',
+      candidate: 'baseline',
+      purpose: 'accepted-baseline',
+      field: 'book.title',
+      type: 'string',
+      text: 'Other source',
+    );
+
+    final accepted = await db
+        .customSelect(
+          "SELECT legacy_key, field, value_type, text_value FROM safe_legacy_values WHERE purpose='accepted-baseline' ORDER BY legacy_key, field",
+        )
+        .get();
+    expect(accepted, hasLength(6));
+    expect(
+      accepted.map((row) => row.read<String>('legacy_key')),
+      containsAllInOrder([
+        'source-a/book-1',
+        'source-a/book-1',
+        'source-a/book-1',
+        'source-a/book-1',
+        'source-a/book-1',
+        'source-b/book-1',
+      ]),
+    );
+    expect(
+      accepted.map((row) => row.read<String>('value_type')),
+      containsAll(<String>['string', 'integer', 'number', 'boolean', 'null']),
+    );
+    expect(
+      (await db
+              .customSelect(
+                "SELECT text_value FROM safe_legacy_values WHERE legacy_key='source-a/book-1' AND purpose='accepted-baseline' AND field='book.title'",
+              )
+              .getSingle())
+          .read<String>('text_value'),
+      'A',
+    );
+
+    await source(db, 'source-a');
+    await db.customStatement(
+      "INSERT INTO library_entries(source_id,book_id,metadata_state,title) VALUES ('source-a','book-1','known','B')",
+    );
+    expect(
+      (await db
+              .customSelect(
+                "SELECT text_value FROM safe_legacy_values WHERE legacy_key='source-a/book-1' AND purpose='accepted-baseline' AND field='book.title'",
+              )
+              .getSingle())
+          .read<String>('text_value'),
+      'A',
+    );
+
+    await expectLater(
+      insertValue(
+        key: 'source-a/book-1',
+        candidate: 'unknown',
+        purpose: 'accepted-baseline',
+        field: 'unknown.field',
+        type: 'string',
+        text: 'ignored',
+      ),
+      throwsA(isA<sqlite.SqliteException>()),
+    );
+    await expectLater(
+      insertValue(
+        key: 'source-a/book-1',
+        candidate: 'secret',
+        purpose: 'accepted-baseline',
+        field: 'password',
+        type: 'string',
+        text: 'SYNTHETIC_SECRET_DO_NOT_STORE',
+      ),
+      throwsA(isA<sqlite.SqliteException>()),
+    );
+  });
+
   test('no secret fields or raw payload authority; rejected sentinel stays out of DB/logs', () async {
     await db.customStatement("INSERT INTO migration_datasets VALUES ('d')");
     await db.customStatement(

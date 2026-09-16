@@ -1050,6 +1050,15 @@ class SafeLegacyValues extends Table with TableInfo {
     $customConstraints:
         'NOT NULL COLLATE BINARY CHECK (length(candidate_id) > 0)',
   );
+  late final GeneratedColumn<String> purpose = GeneratedColumn<String>(
+    'purpose',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT \'unresolved-evidence\' CHECK (purpose IN (\'accepted-baseline\', \'unresolved-evidence\', \'conflict-candidate\'))',
+    defaultValue: const CustomExpression('\'unresolved-evidence\''),
+  );
   late final GeneratedColumn<String> field = GeneratedColumn<String>(
     'field',
     aliasedName,
@@ -1124,6 +1133,7 @@ class SafeLegacyValues extends Table with TableInfo {
     entityKind,
     legacyKey,
     candidateId,
+    purpose,
     field,
     mapKey,
     ordinal,
@@ -1144,6 +1154,7 @@ class SafeLegacyValues extends Table with TableInfo {
     importerVersion,
     entityKind,
     legacyKey,
+    purpose,
     candidateId,
     field,
     mapKey,
@@ -1161,7 +1172,7 @@ class SafeLegacyValues extends Table with TableInfo {
 
   @override
   List<String> get customConstraints => const [
-    'PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, candidate_id, field, map_key, ordinal)',
+    'PRIMARY KEY(dataset_id, importer_version, entity_kind, legacy_key, purpose, candidate_id, field, map_key, ordinal)',
     'FOREIGN KEY(dataset_id, importer_version, entity_kind, legacy_key)REFERENCES record_receipts(dataset_id, importer_version, entity_kind, legacy_key)ON UPDATE RESTRICT ON DELETE RESTRICT',
     'CHECK((value_type = \'string\' AND text_value IS NOT NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = \'integer\' AND text_value IS NULL AND integer_value IS NOT NULL AND number_value IS NULL AND boolean_value IS NULL)OR(value_type = \'number\' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NOT NULL AND boolean_value IS NULL)OR(value_type = \'boolean\' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NOT NULL)OR(value_type = \'null\' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL))',
   ];
