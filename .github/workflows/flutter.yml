@@ -28,6 +28,8 @@ jobs:
             runner: ubuntu-24.04
           - check: Android debug
             runner: ubuntu-24.04
+          - check: Android storage smoke
+            runner: ubuntu-24.04
           - check: Windows debug
             runner: windows-2025
           - check: iOS debug unsigned
@@ -39,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Android JDK
-        if: matrix.check == 'Android debug'
+        if: matrix.check == 'Android debug' || matrix.check == 'Android storage smoke'
         uses: actions/setup-java@v5.6.0
         with:
           distribution: temurin
@@ -56,7 +58,7 @@ jobs:
         run: flutter --version
 
       - name: Use configured Android JDK
-        if: matrix.check == 'Android debug'
+        if: matrix.check == 'Android debug' || matrix.check == 'Android storage smoke'
         run: flutter config --jdk-dir="$env:JAVA_HOME"
 
       - name: Enable Windows desktop
@@ -98,15 +100,23 @@ jobs:
         run: flutter test integration_test/storage_smoke_test.dart -d windows --no-pub
 
       - name: Enable Android emulator acceleration
-        if: matrix.check == 'Android debug'
+        if: matrix.check == 'Android storage smoke'
         shell: bash
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Diagnose Android runner disk space
+        if: matrix.check == 'Android storage smoke'
+        shell: bash
+        run: |
+          set -euo pipefail
+          df -h
+          du -sh "$RUNNER_TEMP" "$GITHUB_WORKSPACE" 2>/dev/null || true
+
       - name: Android packaged storage smoke
-        if: matrix.check == 'Android debug'
+        if: matrix.check == 'Android storage smoke'
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 35

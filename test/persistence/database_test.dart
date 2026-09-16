@@ -101,6 +101,25 @@ void main() {
         1,
       );
       await SchemaVerifier(GeneratedHelper()).migrateAndValidate(db, 1);
+      final indexes = await db
+          .customSelect("PRAGMA index_list('safe_legacy_values')")
+          .get();
+      final acceptedIndex = indexes.singleWhere(
+        (row) =>
+            row.read<String>('name') ==
+            'safe_legacy_values_one_accepted_baseline',
+      );
+      expect(acceptedIndex.read<int>('unique'), 1);
+      expect(acceptedIndex.read<int>('partial'), 1);
+      expect(
+        (await db
+                .customSelect(
+                  "SELECT sql FROM sqlite_schema WHERE type='index' AND name='safe_legacy_values_one_accepted_baseline'",
+                )
+                .getSingle())
+            .read<String>('sql'),
+        contains("WHERE purpose = 'accepted-baseline'"),
+      );
     },
   );
 
@@ -604,6 +623,161 @@ void main() {
       throwsA(isA<sqlite.SqliteException>()),
     );
   });
+
+  test(
+    'accepted baselines are unique per logical evidence cell, not candidate',
+    () async {
+      await db.customStatement("INSERT INTO migration_datasets VALUES ('d')");
+      for (final key in ['book-a', 'book-b']) {
+        await db.customStatement(
+          'INSERT INTO record_receipts VALUES (?,?,?,?)',
+          ['d', 1, 'book', key],
+        );
+      }
+
+      Future<void> insertValue({
+        required String key,
+        required String candidate,
+        required String purpose,
+        required String field,
+        String mapKey = '',
+        int ordinal = 0,
+        String? text,
+      }) => db.customStatement(
+        'INSERT INTO safe_legacy_values(dataset_id,importer_version,entity_kind,legacy_key,candidate_id,purpose,field,map_key,ordinal,value_type,text_value) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+        [
+          'd',
+          1,
+          'book',
+          key,
+          candidate,
+          purpose,
+          field,
+          mapKey,
+          ordinal,
+          'string',
+          text,
+        ],
+      );
+
+      await insertValue(
+        key: 'book-a',
+        candidate: 'accepted-a',
+        purpose: 'accepted-baseline',
+        field: 'book.title',
+        text: 'A',
+      );
+      expect(await count(db, 'safe_legacy_values'), 1);
+
+      await expectLater(
+        insertValue(
+          key: 'book-a',
+          candidate: 'accepted-b',
+          purpose: 'accepted-baseline',
+          field: 'book.title',
+          text: 'B',
+        ),
+        throwsA(isA<sqlite.SqliteException>()),
+      );
+
+      await insertValue(
+        key: 'book-a',
+        candidate: 'unresolved-a',
+        purpose: 'unresolved-evidence',
+        field: 'book.title',
+        text: 'Observed',
+      );
+      await insertValue(
+        key: 'book-a',
+        candidate: 'conflict-a',
+        purpose: 'conflict-candidate',
+        field: 'book.title',
+        text: 'Conflict A',
+      );
+      await insertValue(
+        key: 'book-a',
+        candidate: 'conflict-b',
+        purpose: 'conflict-candidate',
+        field: 'book.title',
+        text: 'Conflict B',
+      );
+
+      await insertValue(
+        key: 'book-b',
+        candidate: 'accepted-key',
+        purpose: 'accepted-baseline',
+        field: 'book.title',
+        text: 'Other key',
+      );
+      await insertValue(
+        key: 'book-a',
+        candidate: 'accepted-field',
+        purpose: 'accepted-baseline',
+        field: 'book.author',
+        text: 'Other field',
+      );
+      await insertValue(
+        key: 'book-a',
+        candidate: 'accepted-map',
+        purpose: 'accepted-baseline',
+        field: 'book.title',
+        mapKey: 'legacy-title',
+        text: 'Other map key',
+      );
+      await insertValue(
+        key: 'book-a',
+        candidate: 'accepted-ordinal',
+        purpose: 'accepted-baseline',
+        field: 'book.title',
+        ordinal: 1,
+        text: 'Other ordinal',
+      );
+
+      final counts = await db
+          .customSelect(
+            'SELECT purpose, count(*) AS n FROM safe_legacy_values GROUP BY purpose',
+          )
+          .get();
+      expect(
+        {
+          for (final row in counts)
+            row.read<String>('purpose'): row.read<int>('n'),
+        },
+        {
+          'accepted-baseline': 5,
+          'unresolved-evidence': 1,
+          'conflict-candidate': 2,
+        },
+      );
+      expect(
+        (await db
+                .customSelect(
+                  "SELECT text_value FROM safe_legacy_values WHERE purpose='accepted-baseline' AND legacy_key='book-a' AND field='book.title' AND map_key='' AND ordinal=0",
+                )
+                .getSingle())
+            .read<String>('text_value'),
+        'A',
+      );
+      expect(
+        (await db
+                .customSelect(
+                  "SELECT text_value FROM safe_legacy_values WHERE purpose='unresolved-evidence' AND legacy_key='book-a' AND field='book.title'",
+                )
+                .getSingle())
+            .read<String>('text_value'),
+        'Observed',
+      );
+      expect(
+        (await db
+                .customSelect(
+                  "SELECT text_value FROM safe_legacy_values WHERE purpose='conflict-candidate' AND candidate_id='conflict-b'",
+                )
+                .getSingle())
+            .read<String>('text_value'),
+        'Conflict B',
+      );
+    },
+  );
 
   test('no secret fields or raw payload authority; rejected sentinel stays out of DB/logs', () async {
     await db.customStatement("INSERT INTO migration_datasets VALUES ('d')");

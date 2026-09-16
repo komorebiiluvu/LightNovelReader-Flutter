@@ -159,6 +159,10 @@ CREATE TABLE safe_legacy_values (
     OR (value_type = 'null' AND text_value IS NULL AND integer_value IS NULL AND number_value IS NULL AND boolean_value IS NULL))
 );
 
+CREATE UNIQUE INDEX safe_legacy_values_one_accepted_baseline
+ON safe_legacy_values(dataset_id, importer_version, entity_kind, legacy_key, field, map_key, ordinal)
+WHERE purpose = 'accepted-baseline';
+
 CREATE TABLE legacy_identity_mappings (
   mapping_id TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK(length(mapping_id) > 0),
   dataset_id TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id) ON DELETE RESTRICT ON UPDATE RESTRICT,

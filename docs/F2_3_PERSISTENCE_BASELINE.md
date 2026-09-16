@@ -8,7 +8,7 @@ does not approve F2.3 and does not start F2.4.
 ## Scope and starting point
 
 - Starting commit: `83757cc3571b4f7f63fc80eecdebc504def7c045`.
-- Current implementation commit under review: `1aecee148002ae1969cd03dab5e781f222ca60b4`.
+- Current implementation under review: the final closure patch (`fix: close F2.3 persistence validation gaps`) at this repository HEAD.
 - Review-fix commit: `6da74f8` (`fix: close F2.3 persistence review gaps`).
 - Branch at entry: `main`; `origin/main` matched the starting commit.
 - Legacy reference inspected by the preceding F2 work: `d90d4d090c85a0a9c374684696c34befe12636d1`.
@@ -48,6 +48,13 @@ needed to preserve a previous accepted value when the current application value
 and a new legacy value differ. The allowlisted typed value columns and secret
 exclusions are unchanged.
 
+The remaining invariant is enforced by the SQLite partial unique index
+`safe_legacy_values_one_accepted_baseline` over
+`dataset_id, importer_version, entity_kind, legacy_key, field, map_key, ordinal`
+when `purpose = 'accepted-baseline'`. `candidate_id` remains in the table's
+primary key so unresolved evidence and conflict candidates may retain multiple
+alternatives, but it cannot bypass accepted-baseline uniqueness.
+
 ## Schema v1 evidence
 
 Schema version is `1`. The review snapshot is
@@ -76,10 +83,10 @@ database and are only schema infrastructure in this slice. Search/Explore
 state, HTTP/image caches, downloads, credentials, cookies, tokens, passwords,
 and arbitrary raw backup blobs have no durable schema authority here.
 
-`safe_legacy_values` is a typed, finite field allowlist for unresolved evidence
-and conflict alternatives. It is not a generic JSON or backup column. The
-synthetic migration test fixture is test-only: no historical pre-v1 Flutter SQL
-schema is claimed.
+`safe_legacy_values` is a typed, finite field allowlist for accepted baselines,
+unresolved evidence, and conflict alternatives. It is not a generic JSON or
+backup column. The synthetic migration test fixture is test-only: no historical
+pre-v1 Flutter SQL schema is claimed.
 
 ## Local validation evidence
 
@@ -88,7 +95,7 @@ Observed on the Windows development host:
 - `flutter pub get --enforce-lockfile`: PASS.
 - `dart format --set-exit-if-changed .`: PASS.
 - `flutter analyze`: PASS.
-- `flutter test`: PASS, 100 tests.
+- `flutter test`: PASS, 101 tests.
 - Drift generation, schema dump/generation, and clean second-generation check:
   PASS using `tool/verify_generated.ps1` and the supported JIT build-runner mode.
 - `git diff --check`: PASS before commit.
@@ -97,6 +104,10 @@ Observed on the Windows development host:
   With the default cache under the Unicode Windows user path, the transitive
   `jni` CMake build fails in its ANSI file lookup; this is a host path/tooling
   limitation, not an application or schema failure.
+- Closure-patch recheck: `flutter build windows --debug --no-pub` PASS. The
+  Android APK recheck was blocked by the same host-side JNI CMake ANSI lookup
+  against the Unicode Android SDK path; no Android application/schema compile
+  error was reported. Android runtime smoke remains a CI-only validation here.
 - Exact AOT command `dart run build_runner build --delete-conflicting-outputs`:
   fails on this Windows host while reading the build script's temporary
   `program.dill`; the supported `--force-jit` generation path passes and is the
@@ -106,7 +117,11 @@ The database tests cover clean creation, schema snapshot verification,
 composite opaque identity, foreign-key restrictions, transaction rollback,
 reopen, settings constraints, migration retry/idempotency behavior, future
 version refusal, unversioned-file refusal, storage failure, and secret/cache
-boundaries. All database handles use isolated memory or temporary roots.
+boundaries. The safe-value tests prove that a second accepted baseline for the
+same logical cell is rejected by SQLite even with a different candidate ID,
+while unresolved and conflict alternatives remain readable and independent;
+they also cover the legacy-key, field, map-key, and ordinal boundaries. All
+database handles use isolated memory or temporary roots.
 
 ## Platform smoke status
 
@@ -124,11 +139,21 @@ Build success is not counted as runtime-storage smoke success.
 
 ## CI evidence and remaining review
 
-The workflow retains the existing quality, Android build, Windows build, and
-unsigned iOS build jobs. It adds Drift generation verification, Windows smoke,
-Android emulator smoke, and iOS simulator smoke. The Android emulator action is
-pinned to immutable commit
+The workflow retains the existing quality, Windows build, unsigned iOS build,
+and iOS simulator smoke jobs. Android debug build and Android packaged storage
+smoke are now separate matrix entries, so each runs on a fresh
+`ubuntu-24.04` hosted runner. Both Android entries set up JDK 21, configure
+Flutter with `JAVA_HOME`, and restore locked dependencies. The smoke entry then
+enables KVM, records `df -h`/lightweight `du -sh` diagnostics, starts the
+emulator, and directly runs the integration test without a preceding APK build.
+The Android emulator action is pinned to immutable commit
 `a421e43855164a8197daf9d8d40fe71c6996bb0d`.
+
+`storage_smoke_test.dart` does not use Google APIs, but the lighter `default`
+image was not reliably verifiable from this Windows host for the API 35 hosted
+runner setup. The workflow therefore retains the known `google_apis` target and
+the `1024M` data disk; runner-level isolation, rather than an extreme partition
+size, addresses the observed host resource failure.
 
 Observed run: [GitHub Actions run 35110324488](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35110324488) for implementation commit
 `1aecee148002ae1969cd03dab5e781f222ca60b4`.
@@ -139,12 +164,16 @@ Observed run: [GitHub Actions run 35110324488](https://github.com/komorebiiluvu/
 | Windows debug build | PASS |
 | Windows packaged storage smoke | PASS |
 | Android debug build | PASS |
-| Android packaged storage smoke | FAIL — emulator did not boot because the runner reported insufficient disk space; the smoke test did not execute |
+| Android packaged storage smoke | FAIL — emulator did not boot because the hosted runner reported insufficient disk space after the Android build; the smoke test did not execute |
 | iOS debug unsigned build | PASS |
 | iOS simulator packaged storage smoke | PASS |
 
-The review fix sets the emulator data disk to `1024M` to address the reported
-runner resource failure. A new run for `6da74f8` was not observable through the
-connected Actions interface at review time, so Android smoke remains
-unverified after the fix. Human F2.3 schema review and exit approval are still
-required; F2.4 is **NOT STARTED**.
+The historical failure was hosted-runner disk exhaustion, not an Android APK
+compile failure: the APK build itself passed. This closure patch moves the
+emulator work to its own runner and adds diagnostics; no new GitHub Actions run
+has produced results for this patch yet, so the split Android storage smoke and
+the final CI matrix remain **PENDING**.
+
+F2.3 Exit Approval: **PENDING**.
+
+F2.4: **NOT STARTED / NOT AUTHORIZED**.

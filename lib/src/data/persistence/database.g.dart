@@ -9087,6 +9087,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final RecordReceipts recordReceipts = RecordReceipts(this);
   late final RecordOutcomes recordOutcomes = RecordOutcomes(this);
   late final SafeLegacyValues safeLegacyValues = SafeLegacyValues(this);
+  late final Index safeLegacyValuesOneAcceptedBaseline = Index(
+    'safe_legacy_values_one_accepted_baseline',
+    'CREATE UNIQUE INDEX safe_legacy_values_one_accepted_baseline ON safe_legacy_values (dataset_id, importer_version, entity_kind, legacy_key, field, map_key, ordinal) WHERE purpose = \'accepted-baseline\'',
+  );
   late final LegacyIdentityMappings legacyIdentityMappings =
       LegacyIdentityMappings(this);
   late final LegacyChapterLocators legacyChapterLocators =
@@ -9113,6 +9117,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     recordReceipts,
     recordOutcomes,
     safeLegacyValues,
+    safeLegacyValuesOneAcceptedBaseline,
     legacyIdentityMappings,
     legacyChapterLocators,
     readingProgress,
