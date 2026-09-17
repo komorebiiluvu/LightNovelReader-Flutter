@@ -1,7 +1,10 @@
 # ADR 0004 — F3 Source contracts and single-session architecture
 
-Status: **PROPOSED — NOT ACCEPTED**. Date: **2026-09-17**.
-Human approval: **PENDING**. F3: **NOT STARTED / NOT AUTHORIZED**.
+Status: **ACCEPTED**. Date: **2026-09-17**.
+Human approval: **APPROVED**. Approval date: **2026-09-17**.
+Approved by: **Human project owner**.
+F3 Entry: **APPROVED**. F3.1: **AUTHORIZED**.
+F3.2–F3.7: **NOT AUTHORIZED**. F3 Exit: **NOT APPROVED**.
 
 ## Context
 
@@ -12,10 +15,11 @@ Preserving that architecture would violate the cross-platform and F2 contracts.
 Governance requires an ADR for the proposed Source API boundary, even though no
 Constitution exception is requested.
 
-## Proposed decision
+## Decision
 
 Adopt the semantic contracts, gates and F3.1–F3.7 scope in the
-[F3 Entry Contract revision 2](../F3_ENTRY_CONTRACT.md), subject to human acceptance.
+[F3 Entry Contract revision 2](../F3_ENTRY_CONTRACT.md), accepted by the Human
+project owner on 2026-09-17. Implementation authorization is limited to F3.1.
 
 Use one Dart contract/registry with capability-gated normalized operations,
 typed failures and explicit cancellation. Registry keys are immutable F2 SourceIds;
@@ -69,18 +73,18 @@ platform evidence. Insufficient historical identity evidence remains unresolved.
 Dependency review and secure-storage recovery can block runtime work; fixture and
 contract approval cannot be treated as approval of a package or phase exit.
 
-SOURCE_API changes in this patch only reconcile frozen F2 facts. New F3 semantics
-remain proposed here and in the entry contract. Upon human acceptance, synchronize
-the module specification/freeze plan and record authorized slices before dependent
-production changes. No F2 schema/codec revision, Reader/image work, plugin runtime
-or production Source implementation is part of this ADR patch.
+`SOURCE_API.md` is synchronized with the accepted F3 Entry Contract Revision 2
+semantics. This approval authorizes only F3.1; F3.2–F3.7 and all dependency
+choices remain unauthorized. No F2 schema/codec revision, Reader/image work,
+plugin runtime or production Source implementation is part of this governance
+record.
 
 ## Acceptance and verification
 
-Human acceptance must identify the contract revision and authorized scope.
+The human acceptance identifies contract revision 2 and the authorized F3.1 scope.
 Required blocking evidence is the entry contract's deterministic fixture,
 conformance, security, reconciliation and three-platform matrix. Optional manual
 Wenku8 live smoke is supplemental and never a CI or F3-exit gate; external
 provider unavailability is recorded as such. F3 exit is a separate human decision.
-Approver/date: **PENDING**. No architectural exception or dependency approval is
-implied by committing this proposal.
+Approver/date: **Human project owner / 2026-09-17**. No architectural exception or
+dependency approval is implied by this ADR.

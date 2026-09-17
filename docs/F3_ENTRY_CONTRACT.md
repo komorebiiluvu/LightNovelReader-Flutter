@@ -1,13 +1,18 @@
 # F3 — Source Foundation entry contract
 
-Status: **PROPOSED — READY FOR HUMAN REVIEW**. Revision: **2**.
-Prepared: **2026-09-17**. Human approval: **PENDING**.
-F3: **NOT STARTED / NOT AUTHORIZED**.
+Status: **ACCEPTED**. Revision: **2**.
+Prepared: **2026-09-17**. Human approval: **APPROVED**.
+Approval date: **2026-09-17**. Approved by: **Human project owner**.
+F3 Entry: **APPROVED**.
+F3.1: **AUTHORIZED**.
+F3.2–F3.7: **NOT AUTHORIZED**.
+F3 Exit: **NOT APPROVED**.
 
-This proposal and [ADR 0004](adr/0004-f3-source-foundation.md) require explicit
-human acceptance before production implementation. MUST language below describes
-the proposed contract, not approval. No dependency is selected or authorized by
-this document. Constitution and accepted ADRs retain precedence.
+This accepted contract and [ADR 0004](adr/0004-f3-source-foundation.md) record
+the human-approved F3 entry boundary. MUST language below describes the accepted
+contract requirements. The approval authorizes only F3.1; no network, secure-
+storage, decoder/DOM or other dependency is selected or authorized by this
+document. Constitution and accepted ADRs retain precedence.
 
 ## 1. Reverified baseline and evidence limits
 
@@ -29,7 +34,7 @@ There is no `lib/src/source` implementation at this baseline.
 
 The implemented F2 identity/content types and the migration inventory were also
 inspected. This revision synchronizes [SOURCE_API](SOURCE_API.md) with the
-proposed F3 semantics: source-aware book/catalog inputs, one Catalog capability,
+accepted F3 semantics: source-aware book/catalog inputs, one Catalog capability,
 cookie/update meanings, and F8/F9 scope boundaries. It does not change frozen F2
 identity or ordered-content semantics.
 
@@ -71,9 +76,9 @@ secret persistence, Source-specific Core branches and Swift/KMP dual sessions.
 No schema change is authorized implicitly; any required durable mapping/schema
 extension needs a reviewed contract/ADR and migration safety evidence first.
 
-## 3. Proposed Source API v1 semantics
+## 3. Accepted Source API v1 semantics
 
-The following is the reviewable semantic surface. F3.1 supplies Dart signatures
+The following is the accepted semantic surface. F3.1 supplies Dart signatures
 and contract tests without changing these semantics; changes require review.
 
 | Operation | Inputs and normalized result | Capability |
@@ -187,7 +192,7 @@ dependency ADR and explicit human approval **before addition/use**. Assess exact
 versions, maintenance, current Flutter compatibility, licensing, iOS/Android/
 Windows runtime support and failure/fallback behavior. SDK-only transport is also
 an explicit implementation choice requiring review; it is not an approval bypass.
-No package candidate or support claim is adopted in this proposal.
+No package candidate or support claim is adopted by this entry approval.
 
 ## 5. Frozen Legacy characterization and fixture gate
 
@@ -204,8 +209,8 @@ contains pinned source links and additional migration evidence.
 | `docs/KMP-TROUBLESHOOTING.md`, sections 14–15, 20–23, 29 | Encoding gaps/table corruption, concatenated metadata, description swallowing page chrome, missing br boundaries | REGRESSION TEST: byte fixtures, separate field assertions, exact description and node output |
 | F2 locator and frozen ChapterItem evidence | Index-based historical progress, optional remote identity evidence | PRESERVE raw locator; evidence-based identity reconciliation only; Reader fraction DEFER F4 |
 
-These classifications are proposed for human review, not claims that every
-Legacy quirk is desired. F3.2 expands the inventory and labels each fixture
+These classifications are part of the accepted migration boundary, not claims
+that every Legacy quirk is desired. F3.2 expands the inventory and labels each fixture
 PRESERVE/FIX/REGRESSION TEST/DEFER; DROP requires explicit product approval.
 
 Before any Wenku8 production parser, commit and review a sanitized corpus and
@@ -234,9 +239,10 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 
 ## 6. Slices, deliverables and local gates
 
-All slices are **NOT STARTED / NOT AUTHORIZED**. Entry approval must name the
-authorized slice(s); accepting this proposal alone does not approve dependencies
-or exit. Default review sequence is the following, with evidence before advancing.
+F3.1 is **AUTHORIZED**; F3.2–F3.7 remain **NOT AUTHORIZED** and have not started.
+This entry approval names F3.1 as the only authorized slice; it does not approve
+dependencies or F3 exit. Default review sequence is the following, with evidence
+before advancing.
 
 | Slice | Deliverables / scope | Tests and gate to next slice |
 | --- | --- | --- |
@@ -281,9 +287,10 @@ not the F8 second-real-Source milestone.
 ## 8. Entry gates and deferred decisions
 
 Entry requires verified F1/F2 approvals and unchanged frozen F2 contracts;
-human acceptance of this revision and ADR 0004; an explicit slice authorization;
-and capability/failure/transport/session semantics reviewed sufficiently for F3.
-No implementation starts merely because this document is committed.
+recorded human acceptance of this revision and ADR 0004; the explicit F3.1 slice
+authorization; and capability/failure/transport/session semantics reviewed
+sufficiently for F3. F3.2–F3.7 remain gated. No implementation beyond the
+authorized F3.1 slice starts merely because this document is committed.
 
 | Decision / owner | Latest gate / consequence |
 | --- | --- |
@@ -366,7 +373,7 @@ human review. This draft does not freeze future contracts by itself.
 | R9 Platform evidence incomplete | Final-SHA builds and packaged tests; unavailable stays pending | F3.7 + human owner; exit blocker |
 | R10 Reconciliation overwrites user changes | Atomic receipt/current-state check, reopen/rollback/idempotency tests; schema review if needed | F3.6; data-loss blocker |
 
-## 11. Proposal-only validation
+## 11. Entry-contract baseline validation
 
 On 2026-09-17 this documentation-only change passed
 `dart format --output=none --set-exit-if-changed .` (56 files, zero changes),
@@ -374,7 +381,9 @@ On 2026-09-17 this documentation-only change passed
 (370 passing tests). `git diff --check` passed. No dependencies, production code,
 tests, schemas, generated files or platform runners were changed. These checks
 protect the existing baseline; they are not F3 implementation or platform evidence.
-No platform build or live provider smoke was run for this proposal.
+No platform build or live provider smoke was run for this documentation-only
+approval record.
 
-Approval record: **PENDING**. Approver/date/authorized slices: **not recorded**.
-This preparation ends at **READY FOR HUMAN F3 ENTRY REVIEW**.
+Approval record: **APPROVED**. Approver: **Human project owner**. Approval date:
+**2026-09-17**. F3 Entry: **APPROVED**. F3.1: **AUTHORIZED**. F3.2–F3.7:
+**NOT AUTHORIZED**. F3 Exit: **NOT APPROVED**.
