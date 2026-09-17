@@ -1,12 +1,17 @@
 # F2 Exit Evidence
 
-Status: **REVIEW PENDING**
+Status: **EXIT APPROVED**
 
-Overall F2 exit: **NOT APPROVED**.
+Overall F2 exit: **APPROVED**.
 
-This is an evidence aggregation document, not an approval. Human review is
-still required; implementation coverage is not the same as predecessor
-replacement or release readiness. F3 is **NOT STARTED / NOT AUTHORIZED**.
+Approved by: **Human project owner**.
+Approval date: **2026-09-17**.
+Closure basis: all F2.1–F2.7 slices are individually completed, accepted or
+exit-approved, and the aggregate final review passed.
+
+This document aggregates the evidence and records the explicit human approval
+above; implementation coverage is not the same as predecessor replacement or
+release readiness. F3 is **NOT STARTED / NOT AUTHORIZED**.
 
 ## Phase evidence
 
@@ -140,8 +145,45 @@ The following remain outside F2 and are not hidden by this evidence:
 - F11 real installed-app upgrade/recovery, signing/distribution and release
   support validation.
 
+## F2 Overall Exit Approval
+
+F2 — Domain + Persistence Foundation is **EXIT APPROVED**.
+
+The completed F2 scope establishes:
+
+- source-aware opaque identity and deterministic external identity encoding;
+- source-scoped references for SourceId, BookId, VolumeId, ChapterId and
+  AssetId, including legacy identity mappings;
+- ordered ChapterContent / ContentNode v1 with TextNode / ImageNode
+  serialization and strict versioned JSON validation;
+- the Drift + SQLite persistence foundation, schema v1 and transactional
+  database behavior;
+- library, shelf, manual-group, membership, split-override, progress,
+  Reader-preference and App-preference repository foundations;
+- safe legacy migration with duplicate-aware bounded raw parsing, runs,
+  receipts, outcomes, immutable accepted baselines, conflict candidates,
+  durable verification and retry/resume;
+- committed legacy-state conversion for source associations, library/shelf/
+  group state, progress locators and Reader/App preferences;
+- deferred statistics/search preservation, secret exclusion, whole-input
+  non-retention, migration conflict protection and migration-created stub
+  provenance;
+- cross-platform persistence and storage validation evidence, including the
+  recorded final iOS evidence waiver.
+
+This approval covers the completed F2 scope only. It does not mean predecessor
+replacement is complete, the Reader or Source/network implementation is
+complete, offline migration is complete, UI or plugins are complete, or the
+product is release-ready.
+
+The final iOS packaged-storage smoke remains **HUMAN-APPROVED EVIDENCE
+WAIVER**, not PASS. It applied to final F2.7 exit evidence, was accepted by
+the Human project owner on 2026-09-17, followed a successful identical smoke
+on the immediately preceding reviewed SHA, and is not a permanent waiver of
+future iOS validation requirements.
+
 F2.7: **EXIT APPROVED**
 
-F2 overall: **EXIT REVIEW PENDING / NOT APPROVED**
+F2 overall: **EXIT APPROVED**
 
 F3: **NOT STARTED / NOT AUTHORIZED**

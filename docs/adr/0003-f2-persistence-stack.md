@@ -20,10 +20,11 @@ F2.6 human exit approval on **2026-09-17** is recorded in the
 [Migration Framework Baseline](../F2_6_MIGRATION_FRAMEWORK_BASELINE.md).
 F2.7 implementation evidence is recorded in the
 [F2.7 Legacy Import Baseline](../F2_7_LEGACY_IMPORT_BASELINE.md) and
-[F2 Exit Evidence](../F2_EXIT_EVIDENCE.md). F2 exit remains **NOT APPROVED /
-REVIEW PENDING**. F2.7 exit approval is separate from overall F2 exit
-approval; the next governance action is F2 Final Exit Review, not F3
-implementation. F3 remains **NOT STARTED / NOT AUTHORIZED**.
+[F2 Exit Evidence](../F2_EXIT_EVIDENCE.md). F2 persistence implementation is
+complete within the accepted F2 scope; schema v1 remains the accepted
+baseline. F2 overall EXIT APPROVED on **2026-09-17** by the Human project
+owner. F3 remains **NOT STARTED / NOT AUTHORIZED**. The iOS final
+packaged-storage evidence remains a human-approved waiver, not PASS.
 
 This proposal implements the Constitution's versioned, cross-platform storage
 policy. It does not override the Constitution or authorize dependencies/code

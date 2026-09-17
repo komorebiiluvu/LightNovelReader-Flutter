@@ -49,12 +49,14 @@ human exit approval on
 F2.3 human exit approval on **2026-09-17** is recorded in the
 [F2.3 Persistence Baseline](F2_3_PERSISTENCE_BASELINE.md).
 This checkpoint does not advance the Source, Reader, image/offline, plugin or
-performance freeze dates. F1 exit remains approved; F2 exit is not approved.
+performance freeze dates. F1 exit remains approved; F2 EXIT APPROVED on
+**2026-09-17**.
 F2.6 human exit approval on **2026-09-17** is recorded in the
 [Migration Framework Baseline](F2_6_MIGRATION_FRAMEWORK_BASELINE.md).
 F2.7 implementation evidence is recorded in the [F2.7 Legacy Import
 Baseline](F2_7_LEGACY_IMPORT_BASELINE.md) and [F2 Exit Evidence](F2_EXIT_EVIDENCE.md).
-F2.7 exit approval is separate from overall F2 exit approval. F2 exit remains
-**NOT APPROVED / REVIEW PENDING** and the next governance action is F2 Final
-Exit Review, not F3 implementation. F3 remains **NOT STARTED / NOT
-AUTHORIZED**.
+F2 contracts now frozen/accepted within the completed F2 scope include Source
+identity/model v1, ordered ContentNode / ChapterContent v1, persistence
+stack/schema v1, and the legacy migration commitment/framework. Future
+F3/F4/F5/F6/F7/F9/F11 freeze dates and ownership remain unchanged. F3 remains
+**NOT STARTED / NOT AUTHORIZED**.

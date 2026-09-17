@@ -17,10 +17,10 @@ Final implementation SHA: `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`.
 Final reviewed validation date: 2026-09-17.
 F2.7 exit approval: **APPROVED** by the Human project owner on **2026-09-17**.
 
-F2.7 is implemented under the explicit F2.7 authorization and is now exit
-approved. This document does not approve the overall F2 exit. F2 overall
-remains **EXIT REVIEW PENDING / NOT APPROVED**. F3 remains **NOT STARTED /
-NOT AUTHORIZED**.
+F2.7 is implemented under the explicit F2.7 authorization and is exit
+approved. Overall F2 exit is approved separately in [F2 Exit Evidence](F2_EXIT_EVIDENCE.md)
+by the Human project owner on 2026-09-17. F3 remains **NOT STARTED / NOT
+AUTHORIZED**.
 
 ## Scope and boundary
 
@@ -372,6 +372,6 @@ Final status:
 
 F2.7: **EXIT APPROVED**
 
-F2 overall: **EXIT REVIEW PENDING / NOT APPROVED**
+F2 overall: **EXIT APPROVED**
 
 F3: **NOT STARTED / NOT AUTHORIZED**
