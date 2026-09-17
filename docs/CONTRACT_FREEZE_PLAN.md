@@ -58,11 +58,11 @@ Baseline](F2_7_LEGACY_IMPORT_BASELINE.md) and [F2 Exit Evidence](F2_EXIT_EVIDENC
 F2 contracts now frozen/accepted within the completed F2 scope include Source
 identity/model v1, ordered ContentNode / ChapterContent v1, persistence
 stack/schema v1, and the legacy migration commitment/framework. Future
-F3/F4/F5/F6/F7/F9/F11 freeze dates and ownership remain unchanged. F3
-implementation remains **NOT STARTED**; F3.1 authorization is recorded in the
-F3 Entry checkpoint below, while F3.2–F3.7 remain **NOT AUTHORIZED**.
+F3/F4/F5/F6/F7/F9/F11 freeze dates and ownership remain unchanged. F3.1 is
+**IMPLEMENTED / ACCEPTED**; F3.2 authorization is recorded in the F3 Entry
+checkpoint below. F3.3–F3.7 remain **NOT AUTHORIZED**.
 
-## F3 Entry checkpoint — 2026-09-17
+## F3 Entry and F3.1 acceptance checkpoint — 2026-09-18
 
 The [F3 Entry Contract](F3_ENTRY_CONTRACT.md) revision **2** and [ADR 0004](adr/0004-f3-source-foundation.md)
 were accepted by the **Human project owner** on **2026-09-17**. They freeze the
@@ -73,9 +73,14 @@ a stable VolumeId are defined without fabricating identity; cookies and updates
 are infrastructure/update-hint semantics; and the second real Source remains an
 F8 deliverable.
 
-This checkpoint is **ACCEPTED**. F3 Entry is **APPROVED** and only F3.1 is
-**AUTHORIZED**. F3.2–F3.7 remain **NOT AUTHORIZED**; no network, secure-storage,
-decoder/DOM or other dependency, production implementation or F3 exit is
-approved by this checkpoint. Deterministic three-platform validation is the
-blocking F3 evidence; manual Wenku8 live smoke is supplemental and is not a CI
-or F3-exit gate.
+This checkpoint is **ACCEPTED**. F3 Entry is **APPROVED**. F3.1 is
+**IMPLEMENTED / ACCEPTED** at baseline SHA
+`36bb595f4e26591f07593c962f0a26ff1f587fbf`, approved by the Human project owner
+on **2026-09-18**. Focused F3.1 tests: **31 passed**; full suite: **401 passed**;
+CI run [35246451941](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35246451941)
+completed successfully. F3.2 is **AUTHORIZED**. F3.3–F3.7 remain **NOT
+AUTHORIZED** and F3 Exit remains **NOT APPROVED**. No network, secure-storage,
+decoder/DOM or other dependency, production implementation beyond F3.1 or F3
+exit is approved by this checkpoint. Deterministic three-platform validation is
+the blocking F3 evidence; manual Wenku8 live smoke is supplemental and is not a
+CI or F3-exit gate.

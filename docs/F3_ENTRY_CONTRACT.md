@@ -4,15 +4,17 @@ Status: **ACCEPTED**. Revision: **2**.
 Prepared: **2026-09-17**. Human approval: **APPROVED**.
 Approval date: **2026-09-17**. Approved by: **Human project owner**.
 F3 Entry: **APPROVED**.
-F3.1: **AUTHORIZED**.
-F3.2–F3.7: **NOT AUTHORIZED**.
+F3.1: **IMPLEMENTED / ACCEPTED**.
+F3.2: **AUTHORIZED**.
+F3.3–F3.7: **NOT AUTHORIZED**.
 F3 Exit: **NOT APPROVED**.
 
 This accepted contract and [ADR 0004](adr/0004-f3-source-foundation.md) record
 the human-approved F3 entry boundary. MUST language below describes the accepted
-contract requirements. The approval authorizes only F3.1; no network, secure-
-storage, decoder/DOM or other dependency is selected or authorized by this
-document. Constitution and accepted ADRs retain precedence.
+contract requirements. The entry approval authorized F3.1; its implementation
+acceptance and the subsequent F3.2 authorization are recorded below. No network,
+secure-storage, decoder/DOM or other dependency is selected or authorized by
+this document. Constitution and accepted ADRs retain precedence.
 
 ## 1. Reverified baseline and evidence limits
 
@@ -239,8 +241,8 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 
 ## 6. Slices, deliverables and local gates
 
-F3.1 is **AUTHORIZED**; F3.2–F3.7 remain **NOT AUTHORIZED** and have not started.
-This entry approval names F3.1 as the only authorized slice; it does not approve
+F3.1 is **IMPLEMENTED / ACCEPTED**; F3.2 is **AUTHORIZED**; F3.3–F3.7 remain
+**NOT AUTHORIZED** and have not started. F3.1 acceptance does not approve
 dependencies or F3 exit. Default review sequence is the following, with evidence
 before advancing.
 
@@ -287,10 +289,11 @@ not the F8 second-real-Source milestone.
 ## 8. Entry gates and deferred decisions
 
 Entry requires verified F1/F2 approvals and unchanged frozen F2 contracts;
-recorded human acceptance of this revision and ADR 0004; the explicit F3.1 slice
-authorization; and capability/failure/transport/session semantics reviewed
-sufficiently for F3. F3.2–F3.7 remain gated. No implementation beyond the
-authorized F3.1 slice starts merely because this document is committed.
+recorded human acceptance of this revision and ADR 0004; accepted F3.1 evidence;
+the explicit F3.2 slice authorization; and capability/failure/transport/session
+semantics reviewed sufficiently for F3. F3.3–F3.7 remain gated. No implementation
+beyond the currently authorized slice starts merely because this document is
+committed.
 
 | Decision / owner | Latest gate / consequence |
 | --- | --- |
@@ -385,5 +388,23 @@ No platform build or live provider smoke was run for this documentation-only
 approval record.
 
 Approval record: **APPROVED**. Approver: **Human project owner**. Approval date:
-**2026-09-17**. F3 Entry: **APPROVED**. F3.1: **AUTHORIZED**. F3.2–F3.7:
-**NOT AUTHORIZED**. F3 Exit: **NOT APPROVED**.
+**2026-09-17**. F3 Entry: **APPROVED**. F3.1: **IMPLEMENTED / ACCEPTED**.
+F3.2: **AUTHORIZED**. F3.3–F3.7: **NOT AUTHORIZED**. F3 Exit:
+**NOT APPROVED**.
+
+## 12. F3.1 implementation acceptance — 2026-09-18
+
+The Human project owner accepted F3.1 at baseline SHA
+`36bb595f4e26591f07593c962f0a26ff1f587fbf` on **2026-09-18**. The accepted
+implementation covers the neutral Source contracts, registry, catalog policy,
+structural continuation binding, Explore descriptor discovery and typed failure
+diagnostics. F2 identity/content semantics remain unchanged.
+
+Focused F3.1 tests passed: **31**. The full suite passed: **401**. CI run
+[35246451941](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35246451941)
+completed successfully.
+
+F3.2 is **AUTHORIZED**. F3.3–F3.7 remain **NOT AUTHORIZED**, and F3 Exit remains
+**NOT APPROVED**. This acceptance authorizes no transport, network, secure
+storage, parser, runtime adapter, reconciliation, second Source, plugin, Reader,
+image, offline or schema work.
