@@ -30,10 +30,13 @@ final class SourceSessionManager {
     SourceId sourceId, {
     Iterable<SourceCookie> cookies = const [],
   }) {
+    final pendingCookies = List<SourceCookie>.of(cookies);
+    if (pendingCookies.any((cookie) => cookie.sourceId != sourceId)) {
+      throw SourceFailure.invalidRequest();
+    }
     final session = _session(sourceId);
     session.advance(clearCookies: true, status: SourceAuthStatus.authenticated);
-    for (final cookie in cookies) {
-      if (cookie.sourceId != sourceId) throw SourceFailure.invalidRequest();
+    for (final cookie in pendingCookies) {
       session.put(cookie);
     }
     return session.snapshot();

@@ -154,7 +154,12 @@ final class DioSourceTransport implements SourceTransport {
           history.length >= redirects.maxRedirects) {
         throw _securityFailure(request);
       }
-      final next = uri.resolve(location);
+      late final Uri next;
+      try {
+        next = uri.resolve(location);
+      } on FormatException {
+        throw _securityFailure(request);
+      }
       if ((next.scheme != 'http' && next.scheme != 'https') ||
           next.host.isEmpty ||
           next.userInfo.isNotEmpty ||

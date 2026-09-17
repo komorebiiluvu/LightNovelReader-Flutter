@@ -60,9 +60,6 @@ final class BackendSecureCredentialStore implements SecureCredentialStore {
     try {
       final value = await backend.read(key.storageName);
       return value == null ? null : SecureValue(value);
-    } on SourceFailure catch (failure) {
-      if (failure.code == SourceFailureCode.secureStorage) rethrow;
-      throw _secureFailure();
     } catch (_) {
       throw _secureFailure();
     }
@@ -72,9 +69,6 @@ final class BackendSecureCredentialStore implements SecureCredentialStore {
   Future<void> write(SecureStorageKey key, SecureValue value) async {
     try {
       await backend.write(key.storageName, value.value);
-    } on SourceFailure catch (failure) {
-      if (failure.code == SourceFailureCode.secureStorage) rethrow;
-      throw _secureFailure();
     } catch (_) {
       throw _secureFailure();
     }
@@ -84,9 +78,6 @@ final class BackendSecureCredentialStore implements SecureCredentialStore {
   Future<void> delete(SecureStorageKey key) async {
     try {
       await backend.delete(key.storageName);
-    } on SourceFailure catch (failure) {
-      if (failure.code == SourceFailureCode.secureStorage) rethrow;
-      throw _secureFailure();
     } catch (_) {
       throw _secureFailure();
     }
