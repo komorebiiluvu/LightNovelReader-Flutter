@@ -203,26 +203,20 @@ final class _LegacyImportExecution {
       payload.sourceName ?? '',
       sourceId.value == 'builtin.wenku8',
     );
+    // Capture durable stub provenance before this operation can create the
+    // book mapping. A mapping created while handling a preexisting product
+    // row must not be mistaken for evidence that migration created the row.
+    final migrationCreatedStub = await _hasMigrationCreatedBookStub(
+      db,
+      payload,
+    );
+    final preexistingUnknownStub =
+        !migrationCreatedStub &&
+        await _hasUnknownSavedStubProvenance(db, payload);
     // The book foreign key must exist before its durable identity mapping can
     // be inserted. A stub is safe here and is upgraded below when metadata is
     // available.
     await _ensureBookStub(db, payload);
-    final resolution = payload.sourceConflict
-        ? 'conflict'
-        : sourceId.value == 'builtin.wenku8'
-        ? 'resolved'
-        : 'unresolved';
-    final mappingOk = await _ensureMapping(
-      db,
-      entityKind: MigrationEntityKind.book,
-      legacyKey: payload.bookId.value,
-      resolution: resolution,
-      sourceByIdName: payload.sourceByIdName,
-      bookSourceName: payload.bookSourceName,
-      targetSourceId: sourceId.value,
-      targetBookId: payload.bookId.value,
-    );
-    if (!mappingOk) return const MigrationApplyResult.conflict();
     var conflict = payload.sourceConflict;
     final key = [sourceId.value, payload.bookId.value];
     final rows = await _rows(
@@ -255,6 +249,7 @@ final class _LegacyImportExecution {
           row.read<int>('saved') != (payload.saved! ? 1 : 0)) {
         final unresolvedStub =
             row.read<String>('metadata_state') == 'stub' &&
+            migrationCreatedStub &&
             await _hasUnknownSavedStubProvenance(db, payload);
         if (unresolvedStub) {
           updates['saved'] = payload.saved! ? 1 : 0;
@@ -308,6 +303,37 @@ final class _LegacyImportExecution {
       }
     }
     conflict = await _mergeLegacyBookMetadata(db, payload) || conflict;
+    final finalRows = await _rows(
+      db,
+      'SELECT metadata_state FROM library_entries WHERE source_id=? AND book_id=?',
+      key,
+    );
+    // A preexisting stub with unresolved saved provenance does not receive a
+    // book mapping here. Such a mapping is the durable marker for a stub
+    // created by migration, so creating it during a later corrected import
+    // would make the old product row look migration-owned on the next retry.
+    final canRecordBookMapping =
+        migrationCreatedStub ||
+        (!preexistingUnknownStub &&
+            finalRows.single.read<String>('metadata_state') != 'stub');
+    if (canRecordBookMapping) {
+      final resolution = payload.sourceConflict || conflict
+          ? 'conflict'
+          : sourceId.value == 'builtin.wenku8'
+          ? 'resolved'
+          : 'unresolved';
+      final mappingOk = await _ensureMapping(
+        db,
+        entityKind: MigrationEntityKind.book,
+        legacyKey: payload.bookId.value,
+        resolution: resolution,
+        sourceByIdName: payload.sourceByIdName,
+        bookSourceName: payload.bookSourceName,
+        targetSourceId: sourceId.value,
+        targetBookId: payload.bookId.value,
+      );
+      if (!mappingOk) return const MigrationApplyResult.conflict();
+    }
     if (conflict) return const MigrationApplyResult.conflict();
     final unresolved =
         payload.sourceConflict ||
@@ -937,11 +963,50 @@ final class _LegacyImportExecution {
       p.sourceName,
       p.bookRef.sourceId.value == 'builtin.wenku8',
     );
+    final existing = await _rows(
+      db,
+      'SELECT 1 FROM library_entries WHERE source_id=? AND book_id=?',
+      [p.bookRef.sourceId.value, p.bookId.value],
+    );
     await _write(
       db,
       'INSERT INTO library_entries(source_id,book_id,metadata_state,saved) VALUES (?,?,\'stub\',?) ON CONFLICT(source_id,book_id) DO NOTHING',
       [p.bookRef.sourceId.value, p.bookId.value, p.saved == true ? 1 : 0],
     );
+    if (existing.isEmpty) {
+      await _ensureMapping(
+        db,
+        entityKind: MigrationEntityKind.book,
+        legacyKey: p.bookId.value,
+        resolution: p.sourceConflict
+            ? 'conflict'
+            : p.bookRef.sourceId.value == 'builtin.wenku8'
+            ? 'resolved'
+            : 'unresolved',
+        sourceByIdName: p.sourceByIdName,
+        bookSourceName: p.bookSourceName,
+        targetSourceId: p.bookRef.sourceId.value,
+        targetBookId: p.bookId.value,
+      );
+    }
+  }
+
+  Future<bool> _hasMigrationCreatedBookStub(
+    AppDatabase db,
+    BookImportPayload p,
+  ) async {
+    final rows = await _rows(
+      db,
+      "SELECT 1 FROM legacy_identity_mappings WHERE dataset_id=? AND entity_kind='book' AND legacy_key=? AND mapping_version=? AND target_source_id=? AND target_book_id=? LIMIT 1",
+      [
+        context.datasetId,
+        p.bookId.value,
+        context.mappingVersion,
+        p.bookRef.sourceId.value,
+        p.bookId.value,
+      ],
+    );
+    return rows.isNotEmpty;
   }
 
   Future<bool> _hasUnknownSavedStubProvenance(

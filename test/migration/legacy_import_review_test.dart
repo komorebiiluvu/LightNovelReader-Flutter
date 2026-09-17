@@ -1220,6 +1220,12 @@ void main() {
       });
       expect(
         await rows(
+          "SELECT * FROM legacy_identity_mappings WHERE entity_kind='book' AND legacy_key='book-a'",
+        ),
+        hasLength(1),
+      );
+      expect(
+        await rows(
           "SELECT * FROM safe_legacy_values WHERE entity_kind='book' AND field='book.saved' AND purpose='accepted-baseline'",
         ),
         isEmpty,
@@ -1248,6 +1254,54 @@ void main() {
           "SELECT * FROM safe_legacy_values WHERE entity_kind='book' AND field='book.saved' AND purpose='accepted-baseline' AND value_type='boolean' AND boolean_value=1",
         ),
         isNotEmpty,
+      );
+    },
+  );
+
+  test(
+    'preexisting stub does not become migration-created provenance',
+    () async {
+      await db.customStatement(
+        "INSERT INTO source_registrations VALUES ('builtin.wenku8','文库8(在线)','unavailable')",
+      );
+      await db.customStatement(
+        "INSERT INTO library_entries(source_id,book_id,saved,metadata_state) VALUES ('builtin.wenku8','book-a',0,'stub')",
+      );
+      final shelf = {
+        'id': 'shelf-a',
+        'name': 'Shelf',
+        'bookIDs': ['book-a'],
+      };
+      final first = await run({
+        'bookLibrary': [book()],
+        'savedIDs': 123,
+        'shelves': [shelf],
+      });
+      expect(first.run.state, MigrationRunState.partial);
+      expect((await row('SELECT saved,metadata_state FROM library_entries')), {
+        'saved': 0,
+        'metadata_state': 'stub',
+      });
+
+      final corrected = await run({
+        'bookLibrary': [book()],
+        'savedIDs': ['book-a'],
+        'shelves': [shelf],
+      });
+      expect(corrected.run.state, MigrationRunState.partial);
+      expect(corrected.report.conflicts, greaterThan(0));
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 0);
+      expect(
+        await rows(
+          "SELECT * FROM safe_legacy_values WHERE field='book.saved' AND purpose='conflict-candidate' AND value_type='boolean' AND boolean_value=1",
+        ),
+        isNotEmpty,
+      );
+      expect(
+        await rows(
+          "SELECT * FROM legacy_identity_mappings WHERE entity_kind='book' AND legacy_key='book-a'",
+        ),
+        isEmpty,
       );
     },
   );
