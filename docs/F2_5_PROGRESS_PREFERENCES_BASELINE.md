@@ -105,7 +105,8 @@ idempotency and distinction, old locator retention, cross-repository reads,
 unrelated state preservation, and injected progress/locator/preference failure
 rollback. No network, real backup or user data is used.
 
-The focused F2.5 suite contains **18 tests**. Local validation on 2026-09-17
+The original F2.5 implementation suite contained **18 tests**. Local validation
+on 2026-09-17
 (Flutter 3.47.4 / Dart 3.13.3) completed as follows:
 
 - `flutter pub get --enforce-lockfile`: PASS; manifests/lockfile unchanged.
@@ -115,6 +116,28 @@ The focused F2.5 suite contains **18 tests**. Local validation on 2026-09-17
 - `./tool/verify_generated.ps1`: PASS; generated code and schema snapshots
   reproduce the approved F2.3 outputs with no diff.
 - `git diff --check`: PASS.
+
+## Review-fix evidence
+
+The review fix started from implementation commit
+`83e4169b3758c96af96de143c6d371647bf0b19c`. GitHub Actions Run #13
+(Run ID `35177936235`) provided the pre-fix evidence: Quality failed at
+`dart format --output=none --set-exit-if-changed .` because
+`test/persistence/progress_preferences_test.dart` was deterministically
+unformatted. The repository-pinned `dart format .` was run, and the
+no-change format check then passed. CI was not bypassed or changed.
+
+The review additions exercise chapter-only repository round-trip and timestamp
+round-trip, preservation of library/shelf/manual-group/split state, all reader
+and app preference wire tokens, independent numeric and codec validation
+boundaries, App preference clearing and FK non-creation, and App preference
+database failure mapping. The timestamp constructor now rejects years outside
+the canonical 0000–9999 range, so every successfully constructed progress
+value is serializable by its own canonical codec.
+
+The focused F2.5 suite now contains **23 tests**. The final local full suite
+contains **153 tests**, all passing. F2.5 remains **IMPLEMENTED — REVIEW
+PENDING**; no exit approval is recorded.
 
 The Dart `Object?` codecs operate after `jsonDecode` has produced a Map and
 therefore cannot detect duplicate object keys that were already collapsed.

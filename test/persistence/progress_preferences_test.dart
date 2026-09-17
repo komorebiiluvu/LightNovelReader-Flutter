@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:light_novel_reader/src/data/persistence/database.dart'
     show AppDatabase;
 import 'package:light_novel_reader/src/data/persistence/repositories/drift_library_repository.dart';
+import 'package:light_novel_reader/src/data/persistence/repositories/drift_manual_group_repository.dart';
 import 'package:light_novel_reader/src/data/persistence/repositories/drift_preferences_repository.dart';
 import 'package:light_novel_reader/src/data/persistence/repositories/drift_progress_repository.dart';
 import 'package:light_novel_reader/src/data/persistence/repositories/drift_shelf_repository.dart';
@@ -19,9 +20,8 @@ import 'package:light_novel_reader/src/domain/progress/reading_progress.dart';
 SourceBookRef book(String source, [String id = ' 00042/#.文😀 ']) =>
     SourceBookRef(sourceId: SourceId(source), bookId: BookId(id));
 
-Matcher repositoryFailure(RepositoryFailureReason reason) => throwsA(
-  isA<RepositoryFailure>().having((e) => e.reason, 'reason', reason),
-);
+Matcher repositoryFailure(RepositoryFailureReason reason) =>
+    throwsA(isA<RepositoryFailure>().having((e) => e.reason, 'reason', reason));
 
 void main() {
   late AppDatabase db;
@@ -29,6 +29,7 @@ void main() {
   late DriftProgressRepository progress;
   late DriftPreferencesRepository preferences;
   late DriftShelfRepository shelves;
+  late DriftManualGroupRepository groups;
 
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
@@ -36,6 +37,7 @@ void main() {
     progress = DriftProgressRepository(db);
     preferences = DriftPreferencesRepository(db);
     shelves = DriftShelfRepository(db);
+    groups = DriftManualGroupRepository(db);
     for (final source in ['a', 'b']) {
       await db.customStatement(
         "INSERT INTO source_registrations(source_id,availability) "
@@ -118,41 +120,48 @@ void main() {
     expect(ReadingProgressV1.fromJson(timestampOnly.toJson()), timestampOnly);
   });
 
-  test('progress rejects locator ownership and unsupported primitive values', () {
-    final a = book('a');
-    final other = book('b');
-    final chapter = SourceChapterRef(
-      sourceId: other.sourceId,
-      bookId: other.bookId,
-      chapterId: ChapterId('chapter'),
-    );
-    expect(
-      () => ReadingProgressV1(bookRef: a, hasRead: true, chapterRef: chapter),
-      throwsA(isA<IdentityFailure>()),
-    );
-    expect(
-      () => ReadingProgressV1(
-        bookRef: a,
-        hasRead: true,
-        legacyLocator: locator(other),
-      ),
-      throwsA(isA<IdentityFailure>()),
-    );
-    expect(
-      () => LegacyChapterLocatorV1(
-        datasetId: LegacyDatasetId('dataset'),
-        bookRef: a,
-        legacyBookId: BookId('legacy'),
-        chapterIndex: 0,
-        fraction: 1.1,
-      ),
-      throwsA(isA<IdentityFailure>()),
-    );
-  });
+  test(
+    'progress rejects locator ownership and unsupported primitive values',
+    () {
+      final a = book('a');
+      final other = book('b');
+      final chapter = SourceChapterRef(
+        sourceId: other.sourceId,
+        bookId: other.bookId,
+        chapterId: ChapterId('chapter'),
+      );
+      expect(
+        () => ReadingProgressV1(bookRef: a, hasRead: true, chapterRef: chapter),
+        throwsA(isA<IdentityFailure>()),
+      );
+      expect(
+        () => ReadingProgressV1(
+          bookRef: a,
+          hasRead: true,
+          legacyLocator: locator(other),
+        ),
+        throwsA(isA<IdentityFailure>()),
+      );
+      expect(
+        () => LegacyChapterLocatorV1(
+          datasetId: LegacyDatasetId('dataset'),
+          bookRef: a,
+          legacyBookId: BookId('legacy'),
+          chapterIndex: 0,
+          fraction: 1.1,
+        ),
+        throwsA(isA<IdentityFailure>()),
+      );
+    },
+  );
 
   test('timestamp normalization is UTC and missing timestamp stays absent', () {
     final local = DateTime(2026, 9, 17, 9, 2, 3);
-    final value = ReadingProgressV1(bookRef: book('a'), hasRead: true, lastReadAt: local);
+    final value = ReadingProgressV1(
+      bookRef: book('a'),
+      hasRead: true,
+      lastReadAt: local,
+    );
     expect(value.lastReadAt, local.toUtc());
     expect(value.toJson()['lastReadAt'], encodeCanonicalUtc(local.toUtc()));
     expect(ReadingProgressV1(bookRef: book('a'), hasRead: true).toJson(), {
@@ -161,6 +170,32 @@ void main() {
       'bookRef': book('a').toJson(),
       'hasRead': true,
     });
+    expect(
+      () => ReadingProgressV1(
+        bookRef: book('a'),
+        hasRead: true,
+        lastReadAt: DateTime.utc(10000),
+      ),
+      throwsA(isA<IdentityFailure>()),
+    );
+  });
+
+  test('chapterRef-only progress round-trips through the repository', () async {
+    final ref = book('a');
+    await addBooks([ref]);
+    final chapter = SourceChapterRef(
+      sourceId: ref.sourceId,
+      bookId: ref.bookId,
+      chapterId: ChapterId('chapter/001'),
+    );
+    final value = ReadingProgressV1(
+      bookRef: ref,
+      hasRead: true,
+      chapterRef: chapter,
+      lastReadAt: DateTime.utc(2026, 9, 17, 1, 2, 3),
+    );
+    await progress.save(value);
+    expect(await progress.get(ref), value);
   });
 
   test('reader defaults and every preferences codec token are stable', () {
@@ -200,231 +235,524 @@ void main() {
       throwsA(isA<IdentityFailure>()),
     );
     expect(
-      () => ReaderPreferencesV1(fontSize: double.nan, lineSpacing: 0,
-        background: ReaderBackground.paperWhite, mode: ReaderMode.scroll,
-        fontFamily: ReaderFontFamily.system, bold: false, marginLeft: 0,
-        marginRight: 0, marginTop: 0, marginBottom: 0),
-      throwsA(isA<IdentityFailure>()),
-    );
-  });
-
-  test('app preference tokens, opaque refs and nullable absence round-trip', () {
-    final value = AppPreferencesV1(
-      theme: AppTheme.dark,
-      preferredSourceId: SourceId('source/文😀'),
-      selectedShelfId: ShelfId(' shelf/#/文 '),
-      accent: AppAccent.orange,
-    );
-    expect(AppPreferencesV1.fromJson(value.toJson()), value);
-    final absent = const AppPreferencesV1(theme: AppTheme.system);
-    expect(AppPreferencesV1.fromJson(absent.toJson()), absent);
-    final unknown = absent.toJson()..['accent'] = 'unknown';
-    expect(
-      () => AppPreferencesV1.fromJson(unknown),
-      throwsA(isA<IdentityFailure>()),
-    );
-    expect(
-      () => AppPreferencesV1.fromJson(
-        absent.toJson()..['preferredSourceId'] = 42,
+      () => ReaderPreferencesV1(
+        fontSize: double.nan,
+        lineSpacing: 0,
+        background: ReaderBackground.paperWhite,
+        mode: ReaderMode.scroll,
+        fontFamily: ReaderFontFamily.system,
+        bold: false,
+        marginLeft: 0,
+        marginRight: 0,
+        marginTop: 0,
+        marginBottom: 0,
       ),
       throwsA(isA<IdentityFailure>()),
     );
   });
 
-  test('progress requires an existing LibraryEntry and never creates one', () async {
-    final missing = book('a');
-    await expectLater(
-      progress.save(ReadingProgressV1(bookRef: missing, hasRead: true)),
-      repositoryFailure(RepositoryFailureReason.invalidReference),
-    );
-    expect(await library.get(missing), isNull);
-    expect(await progress.list(), isEmpty);
+  test(
+    'app preference tokens, opaque refs and nullable absence round-trip',
+    () {
+      final value = AppPreferencesV1(
+        theme: AppTheme.dark,
+        preferredSourceId: SourceId('source/文😀'),
+        selectedShelfId: ShelfId(' shelf/#/文 '),
+        accent: AppAccent.orange,
+      );
+      expect(AppPreferencesV1.fromJson(value.toJson()), value);
+      final absent = const AppPreferencesV1(theme: AppTheme.system);
+      expect(AppPreferencesV1.fromJson(absent.toJson()), absent);
+      final unknown = absent.toJson()..['accent'] = 'unknown';
+      expect(
+        () => AppPreferencesV1.fromJson(unknown),
+        throwsA(isA<IdentityFailure>()),
+      );
+      expect(
+        () => AppPreferencesV1.fromJson(
+          absent.toJson()..['preferredSourceId'] = 42,
+        ),
+        throwsA(isA<IdentityFailure>()),
+      );
+    },
+  );
+
+  test('reader preference codec exercises every stable wire token', () {
+    for (final background in ReaderBackground.values) {
+      final value = ReaderPreferencesV1(
+        fontSize: 18,
+        lineSpacing: 1,
+        background: background,
+        mode: ReaderMode.pageCurl,
+        fontFamily: ReaderFontFamily.system,
+        bold: false,
+        marginLeft: 1,
+        marginRight: 1,
+        marginTop: 1,
+        marginBottom: 1,
+      );
+      expect(ReaderPreferencesV1.fromJson(value.toJson()), value);
+    }
+    for (final mode in ReaderMode.values) {
+      final value = ReaderPreferencesV1(
+        fontSize: 18,
+        lineSpacing: 1,
+        background: ReaderBackground.paperWhite,
+        mode: mode,
+        fontFamily: ReaderFontFamily.system,
+        bold: false,
+        marginLeft: 1,
+        marginRight: 1,
+        marginTop: 1,
+        marginBottom: 1,
+      );
+      expect(ReaderPreferencesV1.fromJson(value.toJson()), value);
+    }
+    for (final fontFamily in ReaderFontFamily.values) {
+      final value = ReaderPreferencesV1(
+        fontSize: 18,
+        lineSpacing: 1,
+        background: ReaderBackground.paperWhite,
+        mode: ReaderMode.pageCurl,
+        fontFamily: fontFamily,
+        bold: false,
+        marginLeft: 1,
+        marginRight: 1,
+        marginTop: 1,
+        marginBottom: 1,
+      );
+      expect(ReaderPreferencesV1.fromJson(value.toJson()), value);
+    }
   });
 
-  test('progress round-trips opaque Unicode refs and source-aware ordering', () async {
-    final a = book('a', ' 00002/#/文 ');
-    final b = book('a', ' 00001/#/文 ');
-    final sameBookOtherSource = book('b', b.bookId.value);
-    await addBooks([a, b, sameBookOtherSource]);
-    await progress.save(ReadingProgressV1(bookRef: sameBookOtherSource, hasRead: true));
-    await progress.save(ReadingProgressV1(bookRef: a, hasRead: false));
-    await progress.save(ReadingProgressV1(bookRef: b, hasRead: true));
-    expect((await progress.list()).map((item) => item.bookRef), [b, a, sameBookOtherSource]);
-    expect((await DriftProgressRepository(db).get(a))!.bookRef, a);
+  test(
+    'reader preference validation rejects each invalid numeric boundary',
+    () {
+      ReaderPreferencesV1 valid({
+        double fontSize = 1,
+        double lineSpacing = 0,
+        double marginLeft = 0,
+        double marginRight = 0,
+        double marginTop = 0,
+        double marginBottom = 0,
+      }) => ReaderPreferencesV1(
+        fontSize: fontSize,
+        lineSpacing: lineSpacing,
+        background: ReaderBackground.paperWhite,
+        mode: ReaderMode.pageCurl,
+        fontFamily: ReaderFontFamily.system,
+        bold: false,
+        marginLeft: marginLeft,
+        marginRight: marginRight,
+        marginTop: marginTop,
+        marginBottom: marginBottom,
+      );
+
+      for (final value in [
+        () => valid(fontSize: 0),
+        () => valid(fontSize: -1),
+        () => valid(lineSpacing: -1),
+        () => valid(marginLeft: -1),
+        () => valid(marginRight: -1),
+        () => valid(marginTop: -1),
+        () => valid(marginBottom: -1),
+        () => valid(fontSize: double.nan),
+        () => valid(fontSize: double.infinity),
+        () => valid(fontSize: double.negativeInfinity),
+      ]) {
+        expect(value, throwsA(isA<IdentityFailure>()));
+      }
+
+      final base = valid().toJson();
+      for (final invalid in [
+        {...base, 'kind': 'wrong'},
+        {...base, 'version': 2},
+        {...base, 'unknown': true},
+        {...base}..remove('bold'),
+        {...base, 'background': 'unknown'},
+      ]) {
+        expect(
+          () => ReaderPreferencesV1.fromJson(invalid),
+          throwsA(isA<IdentityFailure>()),
+        );
+      }
+    },
+  );
+
+  test('app preference codec exercises every theme and accent token', () {
+    for (final theme in AppTheme.values) {
+      final value = AppPreferencesV1(theme: theme);
+      expect(AppPreferencesV1.fromJson(value.toJson()), value);
+    }
+    for (final accent in AppAccent.values) {
+      final value = AppPreferencesV1(theme: AppTheme.system, accent: accent);
+      expect(AppPreferencesV1.fromJson(value.toJson()), value);
+    }
+    const absent = AppPreferencesV1(theme: AppTheme.system);
+    expect(absent.accent, isNull);
+    for (final invalid in [
+      {...absent.toJson(), 'kind': 'wrong'},
+      {...absent.toJson(), 'version': 2},
+      {...absent.toJson(), 'unknown': true},
+      {...absent.toJson(), 'theme': 'unknown'},
+      {...absent.toJson(), 'accent': 'unknown'},
+      {...absent.toJson(), 'preferredSourceId': ''},
+      {...absent.toJson(), 'selectedShelfId': 42},
+    ]) {
+      expect(
+        () => AppPreferencesV1.fromJson(invalid),
+        throwsA(isA<IdentityFailure>()),
+      );
+    }
   });
 
-  test('legacy locator requires an existing dataset and preserves all evidence', () async {
-    final ref = book('a');
-    await addBooks([ref]);
-    final missing = locator(ref, dataset: 'missing');
-    await expectLater(
-      progress.save(ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: missing)),
-      repositoryFailure(RepositoryFailureReason.invalidReference),
-    );
-    expect(await progress.get(ref), isNull);
+  test(
+    'progress requires an existing LibraryEntry and never creates one',
+    () async {
+      final missing = book('a');
+      await expectLater(
+        progress.save(ReadingProgressV1(bookRef: missing, hasRead: true)),
+        repositoryFailure(RepositoryFailureReason.invalidReference),
+      );
+      expect(await library.get(missing), isNull);
+      expect(await progress.list(), isEmpty);
+    },
+  );
 
-    await addDataset();
-    final stored = locator(ref, fraction: 0);
-    await progress.save(ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: stored));
-    expect((await progress.get(ref))!.legacyLocator, stored);
-    final row = await db.customSelect('SELECT * FROM legacy_chapter_locators').get();
-    expect(row, hasLength(1));
-    expect(row.single.read<String>('legacy_book_id'), 'wk8-00042');
-    expect(row.single.read<double>('fraction'), 0);
-  });
+  test(
+    'progress round-trips opaque Unicode refs and source-aware ordering',
+    () async {
+      final a = book('a', ' 00002/#/文 ');
+      final b = book('a', ' 00001/#/文 ');
+      final sameBookOtherSource = book('b', b.bookId.value);
+      await addBooks([a, b, sameBookOtherSource]);
+      await progress.save(
+        ReadingProgressV1(bookRef: sameBookOtherSource, hasRead: true),
+      );
+      await progress.save(ReadingProgressV1(bookRef: a, hasRead: false));
+      await progress.save(ReadingProgressV1(bookRef: b, hasRead: true));
+      expect((await progress.list()).map((item) => item.bookRef), [
+        b,
+        a,
+        sameBookOtherSource,
+      ]);
+      expect((await DriftProgressRepository(db).get(a))!.bookRef, a);
+    },
+  );
 
-  test('modern and legacy locators remain independent; old locators are retained', () async {
-    final ref = book('a');
-    await addBooks([ref]);
-    await addDataset();
-    final first = locator(ref, index: 1, fraction: 0.25);
-    final second = locator(ref, index: 2, fraction: 0.75);
-    final modern = SourceChapterRef(
-      sourceId: ref.sourceId,
-      bookId: ref.bookId,
-      chapterId: ChapterId('opaque-chapter'),
-    );
-    await progress.save(ReadingProgressV1(
-      bookRef: ref,
-      hasRead: true,
-      chapterRef: modern,
-      legacyLocator: first,
-    ));
-    await progress.save(ReadingProgressV1(
-      bookRef: ref,
-      hasRead: false,
-      chapterRef: modern,
-      legacyLocator: second,
-    ));
-    final current = (await progress.get(ref))!;
-    expect(current.chapterRef, modern);
-    expect(current.legacyLocator, second);
-    expect(await db.customSelect('SELECT locator_id FROM legacy_chapter_locators').get(), hasLength(2));
-    expect(second, isNot(first));
-  });
+  test(
+    'legacy locator requires an existing dataset and preserves all evidence',
+    () async {
+      final ref = book('a');
+      await addBooks([ref]);
+      final missing = locator(ref, dataset: 'missing');
+      await expectLater(
+        progress.save(
+          ReadingProgressV1(
+            bookRef: ref,
+            hasRead: true,
+            legacyLocator: missing,
+          ),
+        ),
+        repositoryFailure(RepositoryFailureReason.invalidReference),
+      );
+      expect(await progress.get(ref), isNull);
 
-  test('identical locator saves are idempotent and locator id is internal', () async {
-    final ref = book('a');
-    await addBooks([ref]);
-    await addDataset();
-    final value = locator(ref, index: 7, fraction: 1);
-    await progress.save(ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: value));
-    await progress.save(ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: value));
-    expect(await db.customSelect('SELECT locator_id FROM legacy_chapter_locators').get(), hasLength(1));
-    expect(ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: value).toJson().containsKey('locator_id'), isFalse);
-  });
+      await addDataset();
+      final stored = locator(ref, fraction: 0);
+      await progress.save(
+        ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: stored),
+      );
+      expect((await progress.get(ref))!.legacyLocator, stored);
+      final row = await db
+          .customSelect('SELECT * FROM legacy_chapter_locators')
+          .get();
+      expect(row, hasLength(1));
+      expect(row.single.read<String>('legacy_book_id'), 'wk8-00042');
+      expect(row.single.read<double>('fraction'), 0);
+    },
+  );
 
-  test('locator insertion failure rolls back the whole progress transaction', () async {
-    final ref = book('a');
-    await addBooks([ref]);
-    await addDataset();
-    await db.customStatement(
-      "CREATE TEMP TRIGGER fail_locator BEFORE INSERT ON legacy_chapter_locators "
-      "WHEN NEW.legacy_book_id='fail' BEGIN SELECT RAISE(ABORT, 'synthetic'); END",
-    );
-    await expectLater(
-      progress.save(ReadingProgressV1(
-        bookRef: ref,
-        hasRead: true,
-        legacyLocator: locator(ref, legacyBook: 'fail'),
-      )),
-      repositoryFailure(RepositoryFailureReason.storage),
-    );
-    expect(await progress.get(ref), isNull);
-    expect(await db.customSelect('SELECT * FROM legacy_chapter_locators').get(), isEmpty);
-  });
+  test(
+    'modern and legacy locators remain independent; old locators are retained',
+    () async {
+      final ref = book('a');
+      await addBooks([ref]);
+      await addDataset();
+      final first = locator(ref, index: 1, fraction: 0.25);
+      final second = locator(ref, index: 2, fraction: 0.75);
+      final modern = SourceChapterRef(
+        sourceId: ref.sourceId,
+        bookId: ref.bookId,
+        chapterId: ChapterId('opaque-chapter'),
+      );
+      await progress.save(
+        ReadingProgressV1(
+          bookRef: ref,
+          hasRead: true,
+          chapterRef: modern,
+          legacyLocator: first,
+        ),
+      );
+      await progress.save(
+        ReadingProgressV1(
+          bookRef: ref,
+          hasRead: false,
+          chapterRef: modern,
+          legacyLocator: second,
+        ),
+      );
+      final current = (await progress.get(ref))!;
+      expect(current.chapterRef, modern);
+      expect(current.legacyLocator, second);
+      expect(
+        await db
+            .customSelect('SELECT locator_id FROM legacy_chapter_locators')
+            .get(),
+        hasLength(2),
+      );
+      expect(second, isNot(first));
+    },
+  );
 
-  test('progress insertion failure rolls back a newly inserted locator', () async {
-    final ref = book('a', 'bad');
-    await addBooks([ref]);
-    await addDataset();
-    await db.customStatement(
-      "CREATE TEMP TRIGGER fail_progress BEFORE INSERT ON reading_progress "
-      "WHEN NEW.book_id='bad' BEGIN SELECT RAISE(ABORT, 'synthetic'); END",
-    );
-    await expectLater(
-      progress.save(ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: locator(ref))),
-      repositoryFailure(RepositoryFailureReason.storage),
-    );
-    expect(await progress.get(ref), isNull);
-    expect(await db.customSelect('SELECT * FROM legacy_chapter_locators').get(), isEmpty);
-  });
+  test(
+    'identical locator saves are idempotent and locator id is internal',
+    () async {
+      final ref = book('a');
+      await addBooks([ref]);
+      await addDataset();
+      final value = locator(ref, index: 7, fraction: 1);
+      await progress.save(
+        ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: value),
+      );
+      await progress.save(
+        ReadingProgressV1(bookRef: ref, hasRead: true, legacyLocator: value),
+      );
+      expect(
+        await db
+            .customSelect('SELECT locator_id FROM legacy_chapter_locators')
+            .get(),
+        hasLength(1),
+      );
+      expect(
+        ReadingProgressV1(
+          bookRef: ref,
+          hasRead: true,
+          legacyLocator: value,
+        ).toJson().containsKey('locator_id'),
+        isFalse,
+      );
+    },
+  );
 
-  test('progress replacement preserves unrelated library and group state', () async {
-    final ref = book('a');
-    await addBooks([ref]);
-    final shelf = Shelf(id: ShelfId('shelf'), name: 'Shelf', ordinal: 0);
-    await shelves.createShelf(shelf);
-    await shelves.addMember(shelf.id, ref);
-    await progress.save(ReadingProgressV1(bookRef: ref, hasRead: true));
-    await progress.save(ReadingProgressV1(bookRef: ref, hasRead: false));
-    expect((await library.get(ref))!.saved, isFalse);
-    expect(await shelves.listMembers(shelf.id), hasLength(1));
-    expect((await progress.get(ref))!.hasRead, isFalse);
-    final second = DriftProgressRepository(db);
-    expect((await second.get(ref))!.hasRead, isFalse);
-  });
+  test(
+    'locator insertion failure rolls back the whole progress transaction',
+    () async {
+      final ref = book('a');
+      await addBooks([ref]);
+      await addDataset();
+      await db.customStatement(
+        "CREATE TEMP TRIGGER fail_locator BEFORE INSERT ON legacy_chapter_locators "
+        "WHEN NEW.legacy_book_id='fail' BEGIN SELECT RAISE(ABORT, 'synthetic'); END",
+      );
+      await expectLater(
+        progress.save(
+          ReadingProgressV1(
+            bookRef: ref,
+            hasRead: true,
+            legacyLocator: locator(ref, legacyBook: 'fail'),
+          ),
+        ),
+        repositoryFailure(RepositoryFailureReason.storage),
+      );
+      expect(await progress.get(ref), isNull);
+      expect(
+        await db.customSelect('SELECT * FROM legacy_chapter_locators').get(),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'progress insertion failure rolls back a newly inserted locator',
+    () async {
+      final ref = book('a', 'bad');
+      await addBooks([ref]);
+      await addDataset();
+      await db.customStatement(
+        "CREATE TEMP TRIGGER fail_progress BEFORE INSERT ON reading_progress "
+        "WHEN NEW.book_id='bad' BEGIN SELECT RAISE(ABORT, 'synthetic'); END",
+      );
+      await expectLater(
+        progress.save(
+          ReadingProgressV1(
+            bookRef: ref,
+            hasRead: true,
+            legacyLocator: locator(ref),
+          ),
+        ),
+        repositoryFailure(RepositoryFailureReason.storage),
+      );
+      expect(await progress.get(ref), isNull);
+      expect(
+        await db.customSelect('SELECT * FROM legacy_chapter_locators').get(),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'progress replacement preserves unrelated library, shelf and group state',
+    () async {
+      final ref = book('a');
+      await addBooks([ref]);
+      await library.setSaved(ref, true);
+      final shelf = Shelf(id: ShelfId('shelf'), name: 'Shelf', ordinal: 0);
+      await shelves.createShelf(shelf);
+      await shelves.addMember(shelf.id, ref);
+      final group = ManualGroup(
+        id: ManualGroupId('group'),
+        displayName: 'Group',
+      );
+      await groups.createGroup(group);
+      await groups.addMember(group.id, ref);
+      await groups.setSplitOverride(ref, true);
+      await progress.save(ReadingProgressV1(bookRef: ref, hasRead: true));
+      await progress.save(ReadingProgressV1(bookRef: ref, hasRead: false));
+      expect((await library.get(ref))!.saved, isTrue);
+      expect(await shelves.listMembers(shelf.id), hasLength(1));
+      expect(await groups.listMembers(group.id), hasLength(1));
+      expect((await groups.getSplitOverride(ref))!.isSplit, isTrue);
+      expect((await progress.get(ref))!.hasRead, isFalse);
+      final second = DriftProgressRepository(db);
+      expect((await second.get(ref))!.hasRead, isFalse);
+    },
+  );
 
   test('preference reads return null without persisting defaults', () async {
     expect(await preferences.getReaderPreferences(), isNull);
     expect(await preferences.getAppPreferences(), isNull);
-    expect(await db.customSelect('SELECT * FROM reader_preferences').get(), isEmpty);
-    expect(await db.customSelect('SELECT * FROM app_preferences').get(), isEmpty);
+    expect(
+      await db.customSelect('SELECT * FROM reader_preferences').get(),
+      isEmpty,
+    );
+    expect(
+      await db.customSelect('SELECT * FROM app_preferences').get(),
+      isEmpty,
+    );
   });
 
-  test('reader preferences replace complete state and survive another repository', () async {
-    final value = ReaderPreferencesV1(
-      fontSize: 19,
-      lineSpacing: 4,
-      background: ReaderBackground.parchment,
-      mode: ReaderMode.scroll,
-      fontFamily: ReaderFontFamily.songti,
-      bold: true,
-      marginLeft: 1,
-      marginRight: 2,
-      marginTop: 3,
-      marginBottom: 4,
-    );
-    await preferences.saveReaderPreferences(value);
-    expect(await DriftPreferencesRepository(db).getReaderPreferences(), value);
-    await preferences.saveReaderPreferences(ReaderPreferencesV1.defaults());
-    expect(await preferences.getReaderPreferences(), ReaderPreferencesV1.defaults());
-  });
+  test(
+    'reader preferences replace complete state and survive another repository',
+    () async {
+      final value = ReaderPreferencesV1(
+        fontSize: 19,
+        lineSpacing: 4,
+        background: ReaderBackground.parchment,
+        mode: ReaderMode.scroll,
+        fontFamily: ReaderFontFamily.songti,
+        bold: true,
+        marginLeft: 1,
+        marginRight: 2,
+        marginTop: 3,
+        marginBottom: 4,
+      );
+      await preferences.saveReaderPreferences(value);
+      expect(
+        await DriftPreferencesRepository(db).getReaderPreferences(),
+        value,
+      );
+      await preferences.saveReaderPreferences(ReaderPreferencesV1.defaults());
+      expect(
+        await preferences.getReaderPreferences(),
+        ReaderPreferencesV1.defaults(),
+      );
+    },
+  );
 
-  test('app preference FKs are existing-only and null values explicitly clear', () async {
-    await expectLater(
-      preferences.saveAppPreferences(AppPreferencesV1(
-        theme: AppTheme.light,
-        preferredSourceId: SourceId('missing'),
-      )),
-      repositoryFailure(RepositoryFailureReason.invalidReference),
-    );
-    expect(await preferences.getAppPreferences(), isNull);
+  test(
+    'app preference FKs are existing-only and null values explicitly clear',
+    () async {
+      await expectLater(
+        preferences.saveAppPreferences(
+          AppPreferencesV1(
+            theme: AppTheme.light,
+            preferredSourceId: SourceId('missing'),
+          ),
+        ),
+        repositoryFailure(RepositoryFailureReason.invalidReference),
+      );
+      expect(await preferences.getAppPreferences(), isNull);
 
-    final shelf = Shelf(id: ShelfId('selected'), name: 'Selected', ordinal: 0);
-    await shelves.createShelf(shelf);
-    final value = AppPreferencesV1(
-      theme: AppTheme.dark,
-      preferredSourceId: SourceId('a'),
-      selectedShelfId: shelf.id,
-      accent: AppAccent.red,
-    );
-    await preferences.saveAppPreferences(value);
-    expect(await preferences.getAppPreferences(), value);
-    const cleared = AppPreferencesV1(theme: AppTheme.system);
-    await preferences.saveAppPreferences(cleared);
-    expect(await preferences.getAppPreferences(), cleared);
-  });
+      final shelf = Shelf(
+        id: ShelfId('selected'),
+        name: 'Selected',
+        ordinal: 0,
+      );
+      await shelves.createShelf(shelf);
+      final value = AppPreferencesV1(
+        theme: AppTheme.dark,
+        preferredSourceId: SourceId('a'),
+        selectedShelfId: shelf.id,
+        accent: AppAccent.red,
+      );
+      await preferences.saveAppPreferences(value);
+      expect(await preferences.getAppPreferences(), value);
+      await preferences.saveAppPreferences(
+        AppPreferencesV1(
+          theme: AppTheme.system,
+          selectedShelfId: shelf.id,
+          accent: AppAccent.red,
+        ),
+      );
+      expect(
+        (await preferences.getAppPreferences())!.preferredSourceId,
+        isNull,
+      );
+      await preferences.saveAppPreferences(
+        const AppPreferencesV1(theme: AppTheme.system, accent: AppAccent.red),
+      );
+      expect((await preferences.getAppPreferences())!.selectedShelfId, isNull);
+      const cleared = AppPreferencesV1(theme: AppTheme.system);
+      await preferences.saveAppPreferences(cleared);
+      expect(await preferences.getAppPreferences(), cleared);
+      expect(
+        await db.customSelect('SELECT * FROM source_registrations').get(),
+        hasLength(2),
+      );
+      expect(
+        await db.customSelect('SELECT * FROM shelves').get(),
+        hasLength(1),
+      );
+    },
+  );
 
-  test('preference write SQL failures become safe typed storage failures', () async {
+  test(
+    'preference write SQL failures become safe typed storage failures',
+    () async {
+      await db.customStatement(
+        "CREATE TEMP TRIGGER fail_reader BEFORE INSERT ON reader_preferences "
+        "BEGIN SELECT RAISE(ABORT, 'synthetic'); END",
+      );
+      await expectLater(
+        preferences.saveReaderPreferences(ReaderPreferencesV1.defaults()),
+        repositoryFailure(RepositoryFailureReason.storage),
+      );
+      expect(await preferences.getReaderPreferences(), isNull);
+    },
+  );
+
+  test('app preference write failures are safe storage failures', () async {
     await db.customStatement(
-      "CREATE TEMP TRIGGER fail_reader BEFORE INSERT ON reader_preferences "
+      "CREATE TEMP TRIGGER fail_app BEFORE INSERT ON app_preferences "
       "BEGIN SELECT RAISE(ABORT, 'synthetic'); END",
     );
     await expectLater(
-      preferences.saveReaderPreferences(ReaderPreferencesV1.defaults()),
+      preferences.saveAppPreferences(
+        const AppPreferencesV1(theme: AppTheme.dark),
+      ),
       repositoryFailure(RepositoryFailureReason.storage),
     );
-    expect(await preferences.getReaderPreferences(), isNull);
+    expect(await preferences.getAppPreferences(), isNull);
   });
 }

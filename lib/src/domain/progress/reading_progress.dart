@@ -117,6 +117,9 @@ String _four(int value) => value.toString().padLeft(4, '0');
 
 DateTime _millisecondUtc(DateTime value) {
   final utc = value.toUtc();
+  if (utc.year < 0 || utc.year > 9999) {
+    throw IdentityFailure(IdentityFailureReason.invalidValue);
+  }
   return DateTime.utc(
     utc.year,
     utc.month,
