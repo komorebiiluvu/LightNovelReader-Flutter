@@ -18,21 +18,22 @@ replacement or release readiness. F3 is **NOT STARTED / NOT AUTHORIZED**.
 | F2.4 | EXIT APPROVED | `78b3c36057e4554e76bb98b0eb474ed614f39786`; [Run #11](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35172536438) |
 | F2.5 | EXIT APPROVED | `f1dd837942d49527b1a379fcce25e46e7035f027`; [Run #14](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35178792526) |
 | F2.6 | EXIT APPROVED | `0ec12e0356ad3fb8428c098d130876407472c168`; [Run #17](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35207590333) |
-| F2.7 | IMPLEMENTED — REVIEW PENDING | implementation / review-fix starting SHA `94ce8ce069af9309721c23c9a8505c48cf640e85`; review fix is the single `fix: close F2.7 legacy import review gaps` commit |
+| F2.7 | EXIT APPROVED | final SHA `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`; [Run #22](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35226294436); Human project owner approval 2026-09-17 |
 
 F2.7 uses frozen legacy repository commit
-`d90d4d090c85a0a9c374684696c34befe12636d1`. Its implementation commit message
-is `feat: add committed legacy state importer`. No F2.7 exit approval is
-recorded.
+`d90d4d090c85a0a9c374684696c34befe12636d1`. Its implementation/review-fix
+chain is `94ce8ce` → `f0687fe` → `be64ab0` → `286c710`, ending in final
+implementation SHA `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`. The Human
+project owner approved F2.7 exit on 2026-09-17.
 
 ## Aggregate F2.7 evidence
 
 F2.7 uses schema version **1** and the existing Drift/SQLite tables and F2.6
 migration tables without schema changes. Dependencies, generated Drift code,
 schema snapshots, migration history, workflow and platform files are unchanged.
-The review-fix local full suite contains **369 passing tests**; the F2.7
-focused suites contain **194 passing tests** (original 5 plus 181 targeted
-review tests and 8 Set-provenance regressions). Both corrected frozen-format full fixtures contain **21
+The final reviewed local full suite contains **370 passing tests**; the F2.7
+focused suites contain **195 passing tests** (original 5 plus 190 targeted
+review tests, including the Set-provenance regressions). Both corrected frozen-format full fixtures contain **21
 expected / 21 actual** verified units:
 
 | Entity kind | Expected | Actual |
@@ -75,30 +76,57 @@ Validation observed before push:
 - `flutter pub get --enforce-lockfile`: PASS.
 - Formatting and no-change format check: PASS.
 - `flutter analyze --no-pub`: PASS, no issues.
-- `flutter test --no-pub`: PASS, 369 tests.
+- `flutter test --no-pub`: PASS, 370 tests.
 - `./tool/verify_generated.ps1`: PASS; schema and generated outputs unchanged.
 - `git diff --check`: PASS.
 - Windows packaged storage smoke: PASS; the actual F2.7 service imported an
   inline snapshot, wrote product state, closed/reopened the database and read
   back exact source-aware state.
 
-[Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354)
-for `94ce8ce069af9309721c23c9a8505c48cf640e85` is historical
-pre-execution FAILURE evidence with empty job step lists. [Run #20 /
-35217367323](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35217367323)
-later executed successfully for the prior SHA `f0687fe015edb0c51d79e33894ffc130310c4d66`:
-Quality, Android debug, Android packaged storage smoke, Windows debug,
-Windows packaged storage smoke, iOS debug unsigned and iOS simulator packaged
-storage smoke all PASS. Run #20 is historical evidence for that prior SHA
-only; the final review-fix SHA requires its own CI run and this document does
-not predeclare that result.
+### Final reviewed platform evidence
 
-The new post-push GitHub Actions result is intentionally not predeclared in
-this committed evidence. The final report must state only the actually
-observed jobs. The previous F2.6 Run #18 Android storage smoke instability is
-an existing CI/runtime harness issue; F2.7 does not alter, weaken, skip or
-retry that gate. A failed or pending Android smoke in the new run is evidence
-against F2.7 exit approval, not a self-fix target here.
+[Run #20 / 35217367323](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35217367323)
+for `f0687fe015edb0c51d79e33894ffc130310c4d66` executed successfully after
+repository visibility/billing recovery: Quality, Android debug, Android
+packaged storage smoke, Windows debug, Windows packaged storage smoke, iOS
+debug unsigned and iOS simulator packaged storage smoke all PASS.
+
+[Run #21 / 35223587242](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35223587242)
+for `be64ab071f714003010e2ea974ecce5823d6c80e` observed the same seven
+checks all PASS.
+
+[Run #22 / 35226294436](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35226294436)
+for final SHA `286c710c39b3fb58a8668b8b5e0f72caa489b7f0` observed Quality,
+Android debug, Android packaged storage smoke, Windows debug, Windows
+packaged storage smoke, iOS debug unsigned build and iOS simulator boot PASS.
+The iOS simulator packaged-storage smoke was **NOT PASS, NOT FAIL,
+HUMAN-WAIVED / CANCELLED OR ABANDONED AFTER STALL**.
+
+#### F2.7 final iOS packaged-storage smoke evidence waiver
+
+The final reviewed SHA `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`
+successfully completed the iOS unsigned build and simulator boot. The
+subsequent iOS simulator packaged-storage integration test stalled after
+successful Xcode build completion and did not produce a final PASS result
+within the accepted review window.
+
+The Human project owner explicitly approved proceeding without a final-SHA iOS
+packaged-smoke PASS on 2026-09-17. Supporting evidence includes final-SHA
+Quality PASS, Android packaged smoke PASS, Windows packaged smoke PASS, iOS
+unsigned build PASS and iOS simulator boot PASS; immediately preceding
+reviewed SHA `be64ab0` Run #21 completed the same iOS simulator
+packaged-storage smoke successfully; and the final provenance fix changed
+only Dart migration logic/tests, not workflow, native iOS code, platform
+configuration, schema or dependencies.
+
+Classification: **HUMAN-APPROVED EVIDENCE WAIVER**, not PASS. This waiver
+applies only to F2.7 exit evidence and does not permanently waive future iOS
+validation requirements.
+
+The historical [Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354)
+pre-execution failure and the previous F2.6 Run #18 Android smoke instability
+remain historical CI evidence. F2.7 did not alter, weaken, skip or retry that
+gate.
 
 ## Deferred obligations
 
@@ -112,7 +140,7 @@ The following remain outside F2 and are not hidden by this evidence:
 - F11 real installed-app upgrade/recovery, signing/distribution and release
   support validation.
 
-F2.7: **IMPLEMENTED — REVIEW PENDING**
+F2.7: **EXIT APPROVED**
 
 F2 overall: **EXIT REVIEW PENDING / NOT APPROVED**
 

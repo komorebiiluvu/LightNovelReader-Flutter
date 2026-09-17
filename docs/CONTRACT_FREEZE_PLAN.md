@@ -42,7 +42,7 @@ supplies the observed data formats and iOS container feasibility evidence.
 The entry contract and ADR were **ACCEPTED** by the human project owner on
 2026-09-16. Current implementation status is **F2.1 IMPLEMENTED / ACCEPTED;
 F2.2 IMPLEMENTED / ACCEPTED; F2.3 EXIT APPROVED; F2.4 EXIT APPROVED; F2.5
-EXIT APPROVED; F2.6 EXIT APPROVED; F2.7 IMPLEMENTED — REVIEW PENDING**. F2.4
+EXIT APPROVED; F2.6 EXIT APPROVED; F2.7 EXIT APPROVED**. F2.4
 human exit approval on
 **2026-09-17** is recorded in the
 [Library / Groups Baseline](F2_4_LIBRARY_GROUPS_BASELINE.md).
@@ -54,5 +54,7 @@ F2.6 human exit approval on **2026-09-17** is recorded in the
 [Migration Framework Baseline](F2_6_MIGRATION_FRAMEWORK_BASELINE.md).
 F2.7 implementation evidence is recorded in the [F2.7 Legacy Import
 Baseline](F2_7_LEGACY_IMPORT_BASELINE.md) and [F2 Exit Evidence](F2_EXIT_EVIDENCE.md).
-F2 exit remains **NOT APPROVED / REVIEW PENDING** and F3 remains **NOT STARTED /
-NOT AUTHORIZED**.
+F2.7 exit approval is separate from overall F2 exit approval. F2 exit remains
+**NOT APPROVED / REVIEW PENDING** and the next governance action is F2 Final
+Exit Review, not F3 implementation. F3 remains **NOT STARTED / NOT
+AUTHORIZED**.

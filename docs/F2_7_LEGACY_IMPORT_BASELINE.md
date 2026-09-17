@@ -1,18 +1,26 @@
 # F2.7 — Committed Legacy State Import Baseline
 
-Status: **IMPLEMENTED — REVIEW PENDING**.
+Status: **EXIT APPROVED**.
 
 Starting SHA: `412c2ae7d48828b3d25b2114e430ca9545b21676`.
 Frozen legacy SHA: `d90d4d090c85a0a9c374684696c34befe12636d1`.
 Implementation / review-fix starting SHA:
 `94ce8ce069af9309721c23c9a8505c48cf640e85`.
-Review fix: the single commit `fix: close F2.7 legacy import review gaps`;
-its exact SHA is reported after commit/push. Review-fix validation date:
-2026-09-17.
+Implementation / review-fix history:
 
-F2.7 is implemented under the explicit F2.7 authorization. This document is
-evidence for human review, not an exit approval. F2 overall remains **EXIT
-REVIEW PENDING / NOT APPROVED**. F3 remains **NOT STARTED / NOT AUTHORIZED**.
+- `94ce8ce069af9309721c23c9a8505c48cf640e85` — `feat: add committed legacy state importer`
+- `f0687fe015edb0c51d79e33894ffc130310c4d66` — `fix: close F2.7 legacy import review gaps`
+- `be64ab071f714003010e2ea974ecce5823d6c80e` — `fix: preserve unknown legacy set state`
+- `286c710c39b3fb58a8668b8b5e0f72caa489b7f0` — `fix: distinguish migration-created legacy stubs`
+
+Final implementation SHA: `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`.
+Final reviewed validation date: 2026-09-17.
+F2.7 exit approval: **APPROVED** by the Human project owner on **2026-09-17**.
+
+F2.7 is implemented under the explicit F2.7 authorization and is now exit
+approved. This document does not approve the overall F2 exit. F2 overall
+remains **EXIT REVIEW PENDING / NOT APPROVED**. F3 remains **NOT STARTED /
+NOT AUTHORIZED**.
 
 ## Scope and boundary
 
@@ -212,10 +220,10 @@ Synthetic fixtures are:
 - `test/fixtures/f2_7_full_backup_v1.json`
 - `test/fixtures/f2_7_full_snapshot_v1.json`
 
-The F2.7 focused suites contain **194 passing tests**: the original 5 in
-`test/migration/legacy_state_import_test.dart`, plus 181 targeted/table-driven
-tests in `test/migration/legacy_import_review_test.dart`, plus 8 targeted
-provenance regressions. They cover exact
+The F2.7 focused suites contain **195 passing tests**: the original 5 in
+`test/migration/legacy_state_import_test.dart`, plus 190 targeted/table-driven
+tests in `test/migration/legacy_import_review_test.dart`, including the
+targeted provenance regressions. They cover exact
 source identities/non-aliases, all required Book fields, optional fields,
 tags, missing-field fill/existing-target precedence, Set/map corruption,
 shelf/group/split ordering and identity, selected shelf validity, progress
@@ -258,10 +266,17 @@ Local validation completed:
 | `flutter pub get --enforce-lockfile` | PASS |
 | `dart format .` / no-change format check | PASS |
 | `flutter analyze --no-pub` | PASS, no issues |
-| `flutter test --no-pub` | PASS, 369 tests |
+| `flutter test --no-pub` | PASS, 370 tests |
 | `./tool/verify_generated.ps1` | PASS; generated/schema outputs unchanged |
 | `git diff --check` | PASS |
 | Windows packaged `integration_test/storage_smoke_test.dart -d windows --no-pub` | PASS, actual F2.7 import/readback and reopen |
+| Dependencies | UNCHANGED |
+| `schema.drift` | UNCHANGED |
+| Generated Drift | UNCHANGED |
+| Schema snapshots | UNCHANGED |
+| Migration history | UNCHANGED |
+| Workflow | UNCHANGED |
+| Platform files | UNCHANGED |
 
 The packaged smoke executes a frozen-valid inline snapshot import and now
 explicitly checks progress/locator, ordered tag and app preference readback
@@ -272,14 +287,73 @@ changed or repaired by F2.7.
 
 [Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354),
 for `94ce8ce069af9309721c23c9a8505c48cf640e85`, remains historical
-pre-execution FAILURE evidence with empty job step lists. Its later hosted
-runner recovery is superseded by [Run #20 / 35217367323](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35217367323),
-which executed successfully for the prior SHA `f0687fe015edb0c51d79e33894ffc130310c4d66`:
-Quality, Android debug, Android packaged storage smoke, Windows debug,
-Windows packaged storage smoke, iOS debug unsigned and iOS simulator packaged
-storage smoke all PASS. Run #20 is evidence for that prior SHA only; it does
-not validate this review-fix commit. The final review-fix SHA requires its own
-fresh run. No smoke gate is changed, skipped or retried here.
+pre-execution FAILURE evidence with empty job step lists.
+
+[Run #20 / 35217367323](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35217367323),
+for `f0687fe015edb0c51d79e33894ffc130310c4d66`, executed successfully after
+repository visibility/billing recovery: Quality, Android debug, Android
+packaged storage smoke, Windows debug, Windows packaged storage smoke, iOS
+debug unsigned and iOS simulator packaged storage smoke all PASS.
+
+[Run #21 / 35223587242](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35223587242),
+for `be64ab071f714003010e2ea974ecce5823d6c80e`, observed the same seven
+checks all PASS.
+
+[Run #22 / 35226294436](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35226294436),
+for final SHA `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`, observed Quality,
+Android debug, Android packaged storage smoke, Windows debug, Windows
+packaged storage smoke, iOS debug unsigned build and iOS simulator boot PASS.
+The iOS simulator packaged-storage smoke was **NOT PASS, NOT FAIL,
+HUMAN-WAIVED / CANCELLED OR ABANDONED AFTER STALL**.
+
+### Final iOS packaged-storage smoke evidence waiver
+
+The final reviewed SHA `286c710c39b3fb58a8668b8b5e0f72caa489b7f0`
+successfully completed the iOS unsigned build and simulator boot. The
+subsequent iOS simulator packaged-storage integration test stalled after
+successful Xcode build completion and did not produce a final PASS result
+within the accepted review window.
+
+The Human project owner explicitly approved proceeding without a final-SHA iOS
+packaged-smoke PASS on 2026-09-17. Supporting evidence includes final-SHA
+Quality PASS, Android packaged smoke PASS, Windows packaged smoke PASS, iOS
+unsigned build PASS and iOS simulator boot PASS; immediately preceding
+reviewed SHA `be64ab0` Run #21 completed the same iOS simulator
+packaged-storage smoke successfully; and the final provenance fix changed
+only Dart migration logic/tests, not workflow, native iOS code, platform
+configuration, schema or dependencies.
+
+Classification: **HUMAN-APPROVED EVIDENCE WAIVER**, not PASS. This waiver
+applies only to F2.7 exit evidence and does not permanently waive future iOS
+validation requirements. No smoke gate is changed, skipped or retried here.
+
+## Final human-reviewed behavior
+
+The Human project owner accepted the final implementation behavior covering:
+
+- frozen Swift-compatible backup/snapshot fixture semantics;
+- required legacy Book validation and ordered tag baseline evidence;
+- missing legacy field versus malformed legacy field, including malformed Set
+  UNKNOWN semantics and missing Set frozen Swift empty-Set defaults;
+- corrected savedIDs recovery, updateFlagIDs/readBookIDs/splitBookIDs unknown
+  protection, migration-created unresolved stub provenance and preexisting
+  product-stub protection;
+- preexisting user state wins and changed valid later exports become conflict
+  candidates;
+- exact source mapping, unresolved/unassigned source preservation, opaque
+  BookId preservation and deterministic identity mappings;
+- shelf/group conversion, split/group coexistence, progress locator
+  preservation and complete durable locator verification;
+- Apple Date, Reader preference, App preference, statistics and search-history
+  conversion/preservation;
+- no secret or whole-input persistence, exact retry idempotency,
+  close/reopen recovery, failure rollback/retry and concurrent dataset
+  isolation;
+- no network requirement, offline data deferred and accent acquisition
+  deferred.
+
+These accepted behaviors do not claim later-phase Source, Reader, image,
+offline/download, UI, plugin or release-readiness behavior.
 
 ## Freeze and limitations
 
@@ -296,7 +370,7 @@ or accent acquisition, or F11 production upgrade validation.
 
 Final status:
 
-F2.7: **IMPLEMENTED — REVIEW PENDING**
+F2.7: **EXIT APPROVED**
 
 F2 overall: **EXIT REVIEW PENDING / NOT APPROVED**
 

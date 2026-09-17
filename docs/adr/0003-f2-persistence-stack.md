@@ -9,7 +9,7 @@ Approved by: Human project owner. Approved direction: **Drift + SQLite NativeDat
 The approval gate described below has been satisfied. Current implementation
 status is **F2.1 IMPLEMENTED / ACCEPTED; F2.2 IMPLEMENTED / ACCEPTED; F2.3
 EXIT APPROVED; F2.4 EXIT APPROVED; F2.5 EXIT APPROVED; F2.6 EXIT APPROVED;
-F2.7 IMPLEMENTED — REVIEW PENDING**.
+F2.7 EXIT APPROVED**.
 F2.4 human exit approval on **2026-09-17** is recorded in the
 [Library / Groups Baseline](../F2_4_LIBRARY_GROUPS_BASELINE.md).
 F2.3 human exit approval on
@@ -21,7 +21,9 @@ F2.6 human exit approval on **2026-09-17** is recorded in the
 F2.7 implementation evidence is recorded in the
 [F2.7 Legacy Import Baseline](../F2_7_LEGACY_IMPORT_BASELINE.md) and
 [F2 Exit Evidence](../F2_EXIT_EVIDENCE.md). F2 exit remains **NOT APPROVED /
-REVIEW PENDING**; F3 remains **NOT STARTED / NOT AUTHORIZED**.
+REVIEW PENDING**. F2.7 exit approval is separate from overall F2 exit
+approval; the next governance action is F2 Final Exit Review, not F3
+implementation. F3 remains **NOT STARTED / NOT AUTHORIZED**.
 
 This proposal implements the Constitution's versioned, cross-platform storage
 policy. It does not override the Constitution or authorize dependencies/code
