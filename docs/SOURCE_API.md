@@ -24,8 +24,8 @@ are ordering metadata, never modern chapter identity.
 
 ```dart
 class SourceDescriptor {
-  final SourceId id;
-  final String name;
+  final SourceId sourceId;
+  final String displayName;
   final Set<SourceCapability> capabilities;
 }
 ```
@@ -73,29 +73,29 @@ the identity tuples or make an unsupported operation look like an empty success.
 abstract interface class BookSource {
   SourceDescriptor get descriptor;
 
-  Future<SearchResult> search(
+  Future<SourcePage<SourceBookSummary>> search(
     SearchQuery query,
-    CancellationToken cancellation,
+    SourceOperationContext context,
   );
 
   Future<ExploreResult> explore(
     ExploreRequest request,
-    CancellationToken cancellation,
+    SourceOperationContext context,
   );
 
   Future<SourceBook> getBook(
     SourceBookRef book,
-    CancellationToken cancellation,
+    SourceOperationContext context,
   );
 
   Future<SourceCatalog> getCatalog(
     SourceBookRef book,
-    CancellationToken cancellation,
+    SourceOperationContext context,
   );
 
   Future<ChapterContent> getChapterContent(
     SourceChapterRef chapter,
-    CancellationToken cancellation,
+    SourceOperationContext context,
   );
 }
 ```
@@ -105,6 +105,11 @@ defaults. Every returned SourceBook, catalog entry, chapter ref and content
 value must be owned by the Source instance's descriptor ID. The catalog method
 is the source-aware contract for both flat and volume-grouped chapter listings;
 it does not require a SourceVolumeRef when the provider has no stable volume ID.
+
+The F3.1 dependency-free API uses `SourceOperationContext` for operation kind,
+opaque request identity, session-generation binding and `SourceCancellation`.
+Authentication is exposed separately through `SourceAuthenticator`; it is not a
+credential method on `BookSource`.
 
 Paged results use immutable items and an optional opaque continuation. A
 continuation is bound to the Source, operation, query/filter identity and session
