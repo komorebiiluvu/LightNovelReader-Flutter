@@ -7,9 +7,10 @@ Contract revision: **1**. Prepared: **2026-09-16**.
 Human approval: **APPROVED**. Approval date: **2026-09-16**.
 Approved by: Human project owner.
 Current implementation status: **F2.1 IMPLEMENTED / ACCEPTED; F2.2 IMPLEMENTED /
-ACCEPTED; F2.3 EXIT APPROVED; F2.4 IMPLEMENTED — REVIEW PENDING;
-F2.5 NOT STARTED**.
-F2.4 implementation evidence: [Library / Groups Baseline](F2_4_LIBRARY_GROUPS_BASELINE.md).
+ACCEPTED; F2.3 EXIT APPROVED; F2.4 EXIT APPROVED;
+F2.5 NOT STARTED / NOT AUTHORIZED**.
+F2.4 human exit approval: **2026-09-17**, recorded in
+[Library / Groups Baseline](F2_4_LIBRARY_GROUPS_BASELINE.md).
 F2.3 human exit approval: **2026-09-17**, recorded in
 [F2.3 Persistence Baseline](F2_3_PERSISTENCE_BASELINE.md).
 The proposal-stage approval conditions below are satisfied by this record;

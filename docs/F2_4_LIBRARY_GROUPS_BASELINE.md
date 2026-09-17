@@ -1,13 +1,17 @@
 # F2.4 — Library / Shelves / Manual Groups Persistence Repositories
 
-Status: **IMPLEMENTED — REVIEW PENDING**.
-F2.4 Exit Approval: **PENDING**.
-F2.5: **NOT STARTED**.
+Status: **EXIT APPROVED**.
+F2.4 Exit Approval: **APPROVED**.
+Approved by: Human project owner.
+Approval date: **2026-09-17**.
+F2.5: **NOT STARTED / NOT AUTHORIZED**.
 
 ## Entry and scope
 
 Starting SHA: `7ea8d213aa1135cb2cd213c529bca09aaa4c4280`.
-At entry, `main` and fetched `origin/main` matched this SHA and the worktree
+Approved implementation commit: `78b3c36057e4554e76bb98b0eb474ed614f39786`.
+At implementation entry, `main` and fetched `origin/main` matched the starting
+SHA and the worktree
 was clean. F2.3 was EXIT APPROVED; the human owner's F2.4 task authorizes this
 slice only. Frozen legacy reference remains
 `d90d4d090c85a0a9c374684696c34befe12636d1`; no legacy data was accessed or imported.
@@ -133,10 +137,29 @@ Local validation on 2026-09-17 (Flutter 3.47.4 / Dart 3.13.3):
   reproduce the approved F2.3 outputs with no diff.
 - `git diff --check`: PASS; changed-file review is limited to F2.4 scope.
 
-Push CI remains **PENDING** until a run for the implementation commit is
-observed. Local platform rebuilds
-are not required for this slice because schema, dependencies and platform
-configuration are unchanged; existing CI provides cross-platform regression.
+Final CI evidence confirmed by the human project owner:
+[GitHub Actions Run #11, Run ID 35172536438](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35172536438),
+for implementation commit `78b3c36057e4554e76bb98b0eb474ed614f39786`.
+Overall workflow result: **SUCCESS**.
+
+| Final check | Result |
+| --- | --- |
+| Quality | PASS |
+| Android debug | PASS |
+| Android packaged storage smoke | PASS |
+| Windows debug | PASS |
+| Windows packaged storage smoke | PASS |
+| iOS debug unsigned | PASS |
+| iOS simulator packaged storage smoke | PASS |
+
+The first Android smoke attempt failed before test execution because of a
+transient Dart Development Service startup failure. The rerun succeeded and
+the packaged storage smoke test executed successfully on the emulator. This
+was a transient CI/tooling failure, not an application or repository defect.
+
+Local platform rebuilds were not required for this slice because schema,
+dependencies and platform configuration were unchanged; the successful CI run
+provides cross-platform regression evidence.
 
 ## Limitations and approval
 
@@ -145,4 +168,9 @@ watch API, product UI or performance target is claimed. Referenced shelf/group
 deletion requires future owning code to resolve references explicitly.
 No source registration service, repositories for progress/preferences,
 migration/import execution, Reader, Source networking, images/downloads or
-plugin runtime is implemented here. F2.4 awaits human review; F2.5 is not started.
+plugin runtime is implemented here. Source/network/auth and offline behavior
+remain outside F2.4. Human exit approval covers only the F2.4 repository
+foundation, not full F2 completion or release readiness.
+
+F2.4: **EXIT APPROVED**.
+F2.5: **NOT STARTED / NOT AUTHORIZED**.
