@@ -4,10 +4,13 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:light_novel_reader/src/data/source_runtime/flutter_secure_credential_store.dart';
 import 'package:light_novel_reader/src/data/migration/legacy_state_import_service.dart';
 import 'package:light_novel_reader/src/data/persistence/database.dart';
 import 'package:light_novel_reader/src/data/persistence/database_open.dart';
 import 'package:light_novel_reader/src/domain/migration/migration_models.dart';
+import 'package:light_novel_reader/src/domain/identity/opaque_ids.dart';
+import 'package:light_novel_reader/src/source/security/secure_value.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -127,5 +130,20 @@ void main() {
       await db?.close();
       await root.delete(recursive: true);
     }
+  });
+
+  testWidgets('packaged secure storage write/read/delete', (_) async {
+    final store = FlutterSecureCredentialStore();
+    final key = SecureStorageKey(
+      sourceId: SourceId('f3.3-packaged-smoke'),
+      name: 'roundtrip',
+    );
+    final sentinel = 'runtime-secret-${DateTime.now().microsecondsSinceEpoch}';
+    final value = SecureValue(sentinel);
+    await store.delete(key);
+    await store.write(key, value);
+    expect((await store.read(key))!.value, sentinel);
+    await store.delete(key);
+    expect(await store.read(key), isNull);
   });
 }
