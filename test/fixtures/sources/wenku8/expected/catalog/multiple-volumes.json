@@ -1,0 +1,12 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "catalog",
+  "volumeIds": [
+    "v1",
+    "v2"
+  ],
+  "order": [
+    "v1",
+    "v2"
+  ]
+}

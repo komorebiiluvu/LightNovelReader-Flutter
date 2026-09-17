@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "asset",
+  "resolution": "adapter-only",
+  "assetId": null,
+  "locator": "//img.invalid/a.jpg"
+}

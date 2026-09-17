@@ -1,0 +1,9 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "book-detail",
+  "coverLocator": null,
+  "description": null,
+  "author": null,
+  "bookId": "wk8-202",
+  "title": "书名"
+}

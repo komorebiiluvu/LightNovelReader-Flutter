@@ -1,0 +1,13 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "excludedChrome": [
+    "下一章"
+  ],
+  "nodes": [
+    {
+      "text": "正文",
+      "type": "text"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "catalog",
+  "chapters": [
+    {
+      "title": "一",
+      "chapterId": "1"
+    },
+    {
+      "title": "二",
+      "chapterId": "2"
+    }
+  ],
+  "flat": true,
+  "volumes": []
+}

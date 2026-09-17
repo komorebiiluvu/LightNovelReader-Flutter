@@ -1,0 +1,8 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "catalog",
+  "chapterId": null,
+  "classification": "FIX",
+  "reason": "Legacy index+1 fallback is not modern identity",
+  "sourceOrdinal": 0
+}

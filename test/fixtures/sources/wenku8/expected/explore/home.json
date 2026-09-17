@@ -1,0 +1,18 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "explore-page",
+  "descriptor": "home",
+  "next": null,
+  "blocks": [
+    {
+      "books": [
+        {
+          "title": "甲",
+          "bookId": "wk8-11"
+        }
+      ],
+      "id": "home-hot",
+      "title": "热门"
+    }
+  ]
+}

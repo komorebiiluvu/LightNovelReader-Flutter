@@ -1,0 +1,11 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "pagination",
+  "dedup": "stable-ref-first-seen",
+  "items": [
+    {
+      "title": "庚",
+      "bookId": "wk8-20"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "search-page",
+  "dedup": "stable-ref-first-seen",
+  "items": [
+    {
+      "title": "A",
+      "bookId": "wk8-1"
+    },
+    {
+      "title": "B",
+      "bookId": "wk8-2"
+    }
+  ]
+}

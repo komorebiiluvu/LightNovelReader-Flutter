@@ -1,0 +1,19 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "ordered": true,
+  "nodes": [
+    {
+      "text": "前",
+      "type": "text"
+    },
+    {
+      "locator": "/a.jpg",
+      "type": "image"
+    },
+    {
+      "text": "后",
+      "type": "text"
+    }
+  ]
+}

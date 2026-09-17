@@ -1,0 +1,20 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "explore-page",
+  "blocks": [
+    {
+      "books": [],
+      "id": "a",
+      "title": "A"
+    },
+    {
+      "books": [],
+      "id": "b",
+      "title": "B"
+    }
+  ],
+  "order": [
+    "a",
+    "b"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "book-detail",
+  "coverLocator": "/cover.jpg",
+  "description": "简介",
+  "author": "作者",
+  "bookId": "wk8-201",
+  "title": "书名"
+}

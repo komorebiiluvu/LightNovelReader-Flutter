@@ -1,0 +1,21 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "explore-page",
+  "descriptor": "tag",
+  "blocks": [
+    {
+      "books": [
+        {
+          "title": "丙",
+          "bookId": "wk8-13"
+        }
+      ],
+      "id": "tag-fantasy",
+      "title": "幻想"
+    }
+  ],
+  "selections": {
+    "sort": "new",
+    "tag": "幻想"
+  }
+}

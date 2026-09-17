@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "pagination",
+  "next": "page=2",
+  "current": 1,
+  "total": 8
+}

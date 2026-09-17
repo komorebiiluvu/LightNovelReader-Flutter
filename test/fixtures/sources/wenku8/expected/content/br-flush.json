@@ -1,0 +1,15 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "br": "flush",
+  "nodes": [
+    {
+      "text": "第一行",
+      "type": "text"
+    },
+    {
+      "text": "第二行",
+      "type": "text"
+    }
+  ]
+}

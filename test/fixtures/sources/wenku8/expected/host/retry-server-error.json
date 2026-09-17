@@ -1,0 +1,10 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "retry-policy",
+  "maxAttempts": 3,
+  "eventual": "success",
+  "backoffSeconds": [
+    1,
+    2
+  ]
+}

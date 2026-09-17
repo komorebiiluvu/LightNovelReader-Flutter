@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "book-detail",
+  "failure": "notFound",
+  "availability": "unavailable",
+  "reason": "copyright"
+}

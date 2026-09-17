@@ -1,0 +1,12 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "search-page",
+  "items": [
+    {
+      "title": "直达书",
+      "bookId": "wk8-777"
+    }
+  ],
+  "next": null,
+  "directDetail": true
+}

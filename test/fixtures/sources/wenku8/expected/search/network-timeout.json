@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "failure",
+  "code": "network",
+  "timeoutMs": 20000,
+  "retryable": true
+}

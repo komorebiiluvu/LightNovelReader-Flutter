@@ -1,0 +1,6 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "failure",
+  "reason": "missing-content-container",
+  "code": "parse"
+}

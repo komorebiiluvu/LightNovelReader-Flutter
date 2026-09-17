@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "failure",
+  "code": "incompatibleResponse",
+  "httpStatus": 200,
+  "bodyClass": "waf"
+}

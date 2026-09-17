@@ -1,0 +1,12 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "explore-page",
+  "normalization": "trim-display-only",
+  "dedup": "stable-ref-first-seen",
+  "items": [
+    {
+      "title": "戊",
+      "bookId": "wk8-15"
+    }
+  ]
+}

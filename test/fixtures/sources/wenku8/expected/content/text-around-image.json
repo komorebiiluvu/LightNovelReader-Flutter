@@ -1,0 +1,18 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "nodes": [
+    {
+      "text": "甲",
+      "type": "text"
+    },
+    {
+      "locator": "/a.jpg",
+      "type": "image"
+    },
+    {
+      "text": "乙",
+      "type": "text"
+    }
+  ]
+}

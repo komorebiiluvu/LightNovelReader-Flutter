@@ -1,0 +1,8 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "reconciliation",
+  "modernMapping": "deferred",
+  "chapterIdentity": "opaque",
+  "bookId": "wk8-999",
+  "ordinalRole": "ordering-only"
+}

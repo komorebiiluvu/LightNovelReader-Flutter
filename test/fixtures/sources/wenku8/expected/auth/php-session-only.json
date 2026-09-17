@@ -1,0 +1,9 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "auth",
+  "authenticated": false,
+  "status": "session-only",
+  "cookieNames": [
+    "PHPSESSID"
+  ]
+}

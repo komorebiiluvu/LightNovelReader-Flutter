@@ -1,0 +1,9 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "book-detail",
+  "tdText": "preserve-cell-boundaries",
+  "fields": {
+    "publisher": "出版社",
+    "author": "作者"
+  }
+}

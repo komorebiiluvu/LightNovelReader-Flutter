@@ -1,0 +1,14 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "catalog",
+  "chapters": [
+    {
+      "title": "一",
+      "chapterId": "1"
+    }
+  ],
+  "grouping": {
+    "volumeRef": null,
+    "label": "第一卷"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "search-page",
+  "exhausted": true,
+  "next": null,
+  "items": [
+    {
+      "title": "书三",
+      "bookId": "wk8-103"
+    }
+  ]
+}

@@ -1,0 +1,3084 @@
+{
+  "schema": "f3.2.fixture-manifest.v1",
+  "sourceId": "builtin.wenku8",
+  "generatedBy": "hand-authored-seed-script",
+  "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+  "provenancePolicy": "Every entry is synthetic or reconstructed_from_frozen_evidence; no sanitized capture contains authenticated data.",
+  "expectedSidecars": "Independent contract expectations authored separately from any production parser.",
+  "entries": [
+    {
+      "id": "enc-ascii",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "search query encoding"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/ascii.txt",
+      "expected": "expected/encoding/ascii.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "request/query"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/ascii.json"
+      },
+      "coverage": [
+        "encoding.ascii",
+        "request.gbk-percent-encoding"
+      ],
+      "notes": "Control UTF-8 baseline.",
+      "sha256": "23dd354823e1f93190c202e1a1243fc650361a561b56df521c8a63f58a128993",
+      "expectedSha256": "eff30998856f84dac3502b8e4b116826f34ef50313593b37c22bbf5aa0ffb28e",
+      "_unused": null
+    },
+    {
+      "id": "enc-simplified-chinese",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "GBK query path"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/zh-gbk.txt",
+      "expected": "expected/encoding/zh-gbk.json",
+      "encoding": "gbk",
+      "http": {
+        "status": 200,
+        "context": "request/query"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/zh-gbk.json"
+      },
+      "coverage": [
+        "encoding.simplified-chinese",
+        "request.gbk-percent-encoding"
+      ],
+      "notes": "GBK-compatible Chinese.",
+      "sha256": "4fba7f119aa2549178ce05cd8bef5bd85741e3e6c569a9e00c4cdca115e1c0a4",
+      "expectedSha256": "70700ac0ebe74f207ec7f8ddd87fe7595cbda2eb9e7c27cae58c3a99c2e92746",
+      "_unused": null
+    },
+    {
+      "id": "enc-gb18030-extension",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "GBK/GB18030 gaps"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/gb18030-extension.bin",
+      "expected": "expected/encoding/gb18030-extension.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "response/body"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/gb18030-extension.json"
+      },
+      "coverage": [
+        "encoding.gb18030-extension",
+        "encoding.codepoint-preservation"
+      ],
+      "notes": "Independent four-byte extension vector.",
+      "sha256": "70ab23d2e091b2a66001efc34b2a11a55229b58e9a659606a92c3d104140a330",
+      "expectedSha256": "877865c92fc416426556425282c3246bd4fbcefab488c9ced45300e5c3ac1b13",
+      "byteExpectation": "81308130"
+    },
+    {
+      "id": "enc-gbk-pua",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "GBK/GB18030 gaps"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/gbk-pua.bin",
+      "expected": "expected/encoding/gbk-pua.json",
+      "encoding": "gbk",
+      "http": {
+        "status": 200,
+        "context": "response/body"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/gbk-pua.json"
+      },
+      "coverage": [
+        "encoding.pua-preservation"
+      ],
+      "notes": "PUA behavior retained as a fixture expectation.",
+      "sha256": "5845a3f69ea59cfc12219a5272b8be0b9f9bb60648ed002627e6637041b1bff3",
+      "expectedSha256": "da69cf5b12abbce3c03828989dce9ec694f54e13a0982d46b06272a6eee54769",
+      "byteExpectation": "8140"
+    },
+    {
+      "id": "enc-invalid-sequence",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "Malformed byte policy"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/invalid.bin",
+      "expected": "expected/encoding/invalid.json",
+      "encoding": "gbk",
+      "http": {
+        "status": 200,
+        "context": "response/body"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/invalid.json"
+      },
+      "coverage": [
+        "encoding.invalid-sequence",
+        "failure.parse"
+      ],
+      "notes": "Malformed bytes remain observable.",
+      "sha256": "c6e1b1576e53824fee9ce9e14b62b3cfa241a929ce14dda4d7e6afcada6cce04",
+      "expectedSha256": "4bb180942cfda0380447218c1d381db17ed61a6bd27be9abf5b2cf079dadbc8e",
+      "_unused": null
+    },
+    {
+      "id": "enc-truncated-sequence",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "Malformed byte policy"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/truncated.bin",
+      "expected": "expected/encoding/truncated.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "response/body"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/truncated.json"
+      },
+      "coverage": [
+        "encoding.truncated-sequence",
+        "failure.parse"
+      ],
+      "notes": "Truncation must not silently succeed.",
+      "sha256": "22c379724bddbfa2346c6ed04fc6d0a95c17150359a3802d2fb3bc103bf25a76",
+      "expectedSha256": "4bb180942cfda0380447218c1d381db17ed61a6bd27be9abf5b2cf079dadbc8e",
+      "_unused": null
+    },
+    {
+      "id": "enc-declared-disagreement",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "Encoding declaration"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/encoding/declaration.html",
+      "expected": "expected/encoding/declaration.json",
+      "encoding": "gbk",
+      "http": {
+        "status": 200,
+        "context": "response/body"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/encoding/declaration.json"
+      },
+      "coverage": [
+        "encoding.declaration-disagreement",
+        "encoding.deterministic-selection"
+      ],
+      "notes": "Declaration and bytes intentionally disagree.",
+      "sha256": "7bf95f8287a61d670cd118e8ef111f5ed720dca129b98b58ccd4f7a4722b09c3",
+      "expectedSha256": "8ba60e97e6e4ccf07de2cb75a69a7dc149347ca04f071aeb33227a0efe9f1526",
+      "_unused": null
+    },
+    {
+      "id": "request-gbk-query",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "GBK query path"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/request/gbk-query.txt",
+      "expected": "expected/request/gbk-query.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "request construction"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/request/gbk-query.json"
+      },
+      "coverage": [
+        "request.gbk-percent-encoding",
+        "request.no-secret"
+      ],
+      "notes": "Request expectation only; no network call.",
+      "sha256": "9730d7dca24aa7f9455103deb76d2eaae8320e8e05a6900671373c56e7479c3e",
+      "expectedSha256": "49eedfb2c79f0e85894521252c5f020675ffbec6243dd09025dc267f583b7c2e",
+      "_unused": null
+    },
+    {
+      "id": "auth-login-success",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "login and savedCookie"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/login-success.html",
+      "expected": "expected/auth/login-success.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 302,
+        "context": "login response"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": true,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/login-success.json"
+      },
+      "coverage": [
+        "auth.login-success",
+        "cookies.set-cookie",
+        "cookies.persistence-policy"
+      ],
+      "notes": "Synthetic cookie names and values are nonfunctional.",
+      "sha256": "193c5c82f0af6fef2051d609344883050390b98de0852676afaa5a12c9b91586",
+      "expectedSha256": "1bd48a2d8bb212b6516961bbe58912733f964762f12c750d846547a1325d08d1",
+      "_unused": null
+    },
+    {
+      "id": "auth-login-rejected",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "login outcome"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/login-rejected.html",
+      "expected": "expected/auth/login-rejected.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "login response"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/login-rejected.json"
+      },
+      "coverage": [
+        "auth.login-rejected",
+        "failure.authentication"
+      ],
+      "notes": "No credential fields or values.",
+      "sha256": "016d298339a6866200178a190a2f2c673591ad7464e8e22a7858f840d93dff7b",
+      "expectedSha256": "ad6f9808f5331af2da68cecf143b9828f53ea67c58c4b2c096c90b8766136d60",
+      "_unused": null
+    },
+    {
+      "id": "auth-expired-cookie",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "ensureLogin"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/expired-cookie.txt",
+      "expected": "expected/auth/expired-cookie.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 302,
+        "context": "authenticated request"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/expired-cookie.json"
+      },
+      "coverage": [
+        "auth.expiry",
+        "auth.redirect-login",
+        "failure.authentication"
+      ],
+      "notes": "Redirect contains no cookie.",
+      "sha256": "96500d8ff4cea7de114b3bef6213cb0ed25f778dd42e806341c459c1ddef460b",
+      "expectedSha256": "d28a9bc1d274824bee7bf15183bbdbecac5f12091d26c9598246219c15ee1358",
+      "_unused": null
+    },
+    {
+      "id": "auth-php-session-only",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "visitingCookie"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/php-session-only.txt",
+      "expected": "expected/auth/php-session-only.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "cookie header"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": true,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/php-session-only.json"
+      },
+      "coverage": [
+        "auth.session-cookie",
+        "cookies.partial"
+      ],
+      "notes": "A session cookie alone is not proof of login.",
+      "sha256": "c196c874d5b1b891a4b4515ce78e0c9273f5a5ce58fe376932a75a90793ce355",
+      "expectedSha256": "60eebaa5b1e9cd507ea597724db1a99b04072ca3a82624ea72153f5d0fd1d841",
+      "_unused": null
+    },
+    {
+      "id": "auth-jieqi-cookie",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "visitingCookie"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/jieqi-cookie.txt",
+      "expected": "expected/auth/jieqi-cookie.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "cookie header"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": true,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/jieqi-cookie.json"
+      },
+      "coverage": [
+        "auth.identity-cookie",
+        "cookies.partial"
+      ],
+      "notes": "Identity cookie is inert.",
+      "sha256": "6602c2b95ad0b0aa189fe3eb872c6e639ffd18427a08f78aee512e9f10a92e5d",
+      "expectedSha256": "5965d673a71a6aae2e6c2548b783556a1835b0f88bb8b13ee2685cde9b52f36c",
+      "_unused": null
+    },
+    {
+      "id": "auth-multiple-set-cookie",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "cookie parsing"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/multiple-set-cookie.txt",
+      "expected": "expected/auth/multiple-set-cookie.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "response headers"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/multiple-set-cookie.json"
+      },
+      "coverage": [
+        "cookies.multiple-set-cookie",
+        "cookies.path-isolation"
+      ],
+      "notes": "No real cookie values.",
+      "sha256": "452cd2e20c5d0a1fe778a5caaba0763b63e8dbf8631da9fbed8f305cd2cb0516",
+      "expectedSha256": "0ad257729c6c94e9fceb8239c3514074c8c3a80d8ffa8bda1a96a9869f8bad6b",
+      "_unused": null
+    },
+    {
+      "id": "auth-expires-comma",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "multiple Set-Cookie parsing"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/expires-comma.txt",
+      "expected": "expected/auth/expires-comma.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "response headers"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/expires-comma.json"
+      },
+      "coverage": [
+        "cookies.expires-comma",
+        "cookies.parser"
+      ],
+      "notes": "Comma in Expires must not split a cookie.",
+      "sha256": "13502480ee7a0d6c3795f7c81642a340969248357500c13ebe960159e6c1e6ff",
+      "expectedSha256": "13e8755286d49ef9fbb0088a1594bcd299b1cb87f3eb00ddd57903660e1c0297",
+      "_unused": null
+    },
+    {
+      "id": "auth-logout-expired",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "signOut"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/logout-expired.txt",
+      "expected": "expected/auth/logout-expired.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "logout response"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": true,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/logout-expired.json"
+      },
+      "coverage": [
+        "auth.logout",
+        "cookies.deletion"
+      ],
+      "notes": "Deletion is explicit.",
+      "sha256": "5c9bde5ca04b51b0024504afc403c1c97b08fb50a8ed919f62b3f117fc935e66",
+      "expectedSha256": "4b146443a8ddfedcbee659db3175a402021f38bfd5c4ae3134c0c30177a9a147",
+      "_unused": null
+    },
+    {
+      "id": "waf-http200-challenge",
+      "operation": "authentication",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "WAF comments"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/auth/http200-challenge.html",
+      "expected": "expected/auth/http200-challenge.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "WAF challenge"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/auth/http200-challenge.json"
+      },
+      "coverage": [
+        "waf.http200-challenge",
+        "failure.incompatibleResponse"
+      ],
+      "notes": "HTTP 200 is not sufficient for success.",
+      "sha256": "1ea7970f9f8cf99cf179caab7e6bca97b5f0f4b0a879191db10070c5b5d968a3",
+      "expectedSha256": "041286dc4ccdf40277202ec3caf1b1f6e29f56c1b57ec686b5df0ce12290d9e6",
+      "_unused": null
+    },
+    {
+      "id": "search-normal-multi",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "search DOM"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/normal-multi.html",
+      "expected": "expected/search/normal-multi.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/normal-multi.json"
+      },
+      "coverage": [
+        "search.normal",
+        "search.source-aware-ref",
+        "pagination.next"
+      ],
+      "notes": "IDs are opaque in expected output.",
+      "sha256": "6d2bb643609d1c180af0b68ea7fa9dffe5be883f164a2f990a616e94ebeeaacf",
+      "expectedSha256": "1094a0e25a0f5c2d4a9632dc25f215b114ba1f193964b187a20fdfc4b063d06d",
+      "_unused": null
+    },
+    {
+      "id": "search-page-2",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagelink parsing"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/page-2.html",
+      "expected": "expected/search/page-2.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/page-2.json"
+      },
+      "coverage": [
+        "search.pagination",
+        "pagination.exhausted"
+      ],
+      "notes": "Terminal page.",
+      "sha256": "52c1068f3fe03062c9228da036937219742278aa0067bbf54059e1ba886d5c70",
+      "expectedSha256": "ae000885b1b03023f3ffc528bcf246206c2f6d4fda393947fae3ba0a26257ad1",
+      "_unused": null
+    },
+    {
+      "id": "search-direct-detail",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "direct detail menu"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/direct-detail.html",
+      "expected": "expected/search/direct-detail.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/direct-detail.json"
+      },
+      "coverage": [
+        "search.direct-detail",
+        "search.single-item"
+      ],
+      "notes": "Direct detail result is still normalized as a summary.",
+      "sha256": "2404cd82acf3a7b1ef15717de1d2a041802716c952695405be2dac1677c250bf",
+      "expectedSha256": "2bbe304f27c049beb862b4eab9a1c77f16c9efee1d3cc5339355788ae5792c19",
+      "_unused": null
+    },
+    {
+      "id": "search-duplicates",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "deduplication"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/duplicates.html",
+      "expected": "expected/search/duplicates.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/duplicates.json"
+      },
+      "coverage": [
+        "search.dedup-stable-ref",
+        "search.order"
+      ],
+      "notes": "Title duplicates are retained when IDs differ.",
+      "sha256": "626dfca8b7b9db7a76d1cdb4347c2ca5da82ac4b125b1afaefe3bdc7b68b201b",
+      "expectedSha256": "fd96a4d3303be42077be0831f7150b65202b45e9e47c434b159e5f1a2dd73975",
+      "_unused": null
+    },
+    {
+      "id": "search-valid-empty",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "empty evidence"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/valid-empty.html",
+      "expected": "expected/search/valid-empty.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/valid-empty.json"
+      },
+      "coverage": [
+        "search.valid-empty",
+        "pagination.exhausted"
+      ],
+      "notes": "Evidence distinguishes empty from parse failure.",
+      "sha256": "8de326f2eed6d013899ecaa188dcaa33249a53e50fc15b81ecc15bd144ea5774",
+      "expectedSha256": "ad6e1532fbad74584bc65b40447cab33f085912598687affaaddd36909367c53",
+      "_unused": null
+    },
+    {
+      "id": "search-login-required",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "auth guard"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/login-required.html",
+      "expected": "expected/search/login-required.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/login-required.json"
+      },
+      "coverage": [
+        "search.auth-required",
+        "failure.authentication"
+      ],
+      "notes": "No credentials.",
+      "sha256": "13c661c61f749f87501ee08202bd579dddead5d9e096d318bdf5b8dc2be14ed2",
+      "expectedSha256": "d55ee5912733254607b61537e7bb9663148f42a7c099ac5015c566f195dd3ad3",
+      "_unused": null
+    },
+    {
+      "id": "search-rate-limit",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "throttle"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/rate-limit.txt",
+      "expected": "expected/search/rate-limit.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 429,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/rate-limit.json"
+      },
+      "coverage": [
+        "search.rate-limit",
+        "failure.rateLimit"
+      ],
+      "notes": "Deterministic retry metadata.",
+      "sha256": "bdc9e32c9106444763e74d32d44a87512cd95316382e97f743c2669f30aa3a24",
+      "expectedSha256": "e0da9407c3ce6de2827659452be4259bd81a7f6f5631112a0e861db0a433da81",
+      "_unused": null
+    },
+    {
+      "id": "search-throttle-challenge",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "5-second throttle"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/throttle-challenge.txt",
+      "expected": "expected/search/throttle-challenge.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 503,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/throttle-challenge.json"
+      },
+      "coverage": [
+        "search.throttle-five-seconds",
+        "failure.rateLimit"
+      ],
+      "notes": "Characterization only; no clock or network implementation.",
+      "sha256": "4a25aabc43e53627babdba68052277fedf6936f1899040ddc6c9ccb408b39240",
+      "expectedSha256": "65db90d8a4b925ec493b08ec625cc946df5941ed24d14d89d0ce0ae0e7c7737b",
+      "_unused": null
+    },
+    {
+      "id": "search-malformed-item",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "item parsing"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/malformed-item.html",
+      "expected": "expected/search/malformed-item.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/malformed-item.json"
+      },
+      "coverage": [
+        "search.malformed-item",
+        "failure.parse"
+      ],
+      "notes": "Malformed item is not silently fabricated.",
+      "sha256": "df70df4b3098ac17f306ffb5264ad3db35204f8582a4000d77eda4c89ac31d73",
+      "expectedSha256": "c27c2f002117ebd60bd7c30ec71950f21428cc17c817ef57afd21d28ed2d89a4",
+      "_unused": null
+    },
+    {
+      "id": "search-missing-field",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "required fields"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/missing-field.html",
+      "expected": "expected/search/missing-field.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/missing-field.json"
+      },
+      "coverage": [
+        "search.missing-field",
+        "failure.parse"
+      ],
+      "notes": "Required title absent.",
+      "sha256": "45775f47ff0c85c17042e1cfec6a8574937894fbf8c9d484bccb15fc2aace2a0",
+      "expectedSha256": "5601da7ae1302b57253da4d74ace722264f7aae63ebad2c273af07f00aeb9f42",
+      "_unused": null
+    },
+    {
+      "id": "search-http200-waf",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "WAF comments"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/http200-waf.html",
+      "expected": "expected/search/http200-waf.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "search page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/http200-waf.json"
+      },
+      "coverage": [
+        "search.http200-waf",
+        "waf.http200-challenge",
+        "failure.incompatibleResponse"
+      ],
+      "notes": "WAF body is not an empty result.",
+      "sha256": "40618917dadf07deeae212b1d3a6c9af8d0f83c7b8f85cd5f53d57445cbc9093",
+      "expectedSha256": "c4b82e415d4275b6e2e366c26f213c975b91415dc31854b90994cd0b86dc60cf",
+      "_unused": null
+    },
+    {
+      "id": "search-network-timeout",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "timeout policy"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/search/network-timeout.json",
+      "expected": "expected/search/network-timeout.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 0,
+        "context": "transport metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/search/network-timeout.json"
+      },
+      "coverage": [
+        "search.network-timeout",
+        "failure.network"
+      ],
+      "notes": "Metadata only; no transport dependency.",
+      "sha256": "49a467f53be5678451ef806fb06d734015a18215e04cd079956cb42445e56699",
+      "expectedSha256": "52dd69345fbef47539430f4f7f29ad3d934c84a0fd2c176165da12d106985dca",
+      "_unused": null
+    },
+    {
+      "id": "explore-home",
+      "operation": "explore",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "home blocks"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/home.html",
+      "expected": "expected/explore/home.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "home page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/home.json"
+      },
+      "coverage": [
+        "explore.home",
+        "explore.blocks",
+        "explore.descriptor"
+      ],
+      "notes": "Descriptor is neutral.",
+      "sha256": "6a506946d9c717a1c5297e7530585ac97355ca5c858e555c283068e92bc47bd7",
+      "expectedSha256": "912d70ab2ca83925a9030d496e66e1b8b60d7a7de507301ec2d259fe34371f21",
+      "_unused": null
+    },
+    {
+      "id": "explore-category",
+      "operation": "explore",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "category selector"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/category.html",
+      "expected": "expected/explore/category.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "category page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/category.json"
+      },
+      "coverage": [
+        "explore.category",
+        "explore.blocks"
+      ],
+      "notes": "Category descriptor from frozen menu.",
+      "sha256": "308725e225a138a0c1ba90532fa521450e9c5e8cb08f44ecc6afefb39761df84",
+      "expectedSha256": "22277a75442f0e2642d7b381eba9aa0dc2199129afa4ddb214f653b0ca65a606",
+      "_unused": null
+    },
+    {
+      "id": "explore-tag-filter",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "filter descriptors"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/tag-filter.html",
+      "expected": "expected/explore/tag-filter.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "filter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/tag-filter.json"
+      },
+      "coverage": [
+        "explore.tag",
+        "explore.filters",
+        "explore.selection"
+      ],
+      "notes": "Selection values remain opaque.",
+      "sha256": "11b8a940bac2bd736b1c55c3832e7b9a6885e70a3cd66dbfa94ff180ee5fc1c6",
+      "expectedSha256": "5cf84bf360c8b96dc2e345dc601669aff894a3ff92044270d3012917a8949de2",
+      "_unused": null
+    },
+    {
+      "id": "explore-multiple-blocks",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "home blocks"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/multiple-blocks.html",
+      "expected": "expected/explore/multiple-blocks.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "home page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/multiple-blocks.json"
+      },
+      "coverage": [
+        "explore.multiple-blocks",
+        "explore.order"
+      ],
+      "notes": "Empty blocks remain ordered.",
+      "sha256": "6a8c2b1069864ad3fcf7e2e99149b8491c6f2b400a4b9d688a7b6846d683b156",
+      "expectedSha256": "497891c6c1c00ba954b5d1f3d80353cf81cbfa9f8f635ce123dd94df45b00ee4",
+      "_unused": null
+    },
+    {
+      "id": "explore-pagination",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagelink parsing"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/page-2.html",
+      "expected": "expected/explore/page-2.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "category page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/page-2.json"
+      },
+      "coverage": [
+        "explore.pagination",
+        "pagination.next"
+      ],
+      "notes": "Continuation is descriptor-bound.",
+      "sha256": "8c4cc2052ad9beb97c4b05f16ec6b2300d78573a45057af58ae3e18d394053ae",
+      "expectedSha256": "8f41d16b1d99d50828c584f41427e907410677bb92983bf81cfe6aa6584f4002",
+      "_unused": null
+    },
+    {
+      "id": "explore-duplicate-whitespace",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "normalization"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/duplicate-whitespace.html",
+      "expected": "expected/explore/duplicate-whitespace.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "category page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/duplicate-whitespace.json"
+      },
+      "coverage": [
+        "explore.whitespace",
+        "explore.dedup-stable-ref"
+      ],
+      "notes": "Opaque IDs are not trimmed.",
+      "sha256": "9f3e7bc3fc4f8ca3011ff20f1a6055f56a9367c3e75dcae07c637869b1ace1bf",
+      "expectedSha256": "38edce5d8ad8661e7873cad4802ad5edf821663b23afc3d9434de6217a783acc",
+      "_unused": null
+    },
+    {
+      "id": "explore-missing-optional",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "optional fields"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/missing-optional.html",
+      "expected": "expected/explore/missing-optional.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "category page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/missing-optional.json"
+      },
+      "coverage": [
+        "explore.optional-fields"
+      ],
+      "notes": "Missing author/cover stays absent.",
+      "sha256": "74fa5d2a1e5909193e6a354c053275a40e371c712fe0290018b6c2b542041072",
+      "expectedSha256": "90b650731793b070dc9e7395d119c11d64497c7dd94cb0f79e9b22dc00f06913",
+      "_unused": null
+    },
+    {
+      "id": "explore-malformed-block",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "block parser"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/malformed-block.html",
+      "expected": "expected/explore/malformed-block.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "home page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/malformed-block.json"
+      },
+      "coverage": [
+        "explore.malformed-block",
+        "failure.parse"
+      ],
+      "notes": "No synthetic book ID.",
+      "sha256": "317f2c45f8bc83f4d6436c1c180bab2e11d2646e311fb8a529de31b50bdcf45b",
+      "expectedSha256": "83dd3e9fc291e2574c61ba4a24a134ace6b0214ac6965819ab400124cab871cd",
+      "_unused": null
+    },
+    {
+      "id": "explore-valid-empty",
+      "operation": "explore",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "empty evidence"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/explore/valid-empty.html",
+      "expected": "expected/explore/valid-empty.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "category page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/explore/valid-empty.json"
+      },
+      "coverage": [
+        "explore.valid-empty",
+        "pagination.exhausted"
+      ],
+      "notes": "Empty category is explicit.",
+      "sha256": "a9759958044163c3b9d6b25931777fc1d7fa2a2848574e6c0dc6b5eedaa17cd3",
+      "expectedSha256": "63b56f85cba41e3050ce00de26ddaf353a84137f11e733039dd89a955503f39c",
+      "_unused": null
+    },
+    {
+      "id": "pagination-pagestats",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagestats"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/pagestats.html",
+      "expected": "expected/pagination/pagestats.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "pagination metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/pagestats.json"
+      },
+      "coverage": [
+        "pagination.pagestats",
+        "pagination.total"
+      ],
+      "notes": "Observed page count.",
+      "sha256": "a24a6eb3b5a44abe6e279f229ee65e7c377a4d6ca38a459acccd2a7a9e951893",
+      "expectedSha256": "75dcaf475920a8411e8951e4b95f606e71a4bbb3bf0b3dc091dfde669c8cc31e",
+      "_unused": null
+    },
+    {
+      "id": "pagination-pagelink-whitespace",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagelink"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/pagelink-whitespace.html",
+      "expected": "expected/pagination/pagelink-whitespace.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "pagination metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/pagelink-whitespace.json"
+      },
+      "coverage": [
+        "pagination.pagelink",
+        "pagination.whitespace"
+      ],
+      "notes": "Largest linked page fallback.",
+      "sha256": "d0f02feaaeaccf275d9b2cd37e2b0e05583e4568693cfd217c7e5d94a29c2aae",
+      "expectedSha256": "52f7a74c09d27a31a0f074acb0b0eb483ada2d45a022eedf44baf2530597a91d",
+      "_unused": null
+    },
+    {
+      "id": "pagination-largest-linked-fallback",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagelink fallback"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/largest-linked.html",
+      "expected": "expected/pagination/largest-linked.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "pagination metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/largest-linked.json"
+      },
+      "coverage": [
+        "pagination.largest-linked-fallback"
+      ],
+      "notes": "Fallback is monotonic.",
+      "sha256": "bbe3123e6a10a7a436591485ed4a790f8960518a2b80bcf799ee261323c7cff5",
+      "expectedSha256": "64e41dc7a31c6da8c8d1f29f0f4ec1b1b380c5391a50d30fcaeef4f0ceecf729",
+      "_unused": null
+    },
+    {
+      "id": "pagination-missing-metadata",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagination fallback"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/missing.html",
+      "expected": "expected/pagination/missing.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "pagination metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/missing.json"
+      },
+      "coverage": [
+        "pagination.missing-metadata",
+        "pagination.exhausted"
+      ],
+      "notes": "No infinite cursor.",
+      "sha256": "9f8be657fa22f99de0e6c111a11dc00a35685a64043822415b87b2e489fbf53e",
+      "expectedSha256": "057c364c75d3e9c57e519aecada7bb2d0fa590be7f450b8894dfc0bb1b326623",
+      "_unused": null
+    },
+    {
+      "id": "pagination-malformed-metadata",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "pagestats"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/malformed.html",
+      "expected": "expected/pagination/malformed.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "pagination metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/malformed.json"
+      },
+      "coverage": [
+        "pagination.malformed-metadata",
+        "failure.parse"
+      ],
+      "notes": "Malformed metadata is typed failure.",
+      "sha256": "14b0d9b89f12c92ce094a1e8df9d0d42b35f3094dd072916d05784ad277249df",
+      "expectedSha256": "4779abafb3e67d0096364fe71587b581b25ceeda42cd65c709741e7f9c6dcb88",
+      "_unused": null
+    },
+    {
+      "id": "pagination-duplicate-book",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "deduplication"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/duplicate-book.html",
+      "expected": "expected/pagination/duplicate-book.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "pagination page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/duplicate-book.json"
+      },
+      "coverage": [
+        "pagination.duplicate-book",
+        "search.dedup-stable-ref"
+      ],
+      "notes": "Duplicate across page does not reorder.",
+      "sha256": "8344d3d524d18d298a4d96e8c2e42236db2df6593a8e35471247ef4c8c208566",
+      "expectedSha256": "af66caae7cbdf6818dad86c624c805e5abba02015eb148e89c6e30ac719cb661",
+      "_unused": null
+    },
+    {
+      "id": "pagination-exhausted",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "terminal page"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/pagination/exhausted.html",
+      "expected": "expected/pagination/exhausted.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "pagination metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/pagination/exhausted.json"
+      },
+      "coverage": [
+        "pagination.exhausted"
+      ],
+      "notes": "No fabricated next continuation.",
+      "sha256": "292e8cdb5d4ab8f68a3c1852ba1856acd65d997745e6059d9bd38abb8760c194",
+      "expectedSha256": "ce3f22d92f23ed31f784accfcc590865b5f3c26445e48ece9af5e1813b40f96a",
+      "_unused": null
+    },
+    {
+      "id": "detail-normal",
+      "operation": "bookDetail",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "detail DOM fields"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/detail/normal.html",
+      "expected": "expected/detail/normal.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "detail page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/detail/normal.json"
+      },
+      "coverage": [
+        "detail.normal",
+        "detail.cover",
+        "detail.description"
+      ],
+      "notes": "Locator remains adapter metadata.",
+      "sha256": "c169a69e8765fbf096b757f6e4efa171f477eb3356331b22e7e0fc6353c917a2",
+      "expectedSha256": "50e827db801cb6bc86d98b69b64d09276de066314cbccbb381e0643d64c07d6e",
+      "_unused": null
+    },
+    {
+      "id": "detail-missing-optionals",
+      "operation": "bookDetail",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "optional fields"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/detail/missing-optionals.html",
+      "expected": "expected/detail/missing-optionals.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "detail page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/detail/missing-optionals.json"
+      },
+      "coverage": [
+        "detail.optional-fields"
+      ],
+      "notes": "Required title only.",
+      "sha256": "f52807bf769a196222f54ecb0c4aef8c16364c7f810db1ee4e8dc0255852b4cf",
+      "expectedSha256": "2e479fe64af584b875c0a99af86205fb4c60849567f4b69206f3547f28de44c0",
+      "_unused": null
+    },
+    {
+      "id": "detail-malformed-required",
+      "operation": "bookDetail",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "required fields"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/detail/malformed-required.html",
+      "expected": "expected/detail/malformed-required.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "detail page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/detail/malformed-required.json"
+      },
+      "coverage": [
+        "detail.malformed-required",
+        "failure.parse"
+      ],
+      "notes": "No title fabrication.",
+      "sha256": "f9ec57b6611e2415ab206e9201c0c70f40748b95f2f89f8b7e379ad6e212ff29",
+      "expectedSha256": "5601da7ae1302b57253da4d74ace722264f7aae63ebad2c273af07f00aeb9f42",
+      "_unused": null
+    },
+    {
+      "id": "detail-copyright-unavailable",
+      "operation": "bookDetail",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "copyright branch"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/detail/copyright.html",
+      "expected": "expected/detail/copyright.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "detail page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/detail/copyright.json"
+      },
+      "coverage": [
+        "detail.copyright-unavailable",
+        "failure.notFound"
+      ],
+      "notes": "Provider policy result.",
+      "sha256": "e96e23b9853894ad86cf94a604bf9588985ed0256451e52e1e04c3e54bb0df7f",
+      "expectedSha256": "30db7311b7af4452c0a839fdd6a208f2792c3abfe1abb5350094b916f68bf132",
+      "_unused": null
+    },
+    {
+      "id": "detail-description-page-chrome",
+      "operation": "bookDetail",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "description swallowing page chrome"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/detail/description-page-chrome.html",
+      "expected": "expected/detail/description-page-chrome.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "detail page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/detail/description-page-chrome.json"
+      },
+      "coverage": [
+        "detail.description-page-chrome",
+        "detail.description-boundary"
+      ],
+      "notes": "Characterizes historical parser defect.",
+      "sha256": "1509a0fabc2bc3749c06a4975d4f8c30efb7850f4e9942df3c9c029567545398",
+      "expectedSha256": "a1a56bf1adc4b3d579aabc4bfcd293337abaab2dced0c1e8cf28a1bce3eb3f3e",
+      "_unused": null
+    },
+    {
+      "id": "detail-table-concatenation",
+      "operation": "bookDetail",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "<td> text concatenation"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/detail/table-concatenation.html",
+      "expected": "expected/detail/table-concatenation.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "detail page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/detail/table-concatenation.json"
+      },
+      "coverage": [
+        "detail.table-cell-boundaries",
+        "detail.concatenated-text"
+      ],
+      "notes": "Cells must not merge.",
+      "sha256": "f7ef4892502e8aae42c433593fb9af28e251bb9adedeb3c41347ca1262b21cc3",
+      "expectedSha256": "3b3742742263b1198758325440ccf7815a5b211527daf8d411cf07c3ed890eff",
+      "_unused": null
+    },
+    {
+      "id": "catalog-normal",
+      "operation": "catalog",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "catalog XPath"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/normal.html",
+      "expected": "expected/catalog/normal.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/normal.json"
+      },
+      "coverage": [
+        "catalog.normal",
+        "catalog.chapter-id",
+        "catalog.volume-id",
+        "catalog.order"
+      ],
+      "notes": "Stable provider IDs only.",
+      "sha256": "dcba07b9b7d3895d0df644ceb47784a66d839caa8aeb3e59eab188fad781ad88",
+      "expectedSha256": "376f4d7a46987c032da45927f1a0d706ec7048ed4b5272c3578306ab88cf3d22",
+      "_unused": null
+    },
+    {
+      "id": "catalog-flat",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "catalog semantics"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/flat.html",
+      "expected": "expected/catalog/flat.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/flat.json"
+      },
+      "coverage": [
+        "catalog.flat",
+        "catalog.no-fabricated-volume"
+      ],
+      "notes": "No VolumeRef when provider has none.",
+      "sha256": "77e9539a9ac4a9a3aef07715c70025da3e146ed2d527b90935490fc619004d8f",
+      "expectedSha256": "e6eb0e216b6a3380f58e075e88e13e02299b0fb12220f0341abe64d34e33279a",
+      "_unused": null
+    },
+    {
+      "id": "catalog-group-label-only",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "catalog grouping"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/group-label-only.html",
+      "expected": "expected/catalog/group-label-only.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/group-label-only.json"
+      },
+      "coverage": [
+        "catalog.grouping-presentation-only",
+        "catalog.no-fabricated-volume"
+      ],
+      "notes": "Label is not identity.",
+      "sha256": "f1de0231dc8ee7a29386e216dc780007f5186f01664438769295d57c231479b1",
+      "expectedSha256": "5acce173b6409521ada37630444cfbb995066fdc301433926c6a53a0f1fc7f05",
+      "_unused": null
+    },
+    {
+      "id": "catalog-multiple-volumes",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "volume rows"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/multiple-volumes.html",
+      "expected": "expected/catalog/multiple-volumes.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/multiple-volumes.json"
+      },
+      "coverage": [
+        "catalog.multiple-volumes",
+        "catalog.volume-order"
+      ],
+      "notes": "Volume IDs are source scoped.",
+      "sha256": "f518c2b27018625d8a587f3fbf03331e6b6ea81daad941346f7695c3115323d9",
+      "expectedSha256": "61dfe76269ccca5d93dd54840b8d7bd41bc26e340dbf826430fecf60b68fba40",
+      "_unused": null
+    },
+    {
+      "id": "catalog-missing-chapter-id",
+      "operation": "catalog",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "chapter href IDs"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/missing-chapter-id.html",
+      "expected": "expected/catalog/missing-chapter-id.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/missing-chapter-id.json"
+      },
+      "coverage": [
+        "catalog.missing-chapter-id",
+        "catalog.ordinal-not-identity"
+      ],
+      "notes": "Preserve ambiguity for reviewed mapping.",
+      "sha256": "963542d82397f7e512e2e332f2c677578ce17e536005b2f1e3adcb4712ff1f7b",
+      "expectedSha256": "758639265404f4d61e2cdb0456f14a9453c44e1b7a22e9b9459ab348519f6341",
+      "_unused": null
+    },
+    {
+      "id": "catalog-reordered",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "catalog order"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/reordered.html",
+      "expected": "expected/catalog/reordered.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/reordered.json"
+      },
+      "coverage": [
+        "catalog.reordered",
+        "catalog.ordinal-not-identity"
+      ],
+      "notes": "Reorder does not rewrite IDs.",
+      "sha256": "add64eac9b7672fd8dd0909e6760a0830dbef2a7988ff8e6e16298b6343b58c4",
+      "expectedSha256": "3a1c9cfc7427e7a16eaef728eb8a2989db0745f88645fed902235c85495c098b",
+      "_unused": null
+    },
+    {
+      "id": "catalog-duplicate-id",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "chapter identity"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/duplicate-id.html",
+      "expected": "expected/catalog/duplicate-id.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "catalog page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/duplicate-id.json"
+      },
+      "coverage": [
+        "catalog.duplicate-id",
+        "failure.parse"
+      ],
+      "notes": "Do not silently merge chapters.",
+      "sha256": "d7b3f133fe07d9277f202afe3ef13b7f65b0e3099bdce0d1fdb920bd77b1afe0",
+      "expectedSha256": "c205e54eab4740b52d435ad6fe9b3b7466ff55cb6c64f0de067157b585dfb9d2",
+      "_unused": null
+    },
+    {
+      "id": "catalog-reconciliation-receipt",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "reconciliation boundary"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/catalog/reconciliation.json",
+      "expected": "expected/catalog/reconciliation.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "characterization metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "DEFER",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/catalog/reconciliation.json"
+      },
+      "coverage": [
+        "reconciliation.receipt",
+        "reconciliation.defer-schema"
+      ],
+      "notes": "No reconciliation implementation in F3.2.",
+      "sha256": "48103c32c8827e8f97f4bdb36486e0a965d9837bc82b2ff052ca3945bdfe9204",
+      "expectedSha256": "f9bbd359681525e76ca5a4eddd88159315e54ebb92f9c11be19d0be84a656e32",
+      "_unused": null
+    },
+    {
+      "id": "content-interleaved",
+      "operation": "chapterContent",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "content DOM walk"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/interleaved.html",
+      "expected": "expected/content/interleaved.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/interleaved.json"
+      },
+      "coverage": [
+        "content.interleaved-order",
+        "content.text-image",
+        "asset.locator"
+      ],
+      "notes": "Canonical node sequence is ordered.",
+      "sha256": "000ad77d898874086f073520b515926403819b17b533334727cb995af3122d76",
+      "expectedSha256": "c241a2f259ceaa78a7ceca5960f4e26435a7e7ec66dc337be56412a50b596b52",
+      "_unused": null
+    },
+    {
+      "id": "content-br-flush",
+      "operation": "chapterContent",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "<br> paragraph issue"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/br-flush.html",
+      "expected": "expected/content/br-flush.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/br-flush.json"
+      },
+      "coverage": [
+        "content.br-flush",
+        "content.paragraph-boundary"
+      ],
+      "notes": "Line break semantics from frozen troubleshooting.",
+      "sha256": "b89494e8137bc923fead62c02ab0ffb1d7d86e0a5b1e954662d4729dc12a5a4d",
+      "expectedSha256": "11365f5706f7f37088b0c765abc6a7fb9149e0a5398a34fc1be0803d71528a38",
+      "_unused": null
+    },
+    {
+      "id": "content-consecutive-br",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "<br> paragraph issue"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/consecutive-br.html",
+      "expected": "expected/content/consecutive-br.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/consecutive-br.json"
+      },
+      "coverage": [
+        "content.consecutive-br",
+        "content.empty-text-node"
+      ],
+      "notes": "Empty paragraph is explicit.",
+      "sha256": "ebe539fb912300e0fe1e62d42c8fe239f8466676f4aa3cb3be8628448fea639a",
+      "expectedSha256": "14e7320571a1106f022c8536d418af038a38523ac83f3dbf28306c4fc61354d5",
+      "_unused": null
+    },
+    {
+      "id": "content-image-only",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "content DOM walk"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/image-only.html",
+      "expected": "expected/content/image-only.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/image-only.json"
+      },
+      "coverage": [
+        "content.image-only",
+        "content.text-image"
+      ],
+      "notes": "Image-only chapter preserved.",
+      "sha256": "dee64a1857879890b207327d64e38d2e69c6fa5c87acfd4af7dd36eaa4128af2",
+      "expectedSha256": "1ef3671c1dd7e8174891deeef4da17fb34b76112d9ef365918d1a4942c92204e",
+      "_unused": null
+    },
+    {
+      "id": "content-repeated-image",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "content DOM walk"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/repeated-image.html",
+      "expected": "expected/content/repeated-image.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/repeated-image.json"
+      },
+      "coverage": [
+        "content.repeated-image",
+        "content.order"
+      ],
+      "notes": "Repeated images are not deduped.",
+      "sha256": "76dd7bb9be8c14277b08e487464aec261658bc3c08ea580fe90fda2217d413ac",
+      "expectedSha256": "17b70de6b1a87a239788ffd6f737638daa40b5df05aee7c3c7f03388294fd7d7",
+      "_unused": null
+    },
+    {
+      "id": "content-text-around-image",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "content DOM walk"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/text-around-image.html",
+      "expected": "expected/content/text-around-image.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/text-around-image.json"
+      },
+      "coverage": [
+        "content.text-around-image",
+        "content.interleaved-order"
+      ],
+      "notes": "No text coalescing across image.",
+      "sha256": "dd1cf0258e5db12f7b18be4c70544164dc7d125fa04e1ed01cda982d8071356c",
+      "expectedSha256": "7d87d0f490a23449397b43fd2c2202074bac5be5c02942cb43962a77794d817d",
+      "_unused": null
+    },
+    {
+      "id": "content-relative-locator",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "asset resolution"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/relative-locator.html",
+      "expected": "expected/content/relative-locator.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "DEFER",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/relative-locator.json"
+      },
+      "coverage": [
+        "asset.relative-locator",
+        "asset.mapping-deferred"
+      ],
+      "notes": "Stable AssetId mapping deferred to F6.",
+      "sha256": "8403d60a1cf68c436545fc347ffda501cde2bf741fdf34449b0e0e8ee6fa6653",
+      "expectedSha256": "09a74077ff8e4f6426aedcf62b97c91b83890ff5832c15b26c2b0500146a7617",
+      "_unused": null
+    },
+    {
+      "id": "content-protocol-relative-locator",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "asset resolution"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/protocol-relative.html",
+      "expected": "expected/content/protocol-relative.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "DEFER",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/protocol-relative.json"
+      },
+      "coverage": [
+        "asset.protocol-relative-locator",
+        "asset.mapping-deferred"
+      ],
+      "notes": "No network access.",
+      "sha256": "5faf813bf35cc8c33521f62a8bf1de93747ca2bafb1da03d5cf4dd12726a6d40",
+      "expectedSha256": "f569740a6713dd2f179dd4b5c7196659bc0d167f9108dc9b5b5cae7bcba07b83",
+      "_unused": null
+    },
+    {
+      "id": "content-absolute-locator",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "asset resolution"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/absolute-locator.html",
+      "expected": "expected/content/absolute-locator.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "DEFER",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/absolute-locator.json"
+      },
+      "coverage": [
+        "asset.absolute-locator",
+        "asset.mapping-deferred"
+      ],
+      "notes": "Reserved invalid host prevents accidental traffic.",
+      "sha256": "aab968f6726e9c61c408989146b238d4a778c7b91a1e91d3843031313c9e25d6",
+      "expectedSha256": "bc00b8a302708282f9ecb423c6e688df44753d6bf1432b77176ba028a2c2844e",
+      "_unused": null
+    },
+    {
+      "id": "content-valid-empty",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "empty evidence"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/valid-empty.html",
+      "expected": "expected/content/valid-empty.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/valid-empty.json"
+      },
+      "coverage": [
+        "content.valid-empty",
+        "content.empty-sequence"
+      ],
+      "notes": "Empty content requires a valid container.",
+      "sha256": "82d1d3acdbaa420f7aeb2688f37808742f330f36ada7d6b3851d9d099f693500",
+      "expectedSha256": "a4fbe1a6bbd11c64a6703c5164b149432d19d0d610f4f8db20f6b346c9191500",
+      "_unused": null
+    },
+    {
+      "id": "content-missing-container",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "content container"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/missing-container.html",
+      "expected": "expected/content/missing-container.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/missing-container.json"
+      },
+      "coverage": [
+        "content.missing-container",
+        "failure.parse"
+      ],
+      "notes": "Page chrome is not content.",
+      "sha256": "8e39e697d3131e02379195e1ce0f4f68a06798f047fefd598a6b859a046986d9",
+      "expectedSha256": "9b31b64e4b13147ea7afa43e14798738e12bef697ad363f65d9b43c158112442",
+      "_unused": null
+    },
+    {
+      "id": "content-malformed",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "DOM fixes"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/malformed.html",
+      "expected": "expected/content/malformed.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/malformed.json"
+      },
+      "coverage": [
+        "content.malformed",
+        "failure.parse"
+      ],
+      "notes": "Malformed DOM is deterministic input.",
+      "sha256": "d1792d2a4999fc5da46b1f5f53565efaced08114892456f404c8e20be7b680ec",
+      "expectedSha256": "58a47e1bc792c650b7c66b92d1f9e2228e1a34ff1c76acf06eaba230483dcdbf",
+      "_unused": null
+    },
+    {
+      "id": "content-page-chrome",
+      "operation": "chapterContent",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "description swallowing page chrome"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/page-chrome.html",
+      "expected": "expected/content/page-chrome.json",
+      "encoding": "gb18030",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "FIX",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/page-chrome.json"
+      },
+      "coverage": [
+        "content.page-chrome",
+        "content.boundary"
+      ],
+      "notes": "Navigation excluded from canonical nodes.",
+      "sha256": "50e6400d2c7be3a56091800a2dc8928d8412e47d0db5c4716c7a2e879ec1941c",
+      "expectedSha256": "0228d28e8d12c3ddc4fbd776433a3191a24e3ceff2d9e8b9ad23b3d70f616354",
+      "_unused": null
+    },
+    {
+      "id": "content-nested-dom",
+      "operation": "chapterContent",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "docs/KMP-TROUBLESHOOTING.md",
+        "section": "DOM fixes"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/content/nested-dom.html",
+      "expected": "expected/content/nested-dom.json",
+      "encoding": "utf-8",
+      "http": {
+        "status": 200,
+        "context": "chapter page"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/content/nested-dom.json"
+      },
+      "coverage": [
+        "content.nested-dom",
+        "content.document-order"
+      ],
+      "notes": "Nested text follows document order.",
+      "sha256": "6520e10fdbb73c363197c08585aec1c504d649bf30704efc68046da3ccbe2c94",
+      "expectedSha256": "0eab329a3378caefec84d3b2c098527d9c966fff85613c5f86d23407dbdbec5d",
+      "_unused": null
+    },
+    {
+      "id": "host-search-net",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "host constants"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/host/search-net.json",
+      "expected": "expected/host/search-net.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "host policy"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/host/search-net.json"
+      },
+      "coverage": [
+        "host.search-net",
+        "host.allowlist"
+      ],
+      "notes": "Provider host is evidence, not a Core URL.",
+      "sha256": "1f9d656d342599bf32dee2f52e1e0cc1a10d4b6b66eb9df7d4f7f0e79bd51f94",
+      "expectedSha256": "0ca4892faaf5d3135ceb4adf3767bce2e7f741254b86170f93d56d22bf33cb29",
+      "_unused": null
+    },
+    {
+      "id": "host-detail-cc",
+      "operation": "bookDetail",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "host constants"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/host/detail-cc.json",
+      "expected": "expected/host/detail-cc.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "host policy"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/host/detail-cc.json"
+      },
+      "coverage": [
+        "host.detail-cc",
+        "host.allowlist"
+      ],
+      "notes": "Host split characterized.",
+      "sha256": "12cab7acdac1b18028a3a6e14f85ec4cb252b4170b11dca83c7359f52806c6b5",
+      "expectedSha256": "df176997efceb83f382dd2ba34c689a25412c939935d9e8981b4a90eca03eec3",
+      "_unused": null
+    },
+    {
+      "id": "host-unapproved",
+      "operation": "search",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "host policy"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/host/unapproved.json",
+      "expected": "expected/host/unapproved.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 0,
+        "context": "host policy"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "REGRESSION_TEST",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/host/unapproved.json"
+      },
+      "coverage": [
+        "host.unapproved",
+        "failure.securityPolicy"
+      ],
+      "notes": "Invalid host is inert.",
+      "sha256": "c25280982c40bab6a0284719cc5fe9e727c090803c6de0a4fd277518b9b343f6",
+      "expectedSha256": "9b4e7c80a1c99b6419cf127c5867e7b96f7e11e6cfb16209f3fd95499e29459d",
+      "_unused": null
+    },
+    {
+      "id": "retry-server-error",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "retry server errors"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/host/retry-server-error.json",
+      "expected": "expected/host/retry-server-error.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "retry policy"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/host/retry-server-error.json"
+      },
+      "coverage": [
+        "retry.server-error",
+        "retry.exponential"
+      ],
+      "notes": "Policy characterization only.",
+      "sha256": "af581db189f1cc7e7ad0fddc00eaab5278f910ef301efab04ef07079aac7e964",
+      "expectedSha256": "ac63a87a7adb195d7c51649478a2b5c93c8ed55bdb6577dc10a932868d3bc0db",
+      "_unused": null
+    },
+    {
+      "id": "retry-timeout-bound",
+      "operation": "search",
+      "provenance": "reconstructed_from_frozen_evidence",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8Client.kt",
+        "section": "Ktor timeout"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/host/timeout-bound.json",
+      "expected": "expected/host/timeout-bound.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 0,
+        "context": "timeout policy"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "reconstructed-with-inert-values",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "PRESERVE",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/host/timeout-bound.json"
+      },
+      "coverage": [
+        "retry.timeout-bounds",
+        "host.timeout"
+      ],
+      "notes": "No runtime transport.",
+      "sha256": "ede196aa80b57dbec1f3c27ea5b1b329d9dc772a20f711a8fd6a8c30365c2673",
+      "expectedSha256": "d8305c8163262de75c274074a28cb072d89be02ca94c6a3e4cb657c8b0323b25",
+      "_unused": null
+    },
+    {
+      "id": "reconciliation-opaque-id",
+      "operation": "catalog",
+      "provenance": "synthetic",
+      "frozenEvidence": {
+        "path": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+        "section": "F2 identity boundary"
+      },
+      "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+      "fixture": "raw/reconciliation/opaque-id.json",
+      "expected": "expected/reconciliation/opaque-id.json",
+      "encoding": "metadata",
+      "http": {
+        "status": 200,
+        "context": "reconciliation metadata"
+      },
+      "sanitization": {
+        "status": "safe",
+        "method": "synthetic-by-construction",
+        "rawAuthenticated": false,
+        "syntheticAuth": false,
+        "inert": true
+      },
+      "classification": "DEFER",
+      "expectedOutcome": {
+        "kind": "contract-fixture",
+        "reference": "expected/reconciliation/opaque-id.json"
+      },
+      "coverage": [
+        "reconciliation.opaque-id",
+        "reconciliation.ordinal-only",
+        "reconciliation.defer"
+      ],
+      "notes": "No migration or schema work.",
+      "sha256": "ac42dd28421741fb9298400601b6e6999beeb41639c846304708288adfc7b6e1",
+      "expectedSha256": "3113c2d7e982d5128712089241e648065bd877a4167ebd3994415e7c51fd27f7",
+      "_unused": null
+    }
+  ],
+  "coverage": {
+    "operations": [
+      "search",
+      "explore",
+      "bookDetail",
+      "catalog",
+      "chapterContent",
+      "authentication"
+    ],
+    "categories": [
+      "asset.absolute-locator",
+      "asset.locator",
+      "asset.mapping-deferred",
+      "asset.protocol-relative-locator",
+      "asset.relative-locator",
+      "auth.expiry",
+      "auth.identity-cookie",
+      "auth.login-rejected",
+      "auth.login-success",
+      "auth.logout",
+      "auth.redirect-login",
+      "auth.session-cookie",
+      "catalog.chapter-id",
+      "catalog.duplicate-id",
+      "catalog.flat",
+      "catalog.grouping-presentation-only",
+      "catalog.missing-chapter-id",
+      "catalog.multiple-volumes",
+      "catalog.no-fabricated-volume",
+      "catalog.normal",
+      "catalog.order",
+      "catalog.ordinal-not-identity",
+      "catalog.reordered",
+      "catalog.volume-id",
+      "catalog.volume-order",
+      "content.boundary",
+      "content.br-flush",
+      "content.consecutive-br",
+      "content.document-order",
+      "content.empty-sequence",
+      "content.empty-text-node",
+      "content.image-only",
+      "content.interleaved-order",
+      "content.malformed",
+      "content.missing-container",
+      "content.nested-dom",
+      "content.order",
+      "content.page-chrome",
+      "content.paragraph-boundary",
+      "content.repeated-image",
+      "content.text-around-image",
+      "content.text-image",
+      "content.valid-empty",
+      "cookies.deletion",
+      "cookies.expires-comma",
+      "cookies.multiple-set-cookie",
+      "cookies.parser",
+      "cookies.partial",
+      "cookies.path-isolation",
+      "cookies.persistence-policy",
+      "cookies.set-cookie",
+      "detail.concatenated-text",
+      "detail.copyright-unavailable",
+      "detail.cover",
+      "detail.description",
+      "detail.description-boundary",
+      "detail.description-page-chrome",
+      "detail.malformed-required",
+      "detail.normal",
+      "detail.optional-fields",
+      "detail.table-cell-boundaries",
+      "encoding.ascii",
+      "encoding.codepoint-preservation",
+      "encoding.declaration-disagreement",
+      "encoding.deterministic-selection",
+      "encoding.gb18030-extension",
+      "encoding.invalid-sequence",
+      "encoding.pua-preservation",
+      "encoding.simplified-chinese",
+      "encoding.truncated-sequence",
+      "explore.blocks",
+      "explore.category",
+      "explore.dedup-stable-ref",
+      "explore.descriptor",
+      "explore.filters",
+      "explore.home",
+      "explore.malformed-block",
+      "explore.multiple-blocks",
+      "explore.optional-fields",
+      "explore.order",
+      "explore.pagination",
+      "explore.selection",
+      "explore.tag",
+      "explore.valid-empty",
+      "explore.whitespace",
+      "failure.authentication",
+      "failure.incompatibleResponse",
+      "failure.network",
+      "failure.notFound",
+      "failure.parse",
+      "failure.rateLimit",
+      "failure.securityPolicy",
+      "host.allowlist",
+      "host.detail-cc",
+      "host.search-net",
+      "host.timeout",
+      "host.unapproved",
+      "pagination.duplicate-book",
+      "pagination.exhausted",
+      "pagination.largest-linked-fallback",
+      "pagination.malformed-metadata",
+      "pagination.missing-metadata",
+      "pagination.next",
+      "pagination.pagelink",
+      "pagination.pagestats",
+      "pagination.total",
+      "pagination.whitespace",
+      "reconciliation.defer",
+      "reconciliation.defer-schema",
+      "reconciliation.opaque-id",
+      "reconciliation.ordinal-only",
+      "reconciliation.receipt",
+      "request.gbk-percent-encoding",
+      "request.no-secret",
+      "retry.exponential",
+      "retry.server-error",
+      "retry.timeout-bounds",
+      "search.auth-required",
+      "search.dedup-stable-ref",
+      "search.direct-detail",
+      "search.http200-waf",
+      "search.malformed-item",
+      "search.missing-field",
+      "search.network-timeout",
+      "search.normal",
+      "search.order",
+      "search.pagination",
+      "search.rate-limit",
+      "search.single-item",
+      "search.source-aware-ref",
+      "search.throttle-five-seconds",
+      "search.valid-empty",
+      "waf.http200-challenge"
+    ]
+  }
+}

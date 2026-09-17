@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "host-policy",
+  "hostClass": "detail-catalog-content",
+  "operation": "bookDetail",
+  "allowed": true
+}

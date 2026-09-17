@@ -1,0 +1,1 @@
+Set-Cookie: A=one; Path=/\nSet-Cookie: B=two; Path=/

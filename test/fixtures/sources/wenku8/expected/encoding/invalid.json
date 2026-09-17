@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "encoding",
+  "decoded": "�",
+  "failure": "parse",
+  "malformed": true
+}

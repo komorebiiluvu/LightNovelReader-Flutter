@@ -1,0 +1,15 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "search-page",
+  "items": [
+    {
+      "title": "书一",
+      "bookId": "wk8-101"
+    },
+    {
+      "title": "书二",
+      "bookId": "wk8-102"
+    }
+  ],
+  "next": "page=2"
+}

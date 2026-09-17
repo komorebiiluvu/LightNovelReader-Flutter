@@ -1,0 +1,17 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "explore-page",
+  "descriptor": "category",
+  "blocks": [
+    {
+      "books": [
+        {
+          "title": "乙",
+          "bookId": "wk8-12"
+        }
+      ],
+      "id": "category-fiction",
+      "title": "分类"
+    }
+  ]
+}

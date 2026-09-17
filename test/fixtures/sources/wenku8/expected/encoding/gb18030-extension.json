@@ -1,0 +1,9 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "encoding",
+  "decoded": "𠀀",
+  "malformed": false,
+  "codePoints": [
+    "U+20000"
+  ]
+}

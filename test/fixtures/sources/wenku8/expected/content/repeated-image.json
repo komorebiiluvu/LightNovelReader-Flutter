@@ -1,0 +1,15 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "repeated": true,
+  "nodes": [
+    {
+      "locator": "/a.jpg",
+      "type": "image"
+    },
+    {
+      "locator": "/a.jpg",
+      "type": "image"
+    }
+  ]
+}

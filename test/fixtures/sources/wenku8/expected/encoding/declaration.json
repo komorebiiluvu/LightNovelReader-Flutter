@@ -1,0 +1,8 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "encoding",
+  "transport": "gbk",
+  "declared": "utf-8",
+  "disagreement": true,
+  "chosen": "gbk"
+}

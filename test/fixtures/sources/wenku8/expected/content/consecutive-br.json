@@ -1,0 +1,19 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "preserveEmptyParagraph": true,
+  "nodes": [
+    {
+      "text": "甲",
+      "type": "text"
+    },
+    {
+      "text": "",
+      "type": "text"
+    },
+    {
+      "text": "乙",
+      "type": "text"
+    }
+  ]
+}

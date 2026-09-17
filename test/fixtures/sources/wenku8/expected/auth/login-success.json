@@ -1,0 +1,10 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "auth",
+  "secretValues": "inert-synthetic-only",
+  "persistedCookieNames": [
+    "PHPSESSID",
+    "jieqiUserInfo"
+  ],
+  "status": "authenticated"
+}

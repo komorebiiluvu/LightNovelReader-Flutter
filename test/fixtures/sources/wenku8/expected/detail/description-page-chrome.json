@@ -1,0 +1,8 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "book-detail",
+  "excludedChrome": [
+    "下一页"
+  ],
+  "description": "简介"
+}

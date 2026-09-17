@@ -1,0 +1,7 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "failure",
+  "retryAfterSeconds": 5,
+  "code": "rateLimit",
+  "throttleWindowSeconds": 5
+}

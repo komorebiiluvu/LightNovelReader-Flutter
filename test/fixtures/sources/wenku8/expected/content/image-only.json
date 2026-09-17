@@ -1,0 +1,11 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "imageOnly": true,
+  "nodes": [
+    {
+      "locator": "/only.jpg",
+      "type": "image"
+    }
+  ]
+}

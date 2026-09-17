@@ -1,0 +1,9 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "auth",
+  "cookieNames": [
+    "A",
+    "B"
+  ],
+  "preserveAll": true
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "explore-page",
+  "descriptor": "category",
+  "next": "page=3",
+  "items": [
+    {
+      "title": "丁",
+      "bookId": "wk8-14"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "catalog",
+  "chapters": [
+    {
+      "chapterId": "1",
+      "volumeId": "v1",
+      "ordinal": 0,
+      "title": "一"
+    },
+    {
+      "chapterId": "2",
+      "volumeId": "v1",
+      "ordinal": 1,
+      "title": "二"
+    }
+  ],
+  "bookId": "wk8-201",
+  "order": "DOM"
+}

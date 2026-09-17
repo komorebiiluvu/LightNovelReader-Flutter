@@ -1,0 +1,8 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "request",
+  "method": "GET",
+  "noSecret": true,
+  "queryEncoding": "gbk-percent",
+  "query": "kw=%D6%D0%CE%C4"
+}

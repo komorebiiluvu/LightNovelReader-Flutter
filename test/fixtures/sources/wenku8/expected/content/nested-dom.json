@@ -1,0 +1,11 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "nested": "document-order",
+  "nodes": [
+    {
+      "text": "粗体文本",
+      "type": "text"
+    }
+  ]
+}
