@@ -132,3 +132,19 @@ is accepted by the Human project owner. No package, lockfile entry or F3.3
 runtime implementation is approved by this checkpoint. F3.4–F3.7 remain **NOT
 AUTHORIZED** and F3 Exit remains **NOT APPROVED**. The accepted F3 Entry and
 F3.1/F3.2 semantics are unchanged.
+
+## F3.3 dependency approval checkpoint — 2026-09-18
+
+[ADR 0005](adr/0005-f3-transport-security-dependencies.md) was **ACCEPTED** by
+the **Human project owner** on **2026-09-18** at accepted baseline SHA
+`13408a83ca58158a8e7d74d911a71c183eaff590`. The approved dependencies are
+`dio: 5.11.1` and `flutter_secure_storage: 11.2.0`; no cookie-management
+dependency is approved. The Android floor remains API 24, the iOS target
+remains 15.0, and Windows ATL-backed packaged/runtime evidence remains required
+during F3.3.
+
+F3.3 remains **AUTHORIZED**, and dependency-using implementation is now
+permitted within F3.3 only. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit
+remains **NOT APPROVED**. No other HTTP, cookie-management or secure-storage
+dependency is approved without a new or amended Human-approved dependency
+decision.

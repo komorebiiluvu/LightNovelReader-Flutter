@@ -1,22 +1,24 @@
 # ADR 0005 — F3.3 Transport and Security Dependencies
 
-Status: **PROPOSED**. Human approval: **PENDING**.
-Proposal date: **2026-09-18**. Proposed by: **Codex**.
+Status: **ACCEPTED**. Human approval: **APPROVED**.
+Proposal date: **2026-09-18**. Approval date: **2026-09-18**.
+Approved by: **Human project owner**. Accepted baseline:
+`13408a83ca58158a8e7d74d911a71c183eaff590`.
 
-This ADR is a dependency decision proposal for F3.3. It is not an approval to
-edit `pubspec.yaml`, update `pubspec.lock`, add a package, or implement
-transport, session, or secure-storage runtime code. Human project-owner
-acceptance is required before any dependency named here is added or used.
+This ADR records the human-approved dependency decision for F3.3. It authorizes
+adding and using only the exact dependencies listed below for F3.3; it does not
+authorize any dependency or implementation outside that slice. The approval
+does not itself modify `pubspec.yaml` or `pubspec.lock`.
 
-## Decision requested
+## Accepted decision
 
-Accept the following exact package proposal for the F3.3 implementation gate:
+The accepted F3.3 implementation decision is:
 
-| Concern | Proposed package and version | Status in this ADR |
+| Concern | Package and version | Status in this ADR |
 | --- | --- | --- |
-| Cross-platform HTTP transport | `dio: 5.11.1` | Proposed |
-| Secure storage | `flutter_secure_storage: 11.2.0` | Proposed |
-| Cookie management | No package | Proposed |
+| Cross-platform HTTP transport | `dio: 5.11.1` | Accepted |
+| Secure storage | `flutter_secure_storage: 11.2.0` | Accepted |
+| Cookie management | No package | Accepted |
 
 The versions are deliberately exact. A later implementation change must not
 silently substitute a version. Any version change requires a new dependency
@@ -32,14 +34,15 @@ diagnostics. The session boundary must be source-scoped and generation-aware;
 it must prevent stale responses from resurrecting a logged-out session. Secure
 storage is an infrastructure capability behind a neutral Dart abstraction.
 
-F3.3 is authorized as a slice, but dependency-using implementation is blocked
-until this ADR is accepted. F3.4–F3.7 remain unauthorized and F3 Exit remains
+F3.3 is authorized as a slice, and implementation may add and use only the two
+accepted dependencies above. F3.4–F3.7 remain unauthorized and F3 Exit remains
 not approved. No live provider request, parser, decoder, cookie runtime or
-secure-storage runtime is part of this proposal.
+secure-storage runtime is authorized outside the F3.3 slice.
 
-The repository currently has no Dio, `http`, cookie-manager or
-`flutter_secure_storage` dependency. This proposal therefore leaves
-`pubspec.yaml` and `pubspec.lock` unchanged.
+At the accepted baseline the repository has no Dio, `http`, cookie-manager or
+`flutter_secure_storage` dependency. This governance commit leaves
+`pubspec.yaml` and `pubspec.lock` unchanged; a later F3.3 implementation may
+add only the accepted exact versions.
 
 ## Evidence checked on 2026-09-18
 
@@ -60,14 +63,15 @@ registries and upstream documentation:
 * The [Windows implementation documentation](https://pub.dev/documentation/flutter_secure_storage_windows/latest/)
   requires the Visual Studio C++ ATL libraries. This is a toolchain prerequisite
   to prove in F3.3; it is not a reason to change the repository toolchain in
-  this docs-only proposal.
+  this docs-only governance record.
 
 The current Flutter 3.47.4 SDK resolves `flutter.minSdkVersion` to Android API
 24 in its Gradle extension. Some current README/package prose still mentions
 Android API 23, but the authoritative v11 release/changelog evidence records
-Android `minSdk` **24**. The proposed plugin therefore does not require raising
-the current application floor. F3.3 must recheck this against the final Flutter
-SDK and resolved package graph before changing any platform configuration.
+Android `minSdk` **24**. The accepted plugin therefore does not require raising
+the current application floor, and no Android minSdk increase is approved. F3.3
+must recheck this against the final Flutter SDK and resolved package graph
+during implementation.
 
 The project deployment target is iOS 15.0. The existing Windows runner already
 builds in CI, but that proves only the current application; it does not prove
@@ -90,10 +94,10 @@ accepted F3 semantics, not about exposing either package in Source contracts.
 | Redirect policy | `followRedirects` and `maxRedirects` at the adapter boundary | Depends on the selected client and lower-level `dart:io` behavior | Dio makes the policy visible at the common request boundary. |
 | Scripted/fake transport | Replaceable `HttpClientAdapter` and custom Dio instance | Very good `Client` abstraction and fake clients | Both are testable; Dio still requires a neutral wrapper. |
 | Failure mapping | `DioException` categories are a useful boundary input | `ClientException`/I/O exceptions are a useful boundary input | Neither type may cross the Source contract; map to typed `SourceFailure`. |
-| Cookie behavior | Interceptors exist, but no cookie manager is proposed | No cookie manager included | Application-owned session remains the sole cookie authority. |
-| License | MIT | BSD-3-Clause | Both are acceptable; record the selected license in the dependency inventory after approval. |
+| Cookie behavior | Interceptors exist, but no cookie manager is approved | No cookie manager included | Application-owned session remains the sole cookie authority. |
+| License | MIT | BSD-3-Clause | Both are recorded for the accepted dependency decision; verify the resolved dependency inventory during F3.3. |
 
-### Proposed network decision
+### Accepted network decision
 
 Choose `dio: 5.11.1`. It directly exposes the cancellation, phase-specific
 deadline, redirect, raw-byte/stream and adapter controls that F3.3 must make
@@ -108,21 +112,21 @@ explicit ADR update and a fresh three-platform validation record.
 
 ## Secure-storage evaluation
 
-The proposed secure-storage package is an infrastructure implementation of a
+The accepted secure-storage package is an infrastructure implementation of a
 source-neutral secure-store interface. F3.3 must keep the package import out of
 Core, Source contracts and provider adapters.
 
 | Area | Evidence and required treatment |
 | --- | --- |
-| Android | The v11 release/changelog records `minSdk` API 24; the current Flutter floor is API 24. Some README/package prose still says API 23, so the changelog is the authoritative evidence for this decision. No minSdk change is proposed. F3.3 must build and run read/write/delete and failure-path smoke on the actual runner. |
+| Android | The v11 release/changelog records `minSdk` API 24; the current Flutter floor is API 24. Some README/package prose still says API 23, so the changelog is the authoritative evidence for this decision. No minSdk change is approved or required. F3.3 must build and run read/write/delete and failure-path smoke on the actual runner. |
 | iOS | The package uses Keychain and supports iOS. The project target is iOS 15.0. F3.3 must verify Keychain access, protected-data/locked behavior, and any required entitlements on a real deterministic iOS runtime path. |
 | Windows | The package supports Windows through its Windows implementation, which requires the Visual Studio C++ ATL libraries. The current Windows CI build is not proof of plugin readiness; F3.3 must run a packaged Windows secure-store smoke and record the toolchain component. |
-| Flutter/Dart | The current Flutter 3.47.4/Dart 3.13.3 environment is within the package's documented modern toolchain range. F3.3 must recheck the resolved package metadata after approval. |
+| Flutter/Dart | The current Flutter 3.47.4/Dart 3.13.3 environment is within the package's documented modern toolchain range. F3.3 must recheck the resolved package metadata during implementation. |
 | Mechanism boundary | Android secure cryptographic storage, iOS Keychain and the encrypted file-based Windows implementation remain plugin implementation details. The exact platform crypto/storage mechanics are not frozen here. The application sees only a neutral read/write/delete result and typed `secureStorage` failures. |
 | Initialization | Flutter bindings must be initialized before plugin calls. F3.3 owns the initialization and error mapping; this ADR does not add startup code. |
 | Unavailability/corruption | Locked, unavailable, corrupt or denied storage is an explicit error. There is no plaintext, Drift, shared-preferences, file or log fallback. Memory-only operation may be used only as an explicit, non-persistent test mode. |
 | Uninstall/reinstall | Persistence semantics vary by platform and are not promised here. F3.3 must test and document observed behavior; no migration of Legacy credentials or cookies is authorized. |
-| License | BSD-3-Clause, subject to the final resolved dependency inventory after approval. |
+| License | BSD-3-Clause; verify the resolved dependency inventory during F3.3. |
 
 The Wenku8-specific policy remains strict: passwords are accepted only for an
 explicit sign-in operation, are used transiently, and are not retained after
@@ -149,7 +153,7 @@ The transport may expose sanitized response metadata and raw repeated headers to
 the session boundary, but it does not persist cookies or decide authentication.
 No Legacy Swift/KMP dual-session architecture is reproduced.
 
-## Security and dependency rules frozen for this proposal
+## Security and dependency rules frozen for F3.3
 
 These rules apply if the ADR is accepted and must be proven by F3.3 tests:
 
@@ -212,9 +216,11 @@ and any dependency upgrade after the F3.3 baseline.
 
 ## Approval record
 
-ADR 0005: **PROPOSED / NOT ACCEPTED**.
-Human project-owner approval: **PENDING**.
-F3.3 remains **AUTHORIZED as a slice**, but implementation that adds or uses a
-critical network or secure-storage dependency is blocked until this ADR is
-accepted. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
+ADR 0005: **ACCEPTED**.
+Human project-owner approval: **APPROVED** on **2026-09-18**.
+Accepted baseline: `13408a83ca58158a8e7d74d911a71c183eaff590`.
+The accepted dependencies are `dio: 5.11.1` and
+`flutter_secure_storage: 11.2.0`; no cookie-management dependency is approved.
+F3.3 remains **AUTHORIZED**, and dependency-using implementation is permitted
+within that slice. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
 APPROVED**.

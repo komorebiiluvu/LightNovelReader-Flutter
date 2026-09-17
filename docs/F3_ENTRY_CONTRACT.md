@@ -242,10 +242,10 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 
 ## 6. Slices, deliverables and local gates
 
-F3.1 is **IMPLEMENTED / ACCEPTED**; F3.2 is **AUTHORIZED**; F3.3–F3.7 remain
-**NOT AUTHORIZED** and have not started. F3.1 acceptance does not approve
-dependencies or F3 exit. Default review sequence is the following, with evidence
-before advancing.
+F3.1 and F3.2 are **IMPLEMENTED / ACCEPTED**; F3.3 is **AUTHORIZED**;
+F3.4–F3.7 remain **NOT AUTHORIZED** and have not started. ADR 0005 authorizes
+only its exact F3.3 dependencies; F3.1 acceptance does not approve F3 exit.
+Default review sequence is the following, with evidence before advancing.
 
 | Slice | Deliverables / scope | Tests and gate to next slice |
 | --- | --- | --- |
@@ -291,14 +291,14 @@ not the F8 second-real-Source milestone.
 
 Entry requires verified F1/F2 approvals and unchanged frozen F2 contracts;
 recorded human acceptance of this revision and ADR 0004; accepted F3.1 evidence;
-the explicit F3.2 slice authorization; and capability/failure/transport/session
-semantics reviewed sufficiently for F3. F3.3–F3.7 remain gated. No implementation
-beyond the currently authorized slice starts merely because this document is
-committed.
+the explicit F3.2 slice authorization; accepted ADR 0005 for dependency-using
+F3.3 work; and capability/failure/transport/session semantics reviewed
+sufficiently for F3. F3.4–F3.7 remain gated. No implementation beyond the
+currently authorized slice starts merely because this document is committed.
 
 | Decision / owner | Latest gate / consequence |
 | --- | --- |
-| HTTP and secure-storage package/backend choices, F3 owner + human reviewer | Separate ADR approval before dependent F3.3 code/dependency changes; unresolved choice blocks that work |
+| HTTP and secure-storage package/backend choices, F3 owner + human reviewer | ADR 0005 accepted for `dio: 5.11.1`, `flutter_secure_storage: 11.2.0` and no cookie manager; future changes require an amended Human-approved dependency decision |
 | Decoder/DOM libraries and byte normalization, F3.2 owner | Support/license review and independent fixtures before F3.4; critical dependency choices need ADR approval |
 | Stable volume/asset locator mapping, provenance proof and numeric resource bounds, F3.2 owner | Reviewed specification before F3.3/F3.4 consumers; persistence changes need separate approved migration design |
 | Concrete API signatures, F3.1 owner | Reviewed against section 3 before consumers; semantic changes require updated proposal/ADR |
@@ -447,3 +447,17 @@ F3.3 remains **AUTHORIZED as a slice**, but dependency-using implementation is
 blocked until ADR 0005 is accepted by the Human project owner. No dependency,
 lockfile entry or F3.3 runtime implementation is approved by this checkpoint.
 F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+
+## 15. F3.3 dependency approval checkpoint — 2026-09-18
+
+[ADR 0005](adr/0005-f3-transport-security-dependencies.md) is **ACCEPTED** and
+the Human project owner approved it on **2026-09-18** at accepted baseline SHA
+`13408a83ca58158a8e7d74d911a71c183eaff590`. The exact approved dependencies are
+`dio: 5.11.1` and `flutter_secure_storage: 11.2.0`; no cookie-management
+dependency is approved. Android API 24, iOS 15.0 and the Windows ATL/toolchain
+requirements remain as recorded in ADR 0005.
+
+F3.3 remains **AUTHORIZED**, and dependency-using implementation is permitted
+within that slice. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
+APPROVED**. No other HTTP, cookie-management or secure-storage dependency is
+approved without a new or amended Human-approved dependency decision.
