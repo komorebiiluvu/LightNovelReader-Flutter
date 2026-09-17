@@ -1,14 +1,16 @@
 # F2.3 Persistence Baseline
 
-Status: IMPLEMENTED — REVIEW / VALIDATION PENDING
+Status: F2.3 — Persistence Infrastructure + Schema v1 — EXIT APPROVED
 
-This document records observed F2.3 implementation and validation evidence. It
-does not approve F2.3 and does not start F2.4.
+This document records F2.3 implementation, final validation evidence, and human
+exit approval. It does not start F2.4 or approve full F2 completion or release
+readiness. Repositories, the legacy migration importer, Reader, and Source
+implementations remain outside this persistence foundation/schema closure.
 
 ## Scope and starting point
 
 - Starting commit: `83757cc3571b4f7f63fc80eecdebc504def7c045`.
-- Current implementation under review: the final closure patch (`fix: close F2.3 persistence validation gaps`) at this repository HEAD.
+- Approved implementation / final validation commit: `619658150a803299f70e50c758e0329eb7bcadf1` (`fix: close F2.3 persistence validation gaps`).
 - Review-fix commit: `6da74f8` (`fix: close F2.3 persistence review gaps`).
 - Branch at entry: `main`; `origin/main` matched the starting commit.
 - Legacy reference inspected by the preceding F2 work: `d90d4d090c85a0a9c374684696c34befe12636d1`.
@@ -130,14 +132,14 @@ reopens it, checks exact opaque values and SQLite pragmas, and exercises a
 rollback. It uses a unique test root and removes only that root afterward.
 
 - Windows storage smoke: **PASS**.
-- Android storage smoke: **PENDING** — Android APK build passed, but no local
-  emulator/device was available for execution.
-- iOS storage smoke: **PENDING** — this Windows host cannot execute an iOS
-  simulator/device test.
+- Android storage smoke: **PASS** — the packaged integration test actually
+  executed successfully on a GitHub Actions Android emulator in Run #9.
+- iOS simulator storage smoke: **PASS** — executed successfully on the macOS
+  GitHub Actions runner in Run #9.
 
 Build success is not counted as runtime-storage smoke success.
 
-## CI evidence and remaining review
+## CI evidence and exit approval
 
 The workflow retains the existing quality, Windows build, unsigned iOS build,
 and iOS simulator smoke jobs. Android debug build and Android packaged storage
@@ -169,11 +171,30 @@ Observed run: [GitHub Actions run 35110324488](https://github.com/komorebiiluvu/
 | iOS simulator packaged storage smoke | PASS |
 
 The historical failure was hosted-runner disk exhaustion, not an Android APK
-compile failure: the APK build itself passed. This closure patch moves the
-emulator work to its own runner and adds diagnostics; no new GitHub Actions run
-has produced results for this patch yet, so the split Android storage smoke and
-the final CI matrix remain **PENDING**.
+compile failure: the APK build itself passed. The final implementation moves
+the emulator work to its own runner and adds diagnostics.
 
-F2.3 Exit Approval: **PENDING**.
+Final validation evidence, supplied and confirmed by the human project owner:
+[GitHub Actions Run #9, Run ID 35170388187](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35170388187),
+for implementation commit `619658150a803299f70e50c758e0329eb7bcadf1`.
+Overall workflow result: **SUCCESS**.
+
+| Final check | Result |
+| --- | --- |
+| Quality | PASS |
+| Android debug | PASS |
+| Android packaged storage smoke | PASS — integration test executed on an emulator |
+| Windows debug | PASS |
+| Windows packaged storage smoke | PASS |
+| iOS debug unsigned | PASS |
+| iOS simulator packaged storage smoke | PASS |
+
+This evidence validates the persistence infrastructure, schema v1, and packaged
+SQLite runtime on all three targets. It does not establish full F2 completion.
+
+F2.3 Exit Approval: **APPROVED**.
+
+Approved by: Human project owner.
+Approval date: **2026-09-17**.
 
 F2.4: **NOT STARTED / NOT AUTHORIZED**.
