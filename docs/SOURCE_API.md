@@ -34,8 +34,7 @@ Capabilities may include:
 - search
 - explore
 - bookDetail
-- volumes
-- chapters
+- catalog
 - chapterContent
 - images
 - authentication
@@ -43,7 +42,30 @@ Capabilities may include:
 - filters
 - updates
 
-UI derives availability from capabilities.
+`catalog` is one capability. It means that the Source can return an ordered
+chapter catalog and may additionally provide volume/grouping information. It is
+not the intersection of separate `volumes` and `chapters` capabilities.
+
+A Source with chapters but no provider volume structure still advertises
+`catalog` and returns a flat ordered chapter sequence. Grouping or presentation
+labels that have no stable provider VolumeId are optional non-identity metadata;
+they must not be represented as a fabricated `SourceVolumeRef`. A
+`SourceVolumeRef` is emitted only for a verified provider volume identity or an
+approved durable surrogate mapping. Chapter identity remains a verified opaque
+`ChapterId`; ordinal/index and display order are ordering metadata only.
+
+`cookies` is an infrastructure capability. It means that the Source may issue
+or require source-scoped HTTP cookies for anonymous or authenticated requests;
+it does not grant UI or callers access to cookie values, imply authentication,
+or authorize plaintext persistence. `authentication` separately means that the
+Source exposes an explicit credential/session operation. `updates` means that an
+explicit refresh can return update hints in normalized metadata or catalog
+results; it does not promise a scheduler, push notifications, or a background
+update service. `images` means content may reference scoped assets; image
+retrieval belongs to the later image phase.
+
+UI derives operation availability from capabilities. Capabilities never change
+the identity tuples or make an unsupported operation look like an empty success.
 
 ## 4. Contract sketch
 
@@ -62,12 +84,12 @@ abstract interface class BookSource {
   );
 
   Future<SourceBook> getBook(
-    BookId id,
+    SourceBookRef book,
     CancellationToken cancellation,
   );
 
-  Future<List<SourceVolume>> getVolumes(
-    BookId id,
+  Future<SourceCatalog> getCatalog(
+    SourceBookRef book,
     CancellationToken cancellation,
   );
 
@@ -78,7 +100,17 @@ abstract interface class BookSource {
 }
 ```
 
-Methods may be optional/capability-gated rather than returning meaningless empty defaults.
+Methods may be optional/capability-gated rather than returning meaningless empty
+defaults. Every returned SourceBook, catalog entry, chapter ref and content
+value must be owned by the Source instance's descriptor ID. The catalog method
+is the source-aware contract for both flat and volume-grouped chapter listings;
+it does not require a SourceVolumeRef when the provider has no stable volume ID.
+
+Paged results use immutable items and an optional opaque continuation. A
+continuation is bound to the Source, operation, query/filter identity and session
+generation; failed or cancelled requests do not advance it. Stable-ref
+deduplication preserves first-seen order, while malformed page metadata cannot
+turn an error into exhaustion or move a cursor backward.
 
 ## 5. Models
 
@@ -120,14 +152,21 @@ Use `SourceTransport`.
 
 Request supports:
 - method
-- URL
+- approved target URL and host/scheme policy
 - headers
 - body
 - cookie/session scope
 - redirect policy
 - timeout
+- bounded response size and retry policy
+- cancellation
 - sourceId
 - safe diagnostic tags
+
+Transport owns request execution and maps library exceptions to the Source error
+contract. Redirect hops are revalidated; credentials and cookies are never
+forwarded blindly to a different host or downgraded scheme. Parsers receive
+bounded bytes or decoded text and do not perform networking or persistence.
 
 ## 8. Authentication/session
 
@@ -137,7 +176,18 @@ Do not rely on accidental global cookie jars.
 
 Authentication state is source-scoped.
 
-Secrets are stored via secure storage and are never logged.
+Session state has an explicit generation. Logout, disposal or a newer operation
+invalidates stale completions before they can publish data or install cookies.
+Approved provider hosts may share one source session only under explicit cookie
+scope; there is no global cookie jar or dual session authority.
+
+Credential retention is source-neutral and must be explicit for each Source. Any
+durable secret requires approved cross-platform secure storage and is never put
+in Drift, shared_preferences, logs or fixtures. Wenku8 specifically never retains
+passwords, never imports Legacy cookies/accounts, and may remember only approved
+session material through that secure-storage contract. Secure-store failure is a
+typed failure; a memory-only sign-in is allowed only when explicitly selected,
+never as a silent plaintext fallback.
 
 ## 9. Parsing
 
@@ -158,8 +208,16 @@ Source returns structured failures:
 - incompatibleResponse
 - cancelled
 - unsupportedCapability
+- sourceUnavailable
+- invalidRequest
+- securityPolicy
+- secureStorage
 
-Raw library exceptions are mapped at the boundary.
+Raw library exceptions, response HTML, credentials and arbitrary server messages
+are mapped or redacted at the boundary. Retryability and bounded retry-after
+metadata are explicit. A login/challenge page with HTTP 200, a missing required
+DOM element, a valid empty result and an unsupported response shape remain
+distinct outcomes.
 
 ## 11. Cancellation
 
@@ -167,28 +225,33 @@ Cancellation is part of the API.
 
 Leaving a screen, starting a newer search, changing chapter, or disabling a plugin may obsolete work.
 
-Old results must not overwrite new state.
+Old results must not overwrite new state. Cancellation stops queued work,
+backoff and body reads where supported; it is never converted into a retry. Each
+caller and source session checks its captured generation before committing a
+result, cookie or durable mapping.
 
 ## 12. SourceRegistry
 
 Registry resolves `SourceId` to an implementation.
 
+Source IDs are immutable and unique. Duplicate registration fails; an unavailable,
+disabled or unresolved Source returns typed unavailability without deleting its
+durable source-associated state or silently falling back to another Source.
+
 Implementations:
-- built-in Dart source
-- plugin source adapter
+F3 implements a built-in Dart source and test fakes. A future plugin source
+adapter may implement the same boundary after the Plugin Runtime phase; F3 does
+not include a plugin runtime or downloadable plugin code.
 
 No UI branch on concrete source type.
 
-## 13. First reference sources
+## 13. F3 reference source and neutrality proof
 
-A:
-- Wenku8, migrated from legacy behavior/fixtures
+F3 implements only the built-in Wenku8 Source, migrated from frozen Legacy
+behavior and sanitized fixtures. Contract neutrality is tested with in-memory
+fake Sources using non-Wenku8 IDs, catalog shapes and capability combinations.
+A second real Source is an F8 deliverable and is outside F3.
 
-B:
-- a structurally different real source
-
-Also include fixtures proving:
-- ordered text/image
-- image-only content
-
-The purpose is contract validation, not source count.
+The F3 fixture corpus must prove ordered text/image output, image-only content,
+flat catalogs, grouped catalogs with stable volume IDs, and grouped catalogs
+whose presentation labels have no stable VolumeId.

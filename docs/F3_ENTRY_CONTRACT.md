@@ -1,6 +1,6 @@
 # F3 — Source Foundation entry contract
 
-Status: **PROPOSED — READY FOR HUMAN REVIEW**. Revision: **1**.
+Status: **PROPOSED — READY FOR HUMAN REVIEW**. Revision: **2**.
 Prepared: **2026-09-17**. Human approval: **PENDING**.
 F3: **NOT STARTED / NOT AUTHORIZED**.
 
@@ -11,9 +11,9 @@ this document. Constitution and accepted ADRs retain precedence.
 
 ## 1. Reverified baseline and evidence limits
 
-On 2026-09-17, before editing, the working tree was clean on `main`.
-Local HEAD and remote `refs/heads/main` obtained with `git ls-remote` were both
-`373b5498c135936a95343da502a7381692d9b168`.
+On 2026-09-17, before this revision, the working tree was clean on `main`.
+Local HEAD and the last successfully synchronized remote `refs/heads/main` were
+`57ff4327f2624a9241ba3ea0cc42ab365b59ac31`.
 [F1 baseline](FLUTTER_BASELINE.md) records F1 EXIT APPROVED;
 [F2 exit](F2_EXIT_EVIDENCE.md) records F2 EXIT APPROVED by the human owner on
 2026-09-17. F2.7 final iOS packaged-storage evidence remains a human-approved
@@ -28,10 +28,10 @@ Wenku8 requests, Legacy execution, or F3 fixture validation were performed.
 There is no `lib/src/source` implementation at this baseline.
 
 The implemented F2 identity/content types and the migration inventory were also
-inspected. The only changes to [SOURCE_API](SOURCE_API.md) in this proposal
-correct its stale F2 identity/content sketches. Its remaining capability/method
-sketches are future-facing; the second real Source remains F8 and plugin adapter
-execution remains F9. Those sketches do not expand F3 scope.
+inspected. This revision synchronizes [SOURCE_API](SOURCE_API.md) with the
+proposed F3 semantics: source-aware book/catalog inputs, one Catalog capability,
+cookie/update meanings, and F8/F9 scope boundaries. It does not change frozen F2
+identity or ordered-content semantics.
 
 ## 2. Scope and immutable F2 boundary
 
@@ -81,9 +81,19 @@ and contract tests without changing these semantics; changes require review.
 | Search | Query/filter values plus optional opaque continuation; page of source-aware book summaries | search |
 | Explore | Source-declared home/category/filter descriptors and opaque continuation; ordered blocks or book page | explore; filters when supported |
 | Book detail | SourceBookRef; metadata including optional cover asset ref | bookDetail |
-| Catalog | SourceBookRef; ordered volume groupings and chapter refs, titles and order metadata | volumes / chapters |
+| Catalog | SourceBookRef; ordered chapters with optional volume/grouping presentation metadata and optional stable SourceVolumeRefs | catalog |
 | Chapter content | SourceChapterRef; existing F2 ChapterContent | chapterContent |
 | Authentication | Explicit user-supplied credentials, session status and logout through a separate auth contract | authentication |
+
+`catalog` is a single capability, not separate `volumes` and `chapters` flags.
+Every catalog result has an ordered chapter sequence. A Source with no volume
+structure returns a flat sequence. A grouping label/title or group ordinal with
+no stable provider VolumeId is presentation metadata only and must not produce a
+fabricated `SourceVolumeRef`; a volume ref requires verified provider identity or
+an approved durable surrogate mapping. ChapterId remains opaque and stable when
+supported, while index/ordinal/order never becomes identity. The concrete Dart
+catalog classes and signatures are an F3.1 deliverable, but this semantic policy
+is already fixed for that work.
 
 Every asynchronous operation takes cancellation/operation context. Validate ref
 ownership before I/O. Capabilities describe supported operations, not current
@@ -152,10 +162,15 @@ concurrent authentication is serialized/coalesced, with bounded work and no
 background bundled-account login. Abort support does not replace stale-result
 checks. Tests must deliberately complete obsolete requests late.
 
-Secrets remain in memory or an approved secure-storage adapter only. Passwords
-are not retained after sign-in; any remembered session is separately scoped and
-stored only through that adapter. No secrets in Drift, shared_preferences,
-fixtures, logs, URLs, exception strings or whole-response dumps. Redacted
+Secrets remain in memory or an approved secure-storage adapter only. A
+source-neutral credential contract defines whether a source supports ephemeral
+credentials, a remembered session, or another explicitly reviewed credential
+model. Any durable secret requires an explicit source policy, approved secure
+storage, and cross-platform support; it may never use Drift,
+shared_preferences, fixtures, logs, URLs, exception strings or whole-response
+dumps. Wenku8 specifically MUST NOT retain passwords, MUST NOT import its
+Legacy cookies/accounts, and may remember only explicitly approved session
+material through the F3 secure-storage contract. Redacted
 diagnostics allowlist operation ID, failure code, timing/status and safe counters;
 exclude raw query/body/header values and user identifiers. Test synthetic sentinel
 leakage through success, failure, redirect and cancellation paths.
@@ -231,7 +246,7 @@ or exit. Default review sequence is the following, with evidence before advancin
 | F3.4 Wenku8 Pure Parser + Request Builder | Pure encoding/DOM normalization and request construction using F3.2 evidence | Exact normalized fixtures, safe query encoding/host construction, malformed/error discrimination, ordered node/identity assertions; no runtime orchestration |
 | F3.5 Wenku8 Runtime Adapter | Compose contracts, builder/parser, transport/session; explicit auth and paginated service flows | Deterministic end-to-end scripted search/explore/detail/catalog/content/auth; cancellation/late-result and transport-failure coverage; no feature/Reader UI |
 | F3.6 Legacy Reconciliation + Source Neutrality Proof | Evidence-based chapter/source resolution plans and safe application through repositories; synthetic alternate-source conformance suite | Exact proof cases, ambiguous/reordered catalog stays unresolved, idempotency/reopen/rollback/user-edit conflict protection; no real second Source |
-| F3.7 Cross-platform Validation + Exit Evidence | Final contract synchronization, platform builds/runtime smoke, bounded controlled live smoke and F3 exit record | Section 9 matrix, final-revision evidence, risk dispositions and explicit human exit approval; no automatic F4 entry |
+| F3.7 Cross-platform Validation + Exit Evidence | Final contract synchronization, deterministic platform builds/runtime smoke, optional bounded manual live-smoke record and F3 exit record | Section 9 matrix, final-revision evidence, risk dispositions and explicit human exit approval; no automatic F4 entry |
 
 F3.1 is contract scaffolding, not permission to bypass the fixture-first Source
 migration sequence. F3.2 must establish all production parser expectations first.
@@ -301,15 +316,24 @@ forbidden state/secret writes; test files alone are not evidence.
 | Approved transport/secure-store set/read/delete/restart and failure behavior | Required | Required | Required |
 | Cancellation, session isolation and late-response rejection | Required | Required | Required |
 
-Controlled live smoke is bounded, opt-in and separate from CI fixture tests:
-record host-policy verification, operation outcomes, platform/toolchain and
-revision without bodies/secrets. Use a reviewer-provided test account only where
-needed; never Legacy bundled credentials. No bulk fetch or image downloads.
-Required live behavior remains pending if unavailable; fixtures do not prove
-current provider access. Record network/provider failures separately from parser
-failures. No platform PASS inferred from another platform. Any proposed evidence
-exception requires explicit human review with scope/owner/follow-up; the F2 waiver
-does not apply.
+The blocking F3 platform gate is deterministic and reproducible: the scripted
+transport/session/parser/adapter tests and the packaged runtime matrix above
+must pass on iOS, Android and Windows without public-network access. CI must not
+depend on Wenku8 availability.
+
+Controlled Wenku8 live smoke is supplemental evidence, not a required F3 exit
+gate and never a CI gate. If a human reviewer elects to run it, it is bounded,
+manual, opt-in and separate from fixture tests: record host-policy verification,
+operation outcomes, platform/toolchain and revision without bodies or secrets;
+use a reviewer-provided test account only where needed; never Legacy bundled
+credentials; perform no bulk fetch or image downloads. If the provider, WAF,
+network or account is externally unavailable, record `NOT RUN / EXTERNALLY
+UNAVAILABLE` and continue to assess the deterministic gate. Such unavailability
+does not turn a deterministic failure into a pass, and deterministic success does
+not claim current provider availability. Record network/provider failures
+separately from parser failures. No platform PASS is inferred from another
+platform. Any proposal to make live smoke a release-specific condition requires
+an explicit human decision and scope; the F2 waiver does not apply.
 
 The F3 exit record must contain the governance fields:
 
@@ -318,7 +342,7 @@ The F3 exit record must contain the governance fields:
 | Deliverables | Accepted Source API v1 and ADRs, registry, fixtures, transport/session/security, pure parser/builder, runtime adapter, reconciliation and neutrality proof |
 | Acceptance Criteria | F2 identity/content unchanged; declared capabilities work; no Core provider branches; no secret/data-loss blocker; no platform divergence |
 | Required Automated Tests | Format, analyze, full test suite plus fixture/conformance/security/reconciliation tests with exact counts and commands |
-| Required Platform Validation | Above builds and runtime results, plus controlled live evidence with explicit limitations |
+| Required Platform Validation | Deterministic builds and runtime results on all three targets; optional live-smoke evidence is supplemental and must state limitations |
 | Evidence / Artifacts | Tested SHA, Flutter/Dart/OS/device, lockfile, CI/run links, fixture hashes and expected/actual assertions; sanitized output only |
 | Known Exceptions | Owner, scope, reason, human disposition and follow-up; unavailable/waived is never PASS |
 | Exit Approval | Explicit human F3 exit approval after evidence; F4 requires its own entry review |
@@ -331,7 +355,7 @@ human review. This draft does not freeze future contracts by itself.
 
 | ID / risk | Mitigation and evidence | Owner / blocking gate |
 | --- | --- | --- |
-| R1 Provider HTML/host drift | Frozen corpus plus separately labeled live evidence; old/new fixture comparison | F3.2/F3.5; parser/live acceptance |
+| R1 Provider HTML/host drift | Frozen corpus plus separately labeled optional live evidence; old/new fixture comparison | F3.2/F3.5; deterministic parser gate, live evidence supplemental |
 | R2 Partial GBK/GB18030 decoder | Independent byte vectors, malformed/four-byte cases; reviewed dependency | F3.2/F3.4; parser gate |
 | R3 Cookie leakage or stale auth resurrection | Per-target cookie policy, generation checks, sentinel tests, logout/restart proof | F3.3; security blocker |
 | R4 Secure storage differs across platforms | Approved package matrix plus packaged failure/restart tests; explicit memory-only mode | F3.3/F3.7; dependency and exit blocker |

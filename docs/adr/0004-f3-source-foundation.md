@@ -15,12 +15,17 @@ Constitution exception is requested.
 ## Proposed decision
 
 Adopt the semantic contracts, gates and F3.1–F3.7 scope in the
-[F3 Entry Contract revision 1](../F3_ENTRY_CONTRACT.md), subject to human acceptance.
+[F3 Entry Contract revision 2](../F3_ENTRY_CONTRACT.md), subject to human acceptance.
 
 Use one Dart contract/registry with capability-gated normalized operations,
 typed failures and explicit cancellation. Registry keys are immutable F2 SourceIds;
 runtime absence never deletes durable source-associated state. Keep provider URL,
 encoding, selector and cookie knowledge inside Source infrastructure.
+
+Catalog is one capability covering ordered chapters with optional volume
+grouping. `cookies` describes source-scoped transport/session behavior and does
+not expose cookie values or imply authentication; `updates` describes explicit
+refresh hints and does not authorize a scheduler or push service.
 
 Separate pure request building and byte/DOM parsing from transport and orchestration.
 Approve sanitized characterization fixtures and independent expectations before
@@ -29,7 +34,10 @@ cookies and generations, shared across approved provider hosts only according to
 cookie scope. No global cookie jar, dual session, bundled credentials or native
 business layer. Cancellation includes stale-result and stale-cookie suppression.
 
-Preserve F2 BookIds and ordered content. Catalog order is not identity. Resolve
+Treat Catalog as one capability covering ordered chapters with optional volume
+grouping. A flat catalog is valid; grouping labels without a stable VolumeId are
+presentation metadata and never fabricate a SourceVolumeRef. Preserve F2 BookIds
+and ordered content. Catalog order is not identity. Resolve
 historical locators only from sufficient source/book-bound evidence, preserving
 unresolved/conflicting originals and later user edits. Prove boundaries with
 synthetic sources in tests; second real Source and plugin runtime remain F8/F9.
@@ -38,6 +46,8 @@ No network/secure-storage package or backend is selected here. Each critical
 dependency requires its own ADR with exact-version support/maintenance/compatibility
 evidence and explicit human approval before addition/use. Memory-only auth is an
 explicit fallback for unavailable secure storage, never plaintext persistence.
+Credential retention is source-neutral and must be explicitly reviewed per Source;
+Wenku8 specifically does not retain passwords or import Legacy session material.
 Resource limits and stable volume/asset mapping specifications must be reviewed
 before dependent implementation, as specified in the entry contract.
 
@@ -68,7 +78,9 @@ or production Source implementation is part of this ADR patch.
 ## Acceptance and verification
 
 Human acceptance must identify the contract revision and authorized scope.
-Required evidence is the entry contract's fixture, conformance, security,
-reconciliation and three-platform matrix. F3 exit is a separate human decision.
+Required blocking evidence is the entry contract's deterministic fixture,
+conformance, security, reconciliation and three-platform matrix. Optional manual
+Wenku8 live smoke is supplemental and never a CI or F3-exit gate; external
+provider unavailability is recorded as such. F3 exit is a separate human decision.
 Approver/date: **PENDING**. No architectural exception or dependency approval is
 implied by committing this proposal.

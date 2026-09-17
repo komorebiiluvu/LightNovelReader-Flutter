@@ -60,3 +60,18 @@ identity/model v1, ordered ContentNode / ChapterContent v1, persistence
 stack/schema v1, and the legacy migration commitment/framework. Future
 F3/F4/F5/F6/F7/F9/F11 freeze dates and ownership remain unchanged. F3 remains
 **NOT STARTED / NOT AUTHORIZED**.
+
+## F3 proposal checkpoint — 2026-09-17
+
+The [F3 Entry Contract](F3_ENTRY_CONTRACT.md) revision **2** and [ADR 0004](adr/0004-f3-source-foundation.md)
+propose the Source capability, Catalog, transport/session, cancellation and
+security semantics required before F3.1–F3.7. `SOURCE_API.md` is synchronized
+with the proposal: Catalog is one capability; flat catalogs and grouping without
+a stable VolumeId are defined without fabricating identity; cookies and updates
+are infrastructure/update-hint semantics; and the second real Source remains an
+F8 deliverable.
+
+This checkpoint is **PROPOSED / NOT ACCEPTED**. Human approval remains
+**PENDING**; no F3 slice, dependency, production implementation or exit is
+authorized. Deterministic three-platform validation is the blocking F3 evidence;
+manual Wenku8 live smoke is supplemental and is not a CI or F3-exit gate.
