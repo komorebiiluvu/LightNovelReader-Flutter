@@ -20,13 +20,11 @@ const allCapabilities = <SourceCapability>{
 SourceOperationContext operationContext(
   SourceId sourceId,
   SourceOperation operation, {
-  String request = 'request-a',
   int generation = 0,
   SourceCancellation? cancellation,
 }) => SourceOperationContext(
   sourceId: sourceId,
   operation: operation,
-  requestIdentity: SourceRequestIdentity(request),
   sessionGeneration: generation,
   cancellation: cancellation ?? SourceCancellation(),
 );
@@ -84,10 +82,12 @@ final class FakeSource extends GuardedBookSource {
     this.catalogShape,
     this.searchNext,
     this.exploreNext,
+    List<ExploreDescriptor> exploreDescriptors = const [],
   }) : descriptor = SourceDescriptor(
          sourceId: id,
          displayName: 'Same display name',
          capabilities: capabilities,
+         exploreDescriptors: exploreDescriptors,
        );
 
   @override
@@ -216,6 +216,82 @@ void main() {
     );
     expect(descriptor, descriptor.copyWith(displayName: 'Renamed'));
     expect(descriptor.displayName, 'Display');
+  });
+
+  test('fake Sources declare an immutable neutral Explore surface', () {
+    final descriptors = [
+      ExploreDescriptor(
+        id: '首页|α',
+        title: 'Home',
+        isHome: true,
+        filters: [
+          SourceFilterDescriptor(
+            id: '排序/一',
+            label: 'Sort',
+            values: ['new', 'old'],
+          ),
+        ],
+      ),
+      ExploreDescriptor(
+        id: '分类::二',
+        title: 'Category',
+        filters: [
+          SourceFilterDescriptor(id: '标签', label: 'Tag', values: ['A', 'B']),
+        ],
+      ),
+    ];
+    final source = FakeSource(id: sourceA, exploreDescriptors: descriptors);
+    descriptors.clear();
+    expect(source.descriptor.exploreDescriptors, hasLength(2));
+    expect(source.descriptor.exploreDescriptors.first.id, '首页|α');
+    expect(
+      () => source.descriptor.exploreDescriptors.add(
+        ExploreDescriptor(id: 'extra', title: 'Extra'),
+      ),
+      throwsUnsupportedError,
+    );
+    expect(
+      () => source.descriptor.exploreDescriptors.first.filters.clear(),
+      throwsUnsupportedError,
+    );
+    expect(
+      () => source.descriptor.exploreDescriptors.first.filters.first.values.add(
+        'x',
+      ),
+      throwsUnsupportedError,
+    );
+    final BookSource neutralView = source;
+    expect(neutralView.descriptor.exploreDescriptors.map((item) => item.id), [
+      '首页|α',
+      '分类::二',
+    ]);
+  });
+
+  test('Sources without Explore expose no usable Explore surface', () {
+    final source = FakeSource(
+      id: sourceA,
+      capabilities: const {SourceCapability.search},
+    );
+    expect(source.descriptor.exploreDescriptors, isEmpty);
+    expect(
+      () => source.explore(
+        ExploreRequest(descriptorId: 'undeclared'),
+        operationContext(sourceA, SourceOperation.explore),
+      ),
+      sourceFailure(SourceFailureCode.unsupportedCapability),
+    );
+    expect(source.exploreCalls, 0);
+    expect(
+      () => SourceDescriptor(
+        sourceId: sourceA,
+        displayName: 'invalid',
+        capabilities: const {SourceCapability.search},
+        exploreDescriptors: [
+          ExploreDescriptor(id: 'declared', title: 'Declared'),
+        ],
+      ),
+      throwsArgumentError,
+    );
   });
 
   test('source models preserve exact opaque source-aware IDs', () {
@@ -444,23 +520,138 @@ void main() {
   });
 
   test(
-    'continuation is opaque and bound to source, operation, query and session',
+    'same search request may reuse its structurally bound continuation',
     () async {
-      final continuation = SourceContinuation(
+      final continuation = SourceContinuation.forSearch(
         sourceId: sourceA,
-        operation: SourceOperation.search,
-        requestIdentity: SourceRequestIdentity('request-a'),
+        queryText: 'term',
+        filters: const {'genre': 'fantasy'},
         sessionGeneration: 4,
         opaqueValue: 'opaque-provider-token',
       );
       final source = FakeSource(id: sourceA, searchNext: continuation);
       final result = await source.search(
-        SearchQuery(text: 'term', continuation: continuation),
+        SearchQuery(
+          text: 'term',
+          filters: const {'genre': 'fantasy'},
+          continuation: continuation,
+        ),
         operationContext(sourceA, SourceOperation.search, generation: 4),
       );
       expect(result.next, continuation);
       expect(result.next!.opaqueValue, 'opaque-provider-token');
       expect(result.next.toString(), isNot(contains('opaque-provider-token')));
+      final reordered = SourceContinuation.forSearch(
+        sourceId: sourceA,
+        queryText: 'term',
+        filters: const {'other': 'value', 'genre': 'fantasy'},
+        sessionGeneration: 4,
+        opaqueValue: 'opaque-provider-token',
+      );
+      reordered.validateForSearch(
+        sourceId: sourceA,
+        queryText: 'term',
+        filters: const {'genre': 'fantasy', 'other': 'value'},
+        sessionGeneration: 4,
+      );
+    },
+  );
+
+  test('changed search text rejects an old continuation', () async {
+    final continuation = SourceContinuation.forSearch(
+      sourceId: sourceA,
+      queryText: 'cat',
+      sessionGeneration: 0,
+      opaqueValue: 'opaque',
+    );
+    final source = FakeSource(id: sourceA, searchNext: continuation);
+    await expectLater(
+      source.search(
+        SearchQuery(text: 'dog', continuation: continuation),
+        operationContext(sourceA, SourceOperation.search),
+      ),
+      sourceFailure(SourceFailureCode.invalidRequest),
+    );
+    expect(source.searchCalls, 0);
+  });
+
+  test('changed search filters reject an old continuation', () async {
+    final continuation = SourceContinuation.forSearch(
+      sourceId: sourceA,
+      queryText: 'cat',
+      filters: const {'genre': 'fantasy'},
+      sessionGeneration: 0,
+      opaqueValue: 'opaque',
+    );
+    final source = FakeSource(id: sourceA, searchNext: continuation);
+    await expectLater(
+      source.search(
+        SearchQuery(
+          text: 'cat',
+          filters: const {'genre': 'mystery'},
+          continuation: continuation,
+        ),
+        operationContext(sourceA, SourceOperation.search),
+      ),
+      sourceFailure(SourceFailureCode.invalidRequest),
+    );
+    expect(source.searchCalls, 0);
+  });
+
+  test('changed explore descriptor rejects an old continuation', () async {
+    final continuation = SourceContinuation.forExplore(
+      sourceId: sourceA,
+      descriptorId: 'home|one',
+      sessionGeneration: 0,
+      opaqueValue: 'opaque',
+    );
+    final source = FakeSource(id: sourceA, exploreNext: continuation);
+    await expectLater(
+      source.explore(
+        ExploreRequest(
+          descriptorId: 'category|two',
+          continuation: continuation,
+        ),
+        operationContext(sourceA, SourceOperation.explore),
+      ),
+      sourceFailure(SourceFailureCode.invalidRequest),
+    );
+    expect(source.exploreCalls, 0);
+  });
+
+  test('changed explore selections reject an old continuation', () async {
+    final continuation = SourceContinuation.forExplore(
+      sourceId: sourceA,
+      descriptorId: 'home|one',
+      selections: const {'sort': 'new'},
+      sessionGeneration: 0,
+      opaqueValue: 'opaque',
+    );
+    final source = FakeSource(id: sourceA, exploreNext: continuation);
+    await expectLater(
+      source.explore(
+        ExploreRequest(
+          descriptorId: 'home|one',
+          selections: const {'sort': 'old'},
+          continuation: continuation,
+        ),
+        operationContext(sourceA, SourceOperation.explore),
+      ),
+      sourceFailure(SourceFailureCode.invalidRequest),
+    );
+    expect(source.exploreCalls, 0);
+  });
+
+  test(
+    'continuation rejects cross-source, operation and session reuse',
+    () async {
+      final continuation = SourceContinuation.forSearch(
+        sourceId: sourceA,
+        queryText: 'term',
+        sessionGeneration: 4,
+        opaqueValue: 'opaque-provider-token',
+      );
+      final source = FakeSource(id: sourceA, searchNext: continuation);
 
       for (final context in [
         operationContext(
@@ -469,12 +660,6 @@ void main() {
           generation: 4,
         ),
         operationContext(sourceA, SourceOperation.explore, generation: 4),
-        operationContext(
-          sourceA,
-          SourceOperation.search,
-          request: 'request-b',
-          generation: 4,
-        ),
         operationContext(sourceA, SourceOperation.search, generation: 5),
       ]) {
         await expectLater(
@@ -516,27 +701,50 @@ void main() {
     );
   });
 
-  test('typed failures expose stable codes and safe retry metadata only', () {
+  test('typed failures expose only allowlisted immutable diagnostics', () {
     final failure = SourceFailure(
       code: SourceFailureCode.rateLimit,
       retryable: true,
       retryAfter: const Duration(seconds: 3),
-      diagnostics: const {'status': 429, 'attempt': 1},
+      diagnostics: SourceFailureDiagnostics(
+        operation: SourceOperation.search,
+        statusCode: 429,
+        attempt: 1,
+        elapsedMilliseconds: 120,
+        fromCache: false,
+      ),
     );
     expect(failure.codeName, 'rateLimit');
     expect(failure.retryable, isTrue);
     expect(failure.retryAfter, const Duration(seconds: 3));
     expect(failure.toString(), 'SourceFailure(rateLimit)');
-    expect(() => failure.diagnostics['status'] = 500, throwsUnsupportedError);
+    expect(failure.diagnostics.statusCode, 429);
+    expect(failure.diagnostics.asMap, {
+      'operation': 'search',
+      'statusCode': 429,
+      'attempt': 1,
+      'elapsedMilliseconds': 120,
+      'fromCache': false,
+    });
     expect(
-      () => SourceFailure(
-        code: SourceFailureCode.network,
-        diagnostics: {
-          'raw': <String>['not allowed'],
-        },
-      ),
+      () => failure.diagnostics.asMap['statusCode'] = 500,
+      throwsUnsupportedError,
+    );
+    for (final name in [#password, #rawHtml, #serverMessage]) {
+      expect(
+        () => Function.apply(SourceFailureDiagnostics.new, const [], {
+          name: 'secret',
+        }),
+        throwsA(isA<NoSuchMethodError>()),
+      );
+    }
+    expect(
+      () => SourceFailureDiagnostics(statusCode: 600),
       throwsArgumentError,
     );
+    expect(failure.toString(), isNot(contains('429')));
+    expect(failure.toString(), isNot(contains('secret')));
+    expect(failure.toString(), isNot(contains('<html>')));
   });
 
   test(

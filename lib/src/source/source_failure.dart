@@ -1,5 +1,7 @@
 import 'source_capability.dart';
+import 'source_diagnostics.dart';
 
+/// Stable, source-neutral failure codes.
 enum SourceFailureCode {
   network('network'),
   authentication('authentication'),
@@ -21,57 +23,52 @@ enum SourceFailureCode {
 
 /// The single public failure boundary for Source operations.
 ///
-/// Diagnostics are deliberately restricted to scalar, allowlisted-style values
-/// and are never included in [toString]. Raw exceptions, response bodies and
-/// credentials must be mapped before constructing this value.
+/// Diagnostics use the finite [SourceFailureDiagnostics] field set. Raw
+/// exceptions, response bodies, credentials and arbitrary provider messages
+/// cannot be attached through this API, and [toString] is always redacted.
 final class SourceFailure implements Exception {
   SourceFailure({
     required this.code,
     this.retryable = false,
     this.retryAfter,
-    Map<String, Object?> diagnostics = const {},
-  }) : diagnostics = _safeDiagnostics(diagnostics) {
+    SourceFailureDiagnostics? diagnostics,
+  }) : diagnostics = diagnostics ?? SourceFailureDiagnostics() {
     if (retryAfter != null && retryAfter! < Duration.zero) {
       throw ArgumentError.value(retryAfter, 'retryAfter');
     }
   }
 
   SourceFailure.unsupportedCapability(SourceCapability capability)
-    : this(
-        code: SourceFailureCode.unsupportedCapability,
-        diagnostics: {'capability': capability.wireName},
-      );
+    : code = SourceFailureCode.unsupportedCapability,
+      retryable = false,
+      retryAfter = null,
+      diagnostics = SourceFailureDiagnostics(capability: capability);
 
   SourceFailure.sourceUnavailable()
-    : this(code: SourceFailureCode.sourceUnavailable);
+    : code = SourceFailureCode.sourceUnavailable,
+      retryable = false,
+      retryAfter = null,
+      diagnostics = SourceFailureDiagnostics();
 
-  SourceFailure.invalidRequest() : this(code: SourceFailureCode.invalidRequest);
+  SourceFailure.invalidRequest()
+    : code = SourceFailureCode.invalidRequest,
+      retryable = false,
+      retryAfter = null,
+      diagnostics = SourceFailureDiagnostics();
 
-  SourceFailure.cancelled() : this(code: SourceFailureCode.cancelled);
+  SourceFailure.cancelled()
+    : code = SourceFailureCode.cancelled,
+      retryable = false,
+      retryAfter = null,
+      diagnostics = SourceFailureDiagnostics();
 
   final SourceFailureCode code;
   final bool retryable;
   final Duration? retryAfter;
-  final Map<String, Object?> diagnostics;
+  final SourceFailureDiagnostics diagnostics;
 
   String get codeName => code.wireName;
 
   @override
   String toString() => 'SourceFailure($codeName)';
-}
-
-Map<String, Object?> _safeDiagnostics(Map<String, Object?> input) {
-  final copy = <String, Object?>{};
-  final keyPattern = RegExp(r'^[A-Za-z0-9_.-]+$');
-  for (final entry in input.entries) {
-    if (!keyPattern.hasMatch(entry.key)) {
-      throw ArgumentError.value(entry.key, 'diagnostics');
-    }
-    final value = entry.value;
-    if (value != null && value is! String && value is! num && value is! bool) {
-      throw ArgumentError.value(value, 'diagnostics');
-    }
-    copy[entry.key] = value;
-  }
-  return Map<String, Object?>.unmodifiable(copy);
 }

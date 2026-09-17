@@ -27,6 +27,7 @@ class SourceDescriptor {
   final SourceId sourceId;
   final String displayName;
   final Set<SourceCapability> capabilities;
+  final List<ExploreDescriptor> exploreDescriptors;
 }
 ```
 
@@ -66,6 +67,12 @@ retrieval belongs to the later image phase.
 
 UI derives operation availability from capabilities. Capabilities never change
 the identity tuples or make an unsupported operation look like an empty success.
+
+`SourceDescriptor.exploreDescriptors` is the neutral, immutable declaration of
+the Source's home/category surfaces. Each `ExploreDescriptor` exposes a label
+and immutable `SourceFilterDescriptor` values where applicable. Descriptor IDs
+and values remain opaque metadata; discovery is local and does not perform
+networking.
 
 ## 4. Contract sketch
 
@@ -107,9 +114,12 @@ is the source-aware contract for both flat and volume-grouped chapter listings;
 it does not require a SourceVolumeRef when the provider has no stable volume ID.
 
 The F3.1 dependency-free API uses `SourceOperationContext` for operation kind,
-opaque request identity, session-generation binding and `SourceCancellation`.
-Authentication is exposed separately through `SourceAuthenticator`; it is not a
-credential method on `BookSource`.
+session-generation binding and `SourceCancellation`. Search and Explore
+continuations are created from the actual immutable query, filter, descriptor
+and selection fields; validation derives the same structural binding from the
+current request, so a caller-controlled identity cannot make a changed request
+reuse an old continuation. Authentication is exposed separately through
+`SourceAuthenticator`; it is not a credential method on `BookSource`.
 
 Paged results use immutable items and an optional opaque continuation. A
 continuation is bound to the Source, operation, query/filter identity and session
@@ -223,6 +233,11 @@ are mapped or redacted at the boundary. Retryability and bounded retry-after
 metadata are explicit. A login/challenge page with HTTP 200, a missing required
 DOM element, a valid empty result and an unsupported response shape remain
 distinct outcomes.
+
+`SourceFailure.diagnostics` is a typed immutable `SourceFailureDiagnostics`
+value with an allowlisted set of operation/capability, status, attempt/retry,
+timing and cache fields. It cannot carry arbitrary keys, bodies, credentials or
+server messages; `toString()` omits all diagnostic values.
 
 ## 11. Cancellation
 

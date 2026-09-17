@@ -4,6 +4,7 @@ import 'source_capability.dart';
 import 'source_continuation.dart';
 import 'source_failure.dart';
 import 'source_models.dart';
+import 'source_operation.dart';
 
 /// Neutral Source operations. Implementations must not perform provider work
 /// until the context, capability, ownership and continuation checks pass.
@@ -53,10 +54,10 @@ abstract class GuardedBookSource implements BookSource {
         SourceCapability.filters,
       );
     }
-    _requireContinuation(context, query.continuation);
+    _requireSearchContinuation(context, query);
     final result = await onSearch(query, context);
     _after(context);
-    _validateSearchResult(result, context);
+    _validateSearchResult(result, query, context);
     return result;
   }
 
@@ -72,10 +73,10 @@ abstract class GuardedBookSource implements BookSource {
         SourceCapability.filters,
       );
     }
-    _requireContinuation(context, request.continuation);
+    _requireExploreContinuation(context, request);
     final result = await onExplore(request, context);
     _after(context);
-    _validateExploreResult(result, context);
+    _validateExploreResult(result, request, context);
     return result;
   }
 
@@ -185,20 +186,33 @@ abstract class GuardedBookSource implements BookSource {
 
   void _after(SourceOperationContext context) => context.requireActive();
 
-  void _requireContinuation(
+  void _requireSearchContinuation(
     SourceOperationContext context,
-    SourceContinuation? continuation,
+    SearchQuery query,
   ) {
-    continuation?.validateFor(
+    query.continuation?.validateForSearch(
       sourceId: descriptor.sourceId,
-      operation: context.operation,
-      requestIdentity: context.requestIdentity,
+      queryText: query.text,
+      filters: query.filters,
+      sessionGeneration: context.sessionGeneration,
+    );
+  }
+
+  void _requireExploreContinuation(
+    SourceOperationContext context,
+    ExploreRequest request,
+  ) {
+    request.continuation?.validateForExplore(
+      sourceId: descriptor.sourceId,
+      descriptorId: request.descriptorId,
+      selections: request.selections,
       sessionGeneration: context.sessionGeneration,
     );
   }
 
   void _validateSearchResult(
     SearchResult result,
+    SearchQuery query,
     SourceOperationContext context,
   ) {
     for (final item in result.items) {
@@ -207,11 +221,17 @@ abstract class GuardedBookSource implements BookSource {
         SourceContractGuard.requireOwned(descriptor, item.coverAssetRef!);
       }
     }
-    _validateNext(result.next, context);
+    result.next?.validateForSearch(
+      sourceId: descriptor.sourceId,
+      queryText: query.text,
+      filters: query.filters,
+      sessionGeneration: context.sessionGeneration,
+    );
   }
 
   void _validateExploreResult(
     ExploreResult result,
+    ExploreRequest request,
     SourceOperationContext context,
   ) {
     for (final block in result.blocks) {
@@ -222,17 +242,10 @@ abstract class GuardedBookSource implements BookSource {
         }
       }
     }
-    _validateNext(result.next, context);
-  }
-
-  void _validateNext(
-    SourceContinuation? continuation,
-    SourceOperationContext context,
-  ) {
-    continuation?.validateFor(
+    result.next?.validateForExplore(
       sourceId: descriptor.sourceId,
-      operation: context.operation,
-      requestIdentity: context.requestIdentity,
+      descriptorId: request.descriptorId,
+      selections: request.selections,
       sessionGeneration: context.sessionGeneration,
     );
   }

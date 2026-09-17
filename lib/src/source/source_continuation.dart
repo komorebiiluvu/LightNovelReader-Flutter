@@ -1,52 +1,20 @@
 import '../domain/identity/opaque_ids.dart';
 import 'source_cancellation.dart';
 import 'source_failure.dart';
+import 'source_operation.dart';
 
-enum SourceOperation {
-  search('search'),
-  explore('explore'),
-  bookDetail('bookDetail'),
-  catalog('catalog'),
-  chapterContent('chapterContent'),
-  authentication('authentication');
-
-  const SourceOperation(this.wireName);
-
-  final String wireName;
-}
-
-/// Opaque caller-provided identity for a logical request.
+/// Opaque provider continuation data bound to immutable request semantics.
 ///
-/// The value must not contain secrets, URLs or provider request objects. It is
-/// retained only to bind continuations to the request that created them.
-final class SourceRequestIdentity {
-  SourceRequestIdentity(this.value) {
-    if (value.isEmpty || value.contains('\u0000')) {
-      throw ArgumentError.value(value, 'value');
-    }
-  }
-
-  final String value;
-
-  @override
-  bool operator ==(Object other) =>
-      other is SourceRequestIdentity && value == other.value;
-
-  @override
-  int get hashCode => value.hashCode;
-
-  @override
-  String toString() => 'SourceRequestIdentity(<opaque>)';
-}
-
-/// Provider continuation data with all reuse bindings retained by the host.
+/// Callers cannot supply an unrelated request identity. The only constructors
+/// derive the binding from the actual Search or Explore fields, and validation
+/// repeats that derivation for the request currently being executed.
 final class SourceContinuation {
-  SourceContinuation({
+  SourceContinuation._({
     required this.sourceId,
     required this.operation,
-    required this.requestIdentity,
     required this.sessionGeneration,
     required this.opaqueValue,
+    required this._binding,
   }) {
     if (sessionGeneration < 0) {
       throw ArgumentError.value(sessionGeneration, 'sessionGeneration');
@@ -56,22 +24,78 @@ final class SourceContinuation {
     }
   }
 
+  factory SourceContinuation.forSearch({
+    required SourceId sourceId,
+    required String queryText,
+    Map<String, String> filters = const {},
+    required int sessionGeneration,
+    required String opaqueValue,
+  }) => SourceContinuation._(
+    sourceId: sourceId,
+    operation: SourceOperation.search,
+    sessionGeneration: sessionGeneration,
+    opaqueValue: opaqueValue,
+    binding: _RequestBinding.search(queryText, filters),
+  );
+
+  factory SourceContinuation.forExplore({
+    required SourceId sourceId,
+    required String descriptorId,
+    Map<String, String> selections = const {},
+    required int sessionGeneration,
+    required String opaqueValue,
+  }) => SourceContinuation._(
+    sourceId: sourceId,
+    operation: SourceOperation.explore,
+    sessionGeneration: sessionGeneration,
+    opaqueValue: opaqueValue,
+    binding: _RequestBinding.explore(descriptorId, selections),
+  );
+
   final SourceId sourceId;
   final SourceOperation operation;
-  final SourceRequestIdentity requestIdentity;
   final int sessionGeneration;
   final String opaqueValue;
+  final _RequestBinding _binding;
 
-  void validateFor({
+  void validateForSearch({
+    required SourceId sourceId,
+    required String queryText,
+    Map<String, String> filters = const {},
+    required int sessionGeneration,
+  }) {
+    _validate(
+      sourceId: sourceId,
+      operation: SourceOperation.search,
+      sessionGeneration: sessionGeneration,
+      binding: _RequestBinding.search(queryText, filters),
+    );
+  }
+
+  void validateForExplore({
+    required SourceId sourceId,
+    required String descriptorId,
+    Map<String, String> selections = const {},
+    required int sessionGeneration,
+  }) {
+    _validate(
+      sourceId: sourceId,
+      operation: SourceOperation.explore,
+      sessionGeneration: sessionGeneration,
+      binding: _RequestBinding.explore(descriptorId, selections),
+    );
+  }
+
+  void _validate({
     required SourceId sourceId,
     required SourceOperation operation,
-    required SourceRequestIdentity requestIdentity,
     required int sessionGeneration,
+    required _RequestBinding binding,
   }) {
     if (this.sourceId != sourceId ||
         this.operation != operation ||
-        this.requestIdentity != requestIdentity ||
-        this.sessionGeneration != sessionGeneration) {
+        this.sessionGeneration != sessionGeneration ||
+        _binding != binding) {
       throw SourceFailure.invalidRequest();
     }
   }
@@ -81,21 +105,73 @@ final class SourceContinuation {
       other is SourceContinuation &&
       sourceId == other.sourceId &&
       operation == other.operation &&
-      requestIdentity == other.requestIdentity &&
       sessionGeneration == other.sessionGeneration &&
-      opaqueValue == other.opaqueValue;
+      opaqueValue == other.opaqueValue &&
+      _binding == other._binding;
 
   @override
   int get hashCode => Object.hash(
     sourceId,
     operation,
-    requestIdentity,
     sessionGeneration,
     opaqueValue,
+    _binding,
   );
 
   @override
   String toString() => 'SourceContinuation(<opaque>)';
+}
+
+/// Structural request binding used internally by continuations.
+final class _RequestBinding {
+  _RequestBinding.search(this.text, Map<String, String> filters)
+    : operation = SourceOperation.search,
+      descriptorId = null,
+      values = Map<String, String>.unmodifiable(filters);
+
+  _RequestBinding.explore(this.descriptorId, Map<String, String> selections)
+    : operation = SourceOperation.explore,
+      text = null,
+      values = Map<String, String>.unmodifiable(selections);
+
+  final SourceOperation operation;
+  final String? text;
+  final String? descriptorId;
+  final Map<String, String> values;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _RequestBinding ||
+        operation != other.operation ||
+        text != other.text ||
+        descriptorId != other.descriptorId ||
+        values.length != other.values.length) {
+      return false;
+    }
+    for (final entry in values.entries) {
+      if (other.values[entry.key] != entry.value ||
+          !other.values.containsKey(entry.key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    operation,
+    text,
+    descriptorId,
+    Object.hashAll(_sortedEntries.map(_entryHash)),
+  );
+
+  List<MapEntry<String, String>> get _sortedEntries {
+    final entries = values.entries.toList();
+    return entries..sort((a, b) => a.key.compareTo(b.key));
+  }
+
+  int _entryHash(MapEntry<String, String> entry) =>
+      Object.hash(entry.key, entry.value);
 }
 
 /// Explicit operation context shared by all Source calls.
@@ -103,7 +179,6 @@ final class SourceOperationContext {
   SourceOperationContext({
     required this.sourceId,
     required this.operation,
-    required this.requestIdentity,
     required this.sessionGeneration,
     required this.cancellation,
   }) {
@@ -114,7 +189,6 @@ final class SourceOperationContext {
 
   final SourceId sourceId;
   final SourceOperation operation;
-  final SourceRequestIdentity requestIdentity;
   final int sessionGeneration;
   final SourceCancellation cancellation;
 
@@ -123,15 +197,6 @@ final class SourceOperationContext {
   }
 
   void requireActive() => cancellation.throwIfCancelled();
-
-  void requireContinuation(SourceContinuation? continuation) {
-    continuation?.validateFor(
-      sourceId: sourceId,
-      operation: operation,
-      requestIdentity: requestIdentity,
-      sessionGeneration: sessionGeneration,
-    );
-  }
 
   @override
   String toString() => 'SourceOperationContext(<opaque>)';

@@ -52,36 +52,6 @@ final class SourceBook {
   final SourceAssetRef? coverAssetRef;
 }
 
-final class ExploreDescriptor {
-  ExploreDescriptor({
-    required this.id,
-    required this.title,
-    this.isHome = false,
-    List<SourceFilterDescriptor> filters = const [],
-  }) : filters = List<SourceFilterDescriptor>.unmodifiable(filters) {
-    _requireNonEmpty(id, 'id');
-  }
-
-  final String id;
-  final String title;
-  final bool isHome;
-  final List<SourceFilterDescriptor> filters;
-}
-
-final class SourceFilterDescriptor {
-  SourceFilterDescriptor({
-    required this.id,
-    required this.label,
-    List<String> values = const [],
-  }) : values = List<String>.unmodifiable(values) {
-    _requireNonEmpty(id, 'id');
-  }
-
-  final String id;
-  final String label;
-  final List<String> values;
-}
-
 final class ExploreRequest {
   ExploreRequest({
     required this.descriptorId,
@@ -172,14 +142,14 @@ final class SourceCatalogGrouping {
   final SourceVolumeRef? volumeRef;
 }
 
+void _requireNonEmpty(String value, String name) {
+  if (value.isEmpty) throw ArgumentError.value(value, name);
+}
+
 void _requireBookAsset(SourceBookRef bookRef, SourceAssetRef? assetRef) {
   if (assetRef != null &&
       (assetRef.sourceId != bookRef.sourceId ||
           assetRef.bookId != bookRef.bookId)) {
     throw SourceFailure.invalidRequest();
   }
-}
-
-void _requireNonEmpty(String value, String name) {
-  if (value.isEmpty) throw ArgumentError.value(value, name);
 }
