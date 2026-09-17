@@ -8,8 +8,8 @@ Human approval: **APPROVED**. Approval date: **2026-09-16**.
 Approved by: Human project owner. Approved direction: **Drift + SQLite NativeDatabase**.
 The approval gate described below has been satisfied. Current implementation
 status is **F2.1 IMPLEMENTED / ACCEPTED; F2.2 IMPLEMENTED / ACCEPTED; F2.3
-EXIT APPROVED; F2.4 EXIT APPROVED; F2.5 IMPLEMENTED — REVIEW PENDING; F2.6
-NOT STARTED / NOT AUTHORIZED**.
+EXIT APPROVED; F2.4 EXIT APPROVED; F2.5 EXIT APPROVED; F2.6 NOT STARTED /
+NOT AUTHORIZED**.
 F2.4 human exit approval on **2026-09-17** is recorded in the
 [Library / Groups Baseline](../F2_4_LIBRARY_GROUPS_BASELINE.md).
 F2.3 human exit approval on

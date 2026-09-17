@@ -1,8 +1,10 @@
 # F2.5 — Reading Progress + Preferences Persistence Repositories
 
-Status: **IMPLEMENTED — REVIEW PENDING**.
+Status: **EXIT APPROVED**.
 
-F2.5 Exit Approval: **PENDING**. This slice is not self-approved.
+F2.5 Exit Approval: **APPROVED**.
+Approved by: Human project owner.
+Approval date: **2026-09-17**.
 F2.6: **NOT STARTED / NOT AUTHORIZED**.
 
 ## Entry and scope
@@ -137,7 +139,37 @@ value is serializable by its own canonical codec.
 
 The focused F2.5 suite now contains **23 tests**. The final local full suite
 contains **153 tests**, all passing. F2.5 remains **IMPLEMENTED — REVIEW
-PENDING**; no exit approval is recorded.
+REVIEW PENDING** at the review-fix validation point; the human exit approval is
+recorded below.
+
+## Final approved CI evidence
+
+Original implementation commit:
+`83e4169b3758c96af96de143c6d371647bf0b19c`.
+
+Final approved review-fix commit:
+`f1dd837942d49527b1a379fcce25e46e7035f027`.
+
+GitHub Actions Run #14, Run ID `35178792526`, completed with overall relevant
+F2.5 regression matrix **SUCCESS**:
+
+- Quality: PASS
+  - Formatting: PASS
+  - Drift generation/schema verification: PASS
+  - Analyze: PASS
+  - Unit/widget tests: PASS
+- Android debug: PASS
+- Android packaged storage smoke: PASS
+- Windows debug: PASS
+- Windows packaged storage smoke: PASS
+- iOS debug unsigned: PASS
+- iOS simulator packaged storage smoke: PASS
+
+Run #13 / Run ID `35177936235` remains recorded only as pre-fix evidence: its
+Quality job failed because `test/persistence/progress_preferences_test.dart`
+was not repository-formatted. The review-fix commit corrected the formatting,
+and Run #14 subsequently passed. This corrected CI failure is not an
+unresolved defect.
 
 The Dart `Object?` codecs operate after `jsonDecode` has produced a Map and
 therefore cannot detect duplicate object keys that were already collapsed.
@@ -151,10 +183,13 @@ file, native product implementation or schema snapshot was changed.
 
 ## Limitations and status
 
-F2.5 does not implement legacy import planning/execution, Source/network/auth,
-Reader behavior or rendering, images/offline/downloads, product UI, plugin
-runtime, or release-readiness guarantees. It does not implement Reading
-position restoration, chapter resolution, pagination or renderer behavior.
+F2.5 does not implement legacy backup parsing, duplicate-aware raw JSON
+parsing, MigrationRun or RecordReceipt orchestration, legacy import
+retry/resume, end-to-end migration execution, Source/network/auth, Reader
+restore behavior, Reader anchor resolution, page curl, images/offline/downloads,
+product UI, plugin runtime, or release-readiness guarantees. It does not
+implement pagination or renderer behavior.
 
-F2.5: **IMPLEMENTED — REVIEW PENDING**.
+F2.5 — Reading Progress + Preferences Persistence Repositories:
+**EXIT APPROVED**.
 F2.6: **NOT STARTED / NOT AUTHORIZED**.
