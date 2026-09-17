@@ -1,0 +1,23 @@
+{
+  "format": "lightnovelreader-backup",
+  "version": 1,
+  "exportedAt": "2026-09-17T00:00:00Z",
+  "state": {
+    "bookLibrary": [
+      {
+        "id": "fixture-book-a",
+        "title": "Synthetic A",
+        "author": "Synthetic Author",
+        "tags": ["tag-a", "tag-b"],
+        "source": "fixture-source",
+        "totalChapters": 12,
+        "lastChapter": 3,
+        "hasUpdate": false,
+        "hits": 10,
+        "intro": "Synthetic fixture only.",
+        "coverIndex": 0
+      }
+    ],
+    "theme": "system"
+  }
+}

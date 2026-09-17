@@ -1,0 +1,28 @@
+{
+  "bookLibrary": [
+    {
+      "id": "snapshot-book-a",
+      "title": "Synthetic Snapshot",
+      "source": "fixture-source",
+      "totalChapters": 1,
+      "lastChapter": 0,
+      "hasUpdate": false,
+      "hits": 0,
+      "intro": "Synthetic fixture only.",
+      "coverIndex": 0,
+      "tags": []
+    }
+  ],
+  "readerPreferences": {
+    "fontSize": 22,
+    "lineSpacing": 8,
+    "backgroundIndex": 0,
+    "mode": "仿真翻页",
+    "fontFamily": "楷体",
+    "bold": false,
+    "marginLeft": 35,
+    "marginRight": 35,
+    "marginTop": 72,
+    "marginBottom": 24
+  }
+}
