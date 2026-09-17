@@ -8,14 +8,17 @@ A Source converts a remote content provider into normalized domain models.
 
 ## 2. Identity
 
-```dart
-typedef SourceId = String;
-typedef BookId = String;
-typedef VolumeId = String;
-typedef ChapterId = String;
-```
+F2 froze distinct immutable opaque value types: `SourceId`, `BookId`,
+`VolumeId`, `ChapterId`, and `AssetId`; these are not String typedefs.
+Use the implemented domain types and exact serialization rules in
+[F2 Entry Contract sections 2–4](F2_ENTRY_CONTRACT.md).
 
-Opaque IDs only.
+References include the full source/book scope: `SourceBookRef(sourceId, bookId)`,
+`SourceVolumeRef(sourceId, bookId, volumeId)`,
+`SourceChapterRef(sourceId, bookId, chapterId)`, and
+`SourceAssetRef(sourceId, bookId, assetId)`. Preserve exact opaque values,
+including legacy `wk8-<aid>` BookIds. Chapter ordinal/index and volume membership
+are ordering metadata, never modern chapter identity.
 
 ## 3. Descriptor and capabilities
 
@@ -93,7 +96,7 @@ Canonical output:
 
 ```dart
 class ChapterContent {
-  final SourceChapterRef chapter;
+  final SourceChapterRef chapterRef;
   final List<ContentNode> nodes;
 }
 ```
@@ -102,7 +105,12 @@ Required nodes:
 - `TextNode`
 - `ImageNode`
 
-Image node references a `SourceImageRequest` or stable image descriptor.
+F2 `ImageNode` carries a `SourceAssetRef` and optional `altText`, not a
+`SourceImageRequest`, URL, headers, cookies or local path. Its source/book scope
+matches the chapter. The separate request-resolution/image contract belongs to
+F3/F6 and does not change node identity. F2 codecs preserve exact node order,
+text, empty text and repeated images; unknown node kinds reject the entire
+chapter. Successfully obtained empty content is distinct from a parse failure.
 
 ## 7. Transport
 
