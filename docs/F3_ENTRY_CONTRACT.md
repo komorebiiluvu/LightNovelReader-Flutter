@@ -432,3 +432,18 @@ F3.3 is **AUTHORIZED**. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit
 remains **NOT APPROVED**. This authorization does not approve a network or
 secure-storage package; a critical dependency still requires a separate ADR and
 explicit Human project owner approval.
+
+## 14. F3.3 dependency proposal checkpoint — 2026-09-18
+
+[ADR 0005](adr/0005-f3-transport-security-dependencies.md) is **PROPOSED / NOT
+ACCEPTED**. It proposes the exact candidates `dio: 5.11.1` and
+`flutter_secure_storage: 11.2.0`, compares `http: 1.6.0`, and selects no
+cookie-management dependency. It records Android API 24 compatibility, the
+iOS 15.0 target, the Windows ATL prerequisite, license evidence, security
+boundaries and deferred platform smoke gates without changing this accepted
+contract's semantics.
+
+F3.3 remains **AUTHORIZED as a slice**, but dependency-using implementation is
+blocked until ADR 0005 is accepted by the Human project owner. No dependency,
+lockfile entry or F3.3 runtime implementation is approved by this checkpoint.
+F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.

@@ -11,6 +11,7 @@ This document identifies decisions that may remain open during F1 but must be fi
 | Ordered ContentNode / ChapterContent v1 | before dependent F2 model/serialization implementation; accepted by F2 exit | one ordered sequence, text/image nodes, versioning, unknown-content policy, minimal opaque asset reference |
 | Source capability and unsupported-operation semantics | F3 | capability declaration, call behavior, structured failure |
 | Source transport/session contract | F3 | headers, cookies, redirect, retry, cancellation, diagnostics |
+| F3.3 critical dependency selection | before dependency-using F3.3 implementation | exact network and secure-storage packages, platform/toolchain evidence, cookie decision, license and fallback policy |
 | Reader logical position/anchor model | F4 | cross-renderer position, restore, content/layout changes |
 | Reader renderer event contract | F4 | next/previous/scroll/page/cancel/transition ownership |
 | Page-curl visual acceptance reference | F5 | reference samples + behavioral acceptance criteria |
@@ -115,3 +116,19 @@ F3.3 is **AUTHORIZED**. F3.4–F3.7 remain **NOT AUTHORIZED**. F3 Exit remains
 **NOT APPROVED**. This authorization does not approve a networking or
 secure-storage dependency; any critical dependency still requires its separate
 ADR and explicit Human project owner approval under the accepted F3 contract.
+
+## F3.3 dependency proposal checkpoint — 2026-09-18
+
+[ADR 0005](adr/0005-f3-transport-security-dependencies.md) is **PROPOSED / NOT
+ACCEPTED**. It records the exact candidate proposal `dio: 5.11.1` for network
+transport, `flutter_secure_storage: 11.2.0` for secure storage, and no
+cookie-management dependency. The proposal compares `http: 1.6.0`, records the
+current Android API 24 floor, iOS 15.0 deployment target and Windows ATL
+toolchain requirement, and defines the source-scoped cookie/security boundary.
+
+F3.3 remains **AUTHORIZED as a slice**, but any implementation that adds or
+uses a critical network or secure-storage dependency is blocked until ADR 0005
+is accepted by the Human project owner. No package, lockfile entry or F3.3
+runtime implementation is approved by this checkpoint. F3.4–F3.7 remain **NOT
+AUTHORIZED** and F3 Exit remains **NOT APPROVED**. The accepted F3 Entry and
+F3.1/F3.2 semantics are unchanged.
