@@ -63,10 +63,11 @@ registries and upstream documentation:
   this docs-only proposal.
 
 The current Flutter 3.47.4 SDK resolves `flutter.minSdkVersion` to Android API
-24 in its Gradle extension. `flutter_secure_storage` documents Android API 23
-as its minimum, so the proposed plugin does not require raising the current
-application floor. F3.3 must recheck this against the final Flutter SDK and the
-resolved package graph before changing any platform configuration.
+24 in its Gradle extension. Some current README/package prose still mentions
+Android API 23, but the authoritative v11 release/changelog evidence records
+Android `minSdk` **24**. The proposed plugin therefore does not require raising
+the current application floor. F3.3 must recheck this against the final Flutter
+SDK and resolved package graph before changing any platform configuration.
 
 The project deployment target is iOS 15.0. The existing Windows runner already
 builds in CI, but that proves only the current application; it does not prove
@@ -82,10 +83,10 @@ accepted F3 semantics, not about exposing either package in Source contracts.
 | Requirement | Dio 5.11.1 | http 1.6.0 | Assessment |
 | --- | --- | --- | --- |
 | iOS/Android/Windows | Declared by package metadata | Declared by package metadata | Both meet the target matrix; F3.3 must run deterministic package smoke on all three targets. |
-| Cancellation | `CancelToken` and adapter cancellation | `Client`/stream close and caller-owned futures; no equivalent operation token | Dio maps more directly to the operation context required by F3. |
+| Cancellation | `CancelToken` and adapter cancellation | Modern package:http supports abortable requests through its current request/response APIs | Dio's explicit token and request-scoped option surface map more directly to the operation context required by F3. |
 | Deadlines | Connect, send, receive and transform timeout options | Requires wrapper policy around futures and underlying clients | Dio needs less infrastructure for separate bounded phases. |
 | Raw bytes and streams | Explicit bytes/stream response modes | `Response`/`BaseResponse` and byte streams | Both can preserve fixture bytes. |
-| Repeated response headers | `Headers` retains multi-value header data | Client APIs expose headers, but repeated-value behavior varies by implementation | Dio gives a more uniform adapter surface; F3.3 must add an explicit repeated-header test. |
+| Repeated response headers | `Headers` retains multi-value header data | `headersSplitValues` exposes multi-value response headers | Both expose the required data; Dio still gives a more directly controlled common adapter surface. F3.3 must add an explicit repeated-header test. |
 | Redirect policy | `followRedirects` and `maxRedirects` at the adapter boundary | Depends on the selected client and lower-level `dart:io` behavior | Dio makes the policy visible at the common request boundary. |
 | Scripted/fake transport | Replaceable `HttpClientAdapter` and custom Dio instance | Very good `Client` abstraction and fake clients | Both are testable; Dio still requires a neutral wrapper. |
 | Failure mapping | `DioException` categories are a useful boundary input | `ClientException`/I/O exceptions are a useful boundary input | Neither type may cross the Source contract; map to typed `SourceFailure`. |
@@ -113,11 +114,11 @@ Core, Source contracts and provider adapters.
 
 | Area | Evidence and required treatment |
 | --- | --- |
-| Android | The package minimum is API 23; the current Flutter floor is API 24. The plugin uses Android secure cryptographic storage. No minSdk change is proposed. F3.3 must build and run read/write/delete and failure-path smoke on the actual runner. |
+| Android | The v11 release/changelog records `minSdk` API 24; the current Flutter floor is API 24. Some README/package prose still says API 23, so the changelog is the authoritative evidence for this decision. No minSdk change is proposed. F3.3 must build and run read/write/delete and failure-path smoke on the actual runner. |
 | iOS | The package uses Keychain and supports iOS. The project target is iOS 15.0. F3.3 must verify Keychain access, protected-data/locked behavior, and any required entitlements on a real deterministic iOS runtime path. |
 | Windows | The package supports Windows through its Windows implementation, which requires the Visual Studio C++ ATL libraries. The current Windows CI build is not proof of plugin readiness; F3.3 must run a packaged Windows secure-store smoke and record the toolchain component. |
 | Flutter/Dart | The current Flutter 3.47.4/Dart 3.13.3 environment is within the package's documented modern toolchain range. F3.3 must recheck the resolved package metadata after approval. |
-| Mechanism boundary | Android Keystore-backed encryption, iOS Keychain and Windows encrypted storage/Credential Manager remain implementation details. The application sees only a neutral read/write/delete result and typed `secureStorage` failures. |
+| Mechanism boundary | Android secure cryptographic storage, iOS Keychain and the encrypted file-based Windows implementation remain plugin implementation details. The exact platform crypto/storage mechanics are not frozen here. The application sees only a neutral read/write/delete result and typed `secureStorage` failures. |
 | Initialization | Flutter bindings must be initialized before plugin calls. F3.3 owns the initialization and error mapping; this ADR does not add startup code. |
 | Unavailability/corruption | Locked, unavailable, corrupt or denied storage is an explicit error. There is no plaintext, Drift, shared-preferences, file or log fallback. Memory-only operation may be used only as an explicit, non-persistent test mode. |
 | Uninstall/reinstall | Persistence semantics vary by platform and are not promised here. F3.3 must test and document observed behavior; no migration of Legacy credentials or cookies is authorized. |
