@@ -27,6 +27,7 @@ final class LegacyImportPlanner {
     final units = <MigrationUnit>[];
     final payloads = <String, LegacyImportPayload>{};
     final books = <String, BookImportPayload>{};
+    _planMalformedFields(values, units);
     final bookRecords = <String, RawJsonObject>{};
     final duplicateBookIds = <String>{};
 
@@ -46,11 +47,12 @@ final class LegacyImportPlanner {
           continue;
         }
         final id = _string(value.valueFor('id'));
-        if (id == null || id.isEmpty) {
+        if (id == null || !_validId(id)) {
           units.add(
             _unit(
               MigrationEntityKind.book,
               'bookLibrary[$index]',
+              evidence: _invalidBookEvidence(value),
               diagnostic: MigrationDiagnosticCode.invalidField,
             ),
           );
@@ -86,6 +88,7 @@ final class LegacyImportPlanner {
     }
 
     for (final raw in [
+      values['sourceByID'],
       values['savedIDs'],
       values['updateFlagIDs'],
       values['readBookIDs'],
@@ -126,7 +129,7 @@ final class LegacyImportPlanner {
     final lastChapters = _intMap(values['lastChapterByID']);
     final knownTotals = _intMap(values['knownTotalChaptersByID']);
     final lastDates = _numberMap(values['lastReadAtByID']);
-    final bookSeconds = _numberMap(values['bookReadingSeconds']);
+    final bookSeconds = _intMap(values['bookReadingSeconds']);
 
     final sourceNames = <String?>{};
     sourceNames.addAll(sourceMap.values.where((name) => name.isNotEmpty));
@@ -176,6 +179,7 @@ final class LegacyImportPlanner {
 
     for (final id in referenced.toList()..sort()) {
       final record = bookRecords[id];
+      final validBook = record != null && _validBook(record.uniqueValues());
       final sourceById = sourceMap[id];
       final bookSource = record == null
           ? null
@@ -192,7 +196,7 @@ final class LegacyImportPlanner {
           bookSource != null &&
           sourceById != bookSource;
       final tags = <String>[];
-      var diagnostic = <MigrationDiagnosticCode>{};
+      final diagnostic = <MigrationDiagnosticCode>{};
       final evidence = <SafeLegacyEvidence>[
         SafeLegacyEvidence(field: 'book.id', value: SafeLegacyValue.string(id)),
         SafeLegacyEvidence(
@@ -215,6 +219,9 @@ final class LegacyImportPlanner {
       int? wordCount;
       if (record != null) {
         final fields = record.uniqueValues();
+        if (!_validBook(fields)) {
+          diagnostic.add(MigrationDiagnosticCode.invalidField);
+        }
         title = _readString(fields, 'title', diagnostic);
         author = _readString(fields, 'author', diagnostic);
         intro = _readString(fields, 'intro', diagnostic);
@@ -234,6 +241,16 @@ final class LegacyImportPlanner {
           tags.addAll(rawTags.values.cast<RawJsonString>().map((v) => v.value));
         } else if (rawTags != null) {
           diagnostic.add(MigrationDiagnosticCode.invalidField);
+        }
+        if (rawTags is RawJsonArray) {
+          for (var i = 0; i < rawTags.values.length; i++) {
+            final safe = _safeScalar(rawTags.values[i]);
+            if (safe != null) {
+              evidence.add(
+                SafeLegacyEvidence(field: 'book.tag', ordinal: i, value: safe),
+              );
+            }
+          }
         }
         for (final entry in fields.entries) {
           final field = switch (entry.key) {
@@ -257,14 +274,16 @@ final class LegacyImportPlanner {
           };
           if (field != null &&
               entry.key != 'id' &&
-              _validBookScalar(field, entry.value)) {
+              _safeScalar(entry.value) != null) {
             evidence.add(
               SafeLegacyEvidence(
                 field: field,
                 value: safeValueFromRaw(entry.value),
               ),
             );
-          } else if (field == null && entry.key != 'id') {
+          } else if (field == null &&
+              entry.key != 'id' &&
+              entry.key != 'tags') {
             diagnostic.add(
               _secretLike(entry.key)
                   ? MigrationDiagnosticCode.secretExcluded
@@ -323,22 +342,22 @@ final class LegacyImportPlanner {
         sourceName: sourceName,
         sourceByIdName: sourceById,
         bookSourceName: bookSource,
-        title: title,
-        author: author,
-        intro: intro,
-        tags: tags,
-        totalChapters: total,
-        lastChapter: bookLast,
-        hits: hits,
-        coverIndex: coverIndex,
-        hasUpdate: hasUpdate,
-        coverUrl: cover,
-        publishingHouse: publishing,
-        lastUpdate: lastUpdate,
-        isCompleted: completed,
-        wordCountK: wordCount,
+        title: validBook ? title : null,
+        author: validBook ? author : null,
+        intro: validBook ? intro : null,
+        tags: validBook ? tags : const [],
+        totalChapters: validBook ? total : null,
+        lastChapter: validBook ? bookLast : null,
+        hits: validBook ? hits : null,
+        coverIndex: validBook ? coverIndex : null,
+        hasUpdate: validBook ? hasUpdate : null,
+        coverUrl: validBook ? cover : null,
+        publishingHouse: validBook ? publishing : null,
+        lastUpdate: validBook ? lastUpdate : null,
+        isCompleted: validBook ? completed : null,
+        wordCountK: validBook ? wordCount : null,
         knownTotal: knownTotal,
-        updateFlag: updateFlag,
+        updateFlag: _validSet(values['updateFlagIDs']) ? updateFlag : null,
         sourceConflict: sourceConflict,
       );
       books[id] = payload;
@@ -346,8 +365,12 @@ final class LegacyImportPlanner {
         MigrationEntityKind.book,
         id,
         evidence: evidence,
-        diagnostic: diagnostic.isEmpty ? null : _diagnostic(diagnostic),
-        fatal: false,
+        diagnostic: !_validSet(values['savedIDs'])
+            ? MigrationDiagnosticCode.invalidField
+            : diagnostic.isEmpty
+            ? null
+            : _diagnostic(diagnostic),
+        fatal: !_validSet(values['savedIDs']),
       );
       units.add(unit);
       payloads[_identity(unit)] = payload;
@@ -424,6 +447,7 @@ final class LegacyImportPlanner {
           _unit(
             MigrationEntityKind.shelf,
             _framedKey(record, 'shelves', index, 'id'),
+            diagnostic: MigrationDiagnosticCode.invalidField,
           ),
         );
         continue;
@@ -432,7 +456,7 @@ final class LegacyImportPlanner {
       final name = _string(record.valueFor('name'));
       final memberRaw = record.valueFor('bookIDs');
       if (id == null ||
-          id.isEmpty ||
+          !_validId(id) ||
           name == null ||
           memberRaw is! RawJsonArray) {
         units.add(
@@ -510,7 +534,7 @@ final class LegacyImportPlanner {
     final mapping = _stringMap(values['manualGroupByID']);
     final display = _stringMap(values['groupDisplayName']);
     final ids = <String>{...mapping.values, ...display.keys}
-      ..removeWhere((id) => id.startsWith('auto:'));
+      ..removeWhere((id) => !_validId(id) || id.startsWith('auto:'));
     for (final id in ids.toList()..sort()) {
       final memberIds = mapping.entries
           .where((entry) => entry.value == id)
@@ -605,6 +629,9 @@ final class LegacyImportPlanner {
     Map<String, LegacyImportPayload> payloads,
   ) {
     final bookIds = <String>{
+      ...books.values
+          .where((book) => book.lastChapter != null)
+          .map((book) => book.bookId.value),
       ...lastChapters.keys,
       ...lastDates.keys,
       ...readFlags,
@@ -613,7 +640,7 @@ final class LegacyImportPlanner {
           .whereType<String>(),
       ..._rawObject(values['lastChapterByID']).keys.where(_validId),
       ..._rawObject(values['lastReadAtByID']).keys.where(_validId),
-      ..._intMap(values['knownTotalChaptersByID']).keys,
+      ..._rawObject(values['knownTotalChaptersByID']).keys.where(_validId),
       ..._stringSet(values['updateFlagIDs']),
     };
     for (final id in bookIds.toList()..sort()) {
@@ -666,7 +693,9 @@ final class LegacyImportPlanner {
             mapKey: id,
             value: SafeLegacyValue.integer(book.lastChapter!),
           ),
-        if (invalidLastChapter && _safeScalar(rawLastChapters[id]) != null)
+        if (invalidLastChapter &&
+            lastChapters[id] == null &&
+            _safeScalar(rawLastChapters[id]) != null)
           SafeLegacyEvidence(
             field: 'progress.lastChapter',
             mapKey: id,
@@ -738,7 +767,8 @@ final class LegacyImportPlanner {
         id,
         evidence: evidence,
         diagnostic:
-            (disagreement ||
+            (!_validSet(values['readBookIDs']) ||
+                disagreement ||
                 invalidLastChapter ||
                 invalidLastDate ||
                 invalidKnownTotal ||
@@ -746,7 +776,7 @@ final class LegacyImportPlanner {
                 (dateSeconds != null && _appleDate(dateSeconds) == null))
             ? MigrationDiagnosticCode.conflictingEvidence
             : null,
-        fatal: false,
+        fatal: !_validSet(values['readBookIDs']),
       );
       units.add(unit);
       payloads[_identity(unit)] = ProgressImportPayload(
@@ -787,6 +817,16 @@ final class LegacyImportPlanner {
     Map<String, LegacyImportPayload> payloads,
   ) {
     final raw = values['readerPreferences'];
+    if (raw != null && (raw is! RawJsonObject || raw.hasDuplicateKeys)) {
+      units.add(
+        _unit(
+          MigrationEntityKind.readerPreferences,
+          'readerPreferences',
+          diagnostic: MigrationDiagnosticCode.invalidField,
+        ),
+      );
+      return;
+    }
     final object = raw is RawJsonObject
         ? raw.uniqueValues()
         : const <String, RawJsonValue>{};
@@ -876,6 +916,7 @@ final class LegacyImportPlanner {
     final invalid = <String>{};
     final AppTheme theme;
     if (themeRaw == null) {
+      if (values.containsKey('theme')) invalid.add('theme');
       theme = AppTheme.system;
     } else if (themeRaw == 'system') {
       theme = AppTheme.system;
@@ -905,29 +946,41 @@ final class LegacyImportPlanner {
         ? null
         : ShelfId(_stableLocalId('shelf', selectedLegacy));
     if (selectedLegacy != null && selectedLegacy != 'default') {
-      final shelves = values['shelves'];
+      final candidates = units
+          .where(
+            (unit) =>
+                unit.entityKind == MigrationEntityKind.shelf &&
+                unit.legacyKey == selectedLegacy,
+          )
+          .toList();
+      final payload = candidates.length == 1
+          ? payloads[_identity(candidates.single)]
+          : null;
       final exists =
-          shelves is RawJsonArray &&
-          shelves.values.any(
-            (raw) =>
-                raw is RawJsonObject &&
-                _string(raw.valueFor('id')) == selectedLegacy,
-          );
+          candidates.length == 1 &&
+          !candidates.single.isRecordFailure &&
+          payload is ShelfImportPayload &&
+          !payload.hasDuplicateMembers &&
+          !payload.hasInvalidMembers;
       if (!exists) invalid.add('selectedShelfID');
     }
     final evidence = <SafeLegacyEvidence>[
       SafeLegacyEvidence(
         field: 'app.theme',
-        value: SafeLegacyValue.string(themeRaw ?? 'system'),
+        value:
+            _safeScalar(values['theme']) ??
+            const SafeLegacyValue.string('system'),
       ),
       SafeLegacyEvidence(
         field: 'source.preferred',
-        value: SafeLegacyValue.string(preferredName),
+        value:
+            _safeScalar(values['preferredSource']) ??
+            SafeLegacyValue.string(preferredName),
       ),
-      if (selectedRaw is RawJsonString)
+      if (_safeScalar(selectedRaw) != null)
         SafeLegacyEvidence(
           field: 'app.selectedShelf',
-          value: SafeLegacyValue.string(selectedRaw.value),
+          value: _safeScalar(selectedRaw)!,
         )
       else if (selectedRaw is RawJsonNull || selectedRaw == null)
         const SafeLegacyEvidence(
@@ -957,7 +1010,7 @@ final class LegacyImportPlanner {
   void _planDeferred(
     Map<String, RawJsonValue> values,
     Map<String, BookImportPayload> books,
-    Map<String, double> bookSeconds,
+    Map<String, int> bookSeconds,
     List<MigrationUnit> units,
     Map<String, LegacyImportPayload> payloads,
   ) {
@@ -967,14 +1020,19 @@ final class LegacyImportPlanner {
     for (final entry in daily.entries) {
       if (entry.value is! RawJsonObject) continue;
       final fields = entry.value as RawJsonObject;
-      final seconds = _number(fields.valueFor('seconds'));
+      if (fields.containsDuplicateKeysDeep() ||
+          fields.valueFor('seconds') is! RawJsonInteger ||
+          fields.valueFor('chapters') is! RawJsonInteger) {
+        invalid = true;
+      }
+      final seconds = _int(fields.valueFor('seconds'));
       final chapters = _int(fields.valueFor('chapters'));
       if (seconds != null) {
         statsEvidence.add(
           SafeLegacyEvidence(
             field: 'stats.dailySeconds',
             mapKey: entry.key,
-            value: SafeLegacyValue.number(seconds),
+            value: SafeLegacyValue.integer(seconds),
           ),
         );
       } else if (fields.fields.any((field) => field.name == 'seconds')) {
@@ -1021,7 +1079,7 @@ final class LegacyImportPlanner {
           SafeLegacyEvidence(
             field: 'stats.bookSeconds',
             mapKey: entry.key,
-            value: SafeLegacyValue.number(seconds),
+            value: SafeLegacyValue.integer(seconds),
           ),
         );
       } else {
@@ -1091,6 +1149,188 @@ final class LegacyImportPlanner {
     }
   }
 
+  static List<SafeLegacyEvidence> _invalidBookEvidence(RawJsonObject record) {
+    const fields = {
+      'id': 'book.id',
+      'title': 'book.title',
+      'author': 'book.author',
+      'source': 'book.source',
+      'intro': 'book.intro',
+      'totalChapters': 'book.totalChapters',
+      'lastChapter': 'book.lastChapter',
+      'hasUpdate': 'book.hasUpdate',
+      'hits': 'book.hits',
+      'coverIndex': 'book.coverIndex',
+      'coverURL': 'book.coverReference',
+      'publishingHouse': 'book.publishingHouse',
+      'isCompleted': 'book.isCompleted',
+      'wordCountK': 'book.wordCountK',
+      'lastUpdate': 'book.lastUpdate',
+    };
+    final evidence = <SafeLegacyEvidence>[];
+    for (final entry in record.uniqueValues().entries) {
+      final field = fields[entry.key];
+      final safe = _safeScalar(entry.value);
+      if (field != null && safe != null) {
+        evidence.add(SafeLegacyEvidence(field: field, value: safe));
+      }
+      final value = entry.value;
+      if (entry.key == 'tags' && value is RawJsonArray) {
+        for (var i = 0; i < value.values.length; i++) {
+          final tag = _safeScalar(value.values[i]);
+          if (tag != null) {
+            evidence.add(
+              SafeLegacyEvidence(field: 'book.tag', ordinal: i, value: tag),
+            );
+          }
+        }
+      }
+    }
+    return evidence;
+  }
+
+  static bool _validSet(RawJsonValue? raw) =>
+      raw == null ||
+      raw is RawJsonArray &&
+          raw.values.every((v) => v is RawJsonString && _validId(v.value));
+
+  static bool _validBook(Map<String, RawJsonValue> fields) {
+    for (final name in ['id', 'title', 'author', 'source', 'intro']) {
+      if (fields[name] is! RawJsonString) return false;
+    }
+    for (final name in ['totalChapters', 'lastChapter', 'hits', 'coverIndex']) {
+      if (fields[name] is! RawJsonInteger) return false;
+    }
+    final tags = fields['tags'];
+    return fields['hasUpdate'] is RawJsonBoolean &&
+        tags is RawJsonArray &&
+        tags.values.every((v) => v is RawJsonString);
+  }
+
+  /// Invalid containers and entries get explicit field-local failed receipts.
+  /// Only schema-allowlisted scalars are retained, never arbitrary nested JSON.
+  static void _planMalformedFields(
+    Map<String, RawJsonValue> values,
+    List<MigrationUnit> units,
+  ) {
+    const specs = <String, (MigrationEntityKind, String?, String)>{
+      'savedIDs': (MigrationEntityKind.book, 'book.saved', 'set'),
+      'readBookIDs': (MigrationEntityKind.progress, 'progress.hasRead', 'set'),
+      'updateFlagIDs': (MigrationEntityKind.book, 'progress.updateFlag', 'set'),
+      'splitBookIDs': (MigrationEntityKind.split, 'split.bookId', 'set'),
+      'sourceByID': (
+        MigrationEntityKind.source,
+        'source.byIdName',
+        'stringMap',
+      ),
+      'manualGroupByID': (MigrationEntityKind.group, 'group.id', 'stringMap'),
+      'groupDisplayName': (
+        MigrationEntityKind.group,
+        'group.name',
+        'stringMap',
+      ),
+      'lastChapterByID': (
+        MigrationEntityKind.progress,
+        'progress.lastChapter',
+        'intMap',
+      ),
+      'lastReadAtByID': (
+        MigrationEntityKind.progress,
+        'progress.appleDate',
+        'numberMap',
+      ),
+      'knownTotalChaptersByID': (
+        MigrationEntityKind.book,
+        'progress.knownTotal',
+        'intMap',
+      ),
+      'chapterOffsetByID': (
+        MigrationEntityKind.progress,
+        'progress.offset',
+        'numberMap',
+      ),
+      'dailyStats': (MigrationEntityKind.statistics, null, 'dailyMap'),
+      'bookReadingSeconds': (
+        MigrationEntityKind.statistics,
+        'stats.bookSeconds',
+        'intMap',
+      ),
+      'searchHistory': (
+        MigrationEntityKind.searchHistory,
+        'search.term',
+        'array',
+      ),
+    };
+    for (final spec in specs.entries) {
+      final raw = values[spec.key];
+      if (raw == null) continue;
+      final (kind, field, type) = spec.value;
+      void fail(String key, RawJsonValue? value, {int ordinal = 0}) {
+        final safe = _safeScalar(value);
+        units.add(
+          _unit(
+            kind,
+            '\u0000invalid:${spec.key}:$key',
+            evidence: field != null && safe != null
+                ? [
+                    SafeLegacyEvidence(
+                      field: field,
+                      mapKey: key,
+                      ordinal: ordinal,
+                      value: safe,
+                    ),
+                  ]
+                : const [],
+            diagnostic: MigrationDiagnosticCode.invalidField,
+          ),
+        );
+      }
+
+      if (type == 'set' || type == 'array') {
+        if (raw is! RawJsonArray) {
+          fail('', raw);
+          continue;
+        }
+        for (var i = 0; i < raw.values.length; i++) {
+          final value = raw.values[i];
+          if (value is! RawJsonString ||
+              (type == 'set' && !_validId(value.value))) {
+            fail('index:$i', value, ordinal: i);
+          }
+        }
+        continue;
+      }
+      if (raw is! RawJsonObject) {
+        fail('', raw);
+        continue;
+      }
+      final duplicate = raw.duplicateKeys;
+      for (final key in duplicate) {
+        fail(key, null);
+      }
+      for (final entry in raw.fields) {
+        if (duplicate.contains(entry.name)) continue;
+        final value = entry.value;
+        final valid = switch (type) {
+          'stringMap' =>
+            value is RawJsonString &&
+                (spec.key == 'groupDisplayName' || _validId(value.value)),
+          'intMap' => value is RawJsonInteger,
+          'numberMap' => _number(value) != null,
+          'dailyMap' =>
+            value is RawJsonObject &&
+                !value.containsDuplicateKeysDeep() &&
+                value.valueFor('seconds') is RawJsonInteger &&
+                value.valueFor('chapters') is RawJsonInteger,
+          _ => false,
+        };
+        if (!valid || (spec.key != 'dailyStats' && !_validId(entry.name))) {
+          fail(entry.name, value);
+        }
+      }
+    }
+  }
+
   static MigrationUnit _unit(
     MigrationEntityKind kind,
     String key, {
@@ -1119,7 +1359,7 @@ final class LegacyImportPlanner {
         byIdentity[id] = _unit(
           unit.entityKind,
           unit.legacyKey,
-          evidence: [...old.evidence, ...unit.evidence],
+          evidence: old.evidence,
           diagnostic: MigrationDiagnosticCode.conflictingEvidence,
         );
       }
@@ -1246,8 +1486,9 @@ final class LegacyImportPlanner {
     for (final entry in _rawObject(value).entries)
       if (_number(entry.value) != null) entry.key: _number(entry.value)!,
   };
-  static Set<String> _stringSet(RawJsonValue? value) => value is RawJsonArray
-      ? value.values.map(_string).whereType<String>().toSet()
+  static Set<String> _stringSet(RawJsonValue? value) =>
+      value is RawJsonArray && _validSet(value)
+      ? value.values.map(_string).whereType<String>().where(_validId).toSet()
       : <String>{};
   static bool _validId(String id) => id.isNotEmpty && !id.contains('\u0000');
 
@@ -1260,7 +1501,9 @@ final class LegacyImportPlanner {
       : (fallback == null || fallback.isEmpty ? null : fallback);
 
   static SourceId _sourceId(String? name) {
-    if (name == null || name.isEmpty) return SourceId('legacy.ios.unassigned');
+    if (name == null || !_validId(name)) {
+      return SourceId('legacy.ios.unassigned');
+    }
     if (name == '文库8(在线)') return SourceId('builtin.wenku8');
     final encoded = base64Url.encode(utf8.encode(name)).replaceAll('=', '');
     return SourceId('legacy.ios.name.$encoded');
@@ -1288,25 +1531,6 @@ final class LegacyImportPlanner {
   ) => values.contains(MigrationDiagnosticCode.invalidField)
       ? MigrationDiagnosticCode.invalidField
       : values.first;
-
-  static bool _validBookScalar(String field, RawJsonValue value) {
-    if (value is RawJsonNull) {
-      return field == 'book.coverReference' ||
-          field == 'book.publishingHouse' ||
-          field == 'book.lastUpdate' ||
-          field == 'book.isCompleted' ||
-          field == 'book.wordCountK';
-    }
-    return switch (field) {
-      'book.totalChapters' ||
-      'book.lastChapter' ||
-      'book.hits' ||
-      'book.coverIndex' ||
-      'book.wordCountK' => value is RawJsonInteger,
-      'book.hasUpdate' || 'book.isCompleted' => value is RawJsonBoolean,
-      _ => value is RawJsonString,
-    };
-  }
 
   static ReaderBackground _background(
     RawJsonValue? raw,

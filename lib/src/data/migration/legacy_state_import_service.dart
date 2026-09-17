@@ -24,27 +24,29 @@ final class LegacyStateImportService {
   LegacyStateImportService(
     this.database, {
     MigrationRepository? migrationRepository,
-    MigrationResourceLimits limits = const MigrationResourceLimits(),
+    this.limits = const MigrationResourceLimits(),
     this.failureInjector,
-  }) : repository = migrationRepository ?? MigrationRepository(database),
-       planner = LegacyImportPlanner(limits: limits);
+  }) : repository = migrationRepository ?? MigrationRepository(database);
 
   final AppDatabase database;
   final MigrationRepository repository;
-  final LegacyImportPlanner planner;
+  final MigrationResourceLimits limits;
   final MigrationFailureInjector? failureInjector;
-  int _activeMappingVersion = initialMappingVersion;
 
   /// Imports the selected frozen input and returns only a safe summary.
   Future<LegacyImportResult> importWithReport(MigrationInput input) async {
-    _activeDataset = input.datasetId;
-    _activeMappingVersion = input.mappingVersion;
-    final conversion = planner.plan(input);
+    final context = LegacyImportExecutionContext(
+      datasetId: input.datasetId,
+      mappingVersion: input.mappingVersion,
+    );
+    final execution = _LegacyImportExecution(context);
+    final conversion = LegacyImportPlanner(limits: limits).plan(input);
     final coordinator = MigrationCoordinator(
       repository,
-      applier: (unit, db) => _apply(unit, conversion.payloadFor(unit), db),
+      applier: (unit, db) =>
+          execution._apply(unit, conversion.payloadFor(unit), db),
       typedVerifier: (unit, db) =>
-          _verify(unit, conversion.payloadFor(unit), db),
+          execution._verify(unit, conversion.payloadFor(unit), db),
       planBuilder: (_) => conversion.plan,
       failureInjector: failureInjector,
     );
@@ -90,6 +92,12 @@ final class LegacyStateImportService {
       failures: counts[MigrationOutcome.failed] ?? 0,
     );
   }
+}
+
+/// Invocation-owned state captured by the coordinator closures.
+final class _LegacyImportExecution {
+  const _LegacyImportExecution(this.context);
+  final LegacyImportExecutionContext context;
 
   Future<MigrationApplyResult> _apply(
     MigrationUnit unit,
@@ -315,10 +323,10 @@ final class LegacyStateImportService {
       db,
       'SELECT target_shelf_id FROM legacy_identity_mappings WHERE dataset_id=? AND entity_kind=? AND legacy_key=? AND mapping_version=?',
       [
-        _activeDataset,
+        context.datasetId,
         MigrationEntityKind.shelf.wireName,
         payload.legacyId,
-        _activeMappingVersion,
+        context.mappingVersion,
       ],
     );
     final rows = await _rows(
@@ -386,10 +394,10 @@ final class LegacyStateImportService {
       db,
       'SELECT target_group_id FROM legacy_identity_mappings WHERE dataset_id=? AND entity_kind=? AND legacy_key=? AND mapping_version=?',
       [
-        _activeDataset,
+        context.datasetId,
         MigrationEntityKind.group.wireName,
         payload.legacyId,
-        _activeMappingVersion,
+        context.mappingVersion,
       ],
     );
     final rows = await _rows(
@@ -482,9 +490,7 @@ final class LegacyStateImportService {
     String? locatorId;
     if (payload.selectedChapter != null) {
       locator = LegacyChapterLocatorV1(
-        datasetId: LegacyDatasetId(
-          unit.legacyKey.isEmpty ? 'legacy' : _datasetFromUnit(unit, db),
-        ),
+        datasetId: LegacyDatasetId(context.datasetId),
         bookRef: ref,
         legacyBookId: payload.book.bookId,
         chapterIndex: payload.selectedChapter!,
@@ -513,7 +519,7 @@ final class LegacyStateImportService {
         [
           locatorId,
           1,
-          _datasetFromUnit(unit, db),
+          context.datasetId,
           ref.sourceId.value,
           ref.bookId.value,
           ref.bookId.value,
@@ -589,7 +595,8 @@ final class LegacyStateImportService {
       db,
       'SELECT * FROM app_preferences WHERE singleton=1',
     );
-    final selected = payload.selectedShelfId?.value;
+    final selected = await _selectedShelf(payload, db);
+    final unresolvedShelf = payload.selectedShelfId != null && selected == null;
     if (rows.isEmpty) {
       await _write(
         db,
@@ -597,6 +604,7 @@ final class LegacyStateImportService {
         [_theme(payload.theme), payload.preferredSourceId.value, selected],
       );
       return payload.invalidFields.isEmpty &&
+              !unresolvedShelf &&
               payload.preferredSourceId.value == 'builtin.wenku8'
           ? const MigrationApplyResult.imported()
           : const MigrationApplyResult.preservedUnresolved(
@@ -611,6 +619,7 @@ final class LegacyStateImportService {
       return const MigrationApplyResult.conflict();
     }
     return payload.invalidFields.isEmpty &&
+            !unresolvedShelf &&
             payload.preferredSourceId.value == 'builtin.wenku8'
         ? const MigrationApplyResult.unchanged()
         : const MigrationApplyResult.preservedUnresolved(
@@ -782,19 +791,58 @@ final class LegacyStateImportService {
   ) async {
     final rows = await _rows(
       db,
-      'SELECT has_read,chapter_id,last_read_at FROM reading_progress WHERE source_id=? AND book_id=?',
+      'SELECT * FROM reading_progress WHERE source_id=? AND book_id=?',
       [p.book.bookRef.sourceId.value, p.book.bookId.value],
     );
     if (rows.isEmpty) {
       return MigrationVerificationDisposition.verificationFailure;
     }
     final row = rows.single;
-    return row.read<int>('has_read') == (p.hasRead ? 1 : 0) &&
-            row.readNullable<String>('chapter_id') == null &&
-            row.readNullable<String>('last_read_at') ==
-                (p.lastReadAt == null
-                    ? null
-                    : encodeCanonicalUtc(p.lastReadAt!))
+    if (row.read<int>('has_read') != (p.hasRead ? 1 : 0) ||
+        row.readNullable<String>('chapter_id') != null ||
+        row.readNullable<String>('last_read_at') !=
+            (p.lastReadAt == null ? null : encodeCanonicalUtc(p.lastReadAt!))) {
+      return MigrationVerificationDisposition.targetConflict;
+    }
+    final id = row.readNullable<String>('legacy_locator_id');
+    if (p.selectedChapter == null) {
+      return id == null
+          ? MigrationVerificationDisposition.verified
+          : MigrationVerificationDisposition.targetConflict;
+    }
+    if (id == null) return MigrationVerificationDisposition.verificationFailure;
+    final locators = await _rows(
+      db,
+      'SELECT * FROM legacy_chapter_locators WHERE locator_id=?',
+      [id],
+    );
+    if (locators.isEmpty) {
+      return MigrationVerificationDisposition.verificationFailure;
+    }
+    final locator = locators.single;
+    final expected = LegacyChapterLocatorV1(
+      datasetId: LegacyDatasetId(context.datasetId),
+      bookRef: p.book.bookRef,
+      legacyBookId: p.book.bookId,
+      chapterIndex: p.selectedChapter!,
+      rawOffsetKey: p.selectedOffsetKey,
+      fraction: p.selectedFraction,
+    );
+    final matches =
+        id == _locatorId(expected) &&
+        locator.read<int>('version') == 1 &&
+        locator.read<String>('dataset_id') == context.datasetId &&
+        locator.read<String>('source_id') == p.book.bookRef.sourceId.value &&
+        locator.read<String>('book_id') == p.book.bookId.value &&
+        locator.read<String>('legacy_book_id') == p.book.bookId.value &&
+        locator.read<int>('chapter_index') == p.selectedChapter &&
+        locator.readNullable<String>('raw_offset_key') == p.selectedOffsetKey &&
+        locator.readNullable<double>('fraction') == p.selectedFraction &&
+        locator.readNullable<String>('remote_id_evidence') == null &&
+        locator.readNullable<String>('chapter_title_evidence') == null &&
+        locator.readNullable<String>('volume_title_evidence') == null &&
+        locator.readNullable<String>('catalog_digest') == null;
+    return matches
         ? MigrationVerificationDisposition.verified
         : MigrationVerificationDisposition.targetConflict;
   }
@@ -828,9 +876,25 @@ final class LegacyStateImportService {
             row.readNullable<String>('preferred_source_id') ==
                 p.preferredSourceId.value &&
             row.readNullable<String>('selected_shelf_id') ==
-                p.selectedShelfId?.value
+                await _selectedShelf(p, db)
         ? MigrationVerificationDisposition.verified
         : MigrationVerificationDisposition.targetConflict;
+  }
+
+  Future<String?> _selectedShelf(
+    AppPreferencesImportPayload p,
+    AppDatabase db,
+  ) async {
+    if (p.selectedShelfId == null) return null;
+    final rows = await _rows(
+      db,
+      'SELECT m.target_shelf_id FROM legacy_identity_mappings m '
+      'JOIN shelves s ON s.shelf_id=m.target_shelf_id '
+      "WHERE m.dataset_id=? AND m.mapping_version=? AND m.entity_kind='shelf' "
+      "AND m.legacy_key=? AND m.resolution='resolved'",
+      [context.datasetId, context.mappingVersion, p.selectedShelfLegacyId],
+    );
+    return rows.isEmpty ? null : rows.single.read<String>('target_shelf_id');
   }
 
   Future<void> _ensureSource(
@@ -887,10 +951,10 @@ final class LegacyStateImportService {
       db,
       'SELECT resolution,source_by_id_name,book_source_name,target_source_id,target_book_id,target_shelf_id,target_group_id FROM legacy_identity_mappings WHERE dataset_id=? AND entity_kind=? AND legacy_key=? AND mapping_version=?',
       [
-        _datasetFromKey(db),
+        context.datasetId,
         entityKind.wireName,
         legacyKey,
-        _activeMappingVersion,
+        context.mappingVersion,
       ],
     );
     if (rows.isNotEmpty) {
@@ -908,10 +972,10 @@ final class LegacyStateImportService {
       'INSERT INTO legacy_identity_mappings(mapping_id,dataset_id,entity_kind,legacy_key,mapping_version,resolution,source_by_id_name,book_source_name,target_source_id,target_book_id,target_shelf_id,target_group_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         mappingId,
-        _datasetFromKey(db),
+        context.datasetId,
         entityKind.wireName,
         legacyKey,
-        _activeMappingVersion,
+        context.mappingVersion,
         resolution,
         sourceByIdName,
         bookSourceName,
@@ -923,13 +987,6 @@ final class LegacyStateImportService {
     );
     return true;
   }
-
-  // The current unit key carries no dataset. The repository's migration run is
-  // the authoritative dataset; this helper is replaced by the service's
-  // per-import dataset context before applying any unit.
-  String _activeDataset = '';
-  String _datasetFromKey(AppDatabase _) => _activeDataset;
-  String _datasetFromUnit(MigrationUnit _, AppDatabase _) => _activeDataset;
 
   Future<bool> _mergeLegacyBookMetadata(
     AppDatabase db,
@@ -1089,7 +1146,7 @@ final class LegacyStateImportService {
     final rows = await _rows(
       db,
       'SELECT target_source_id FROM legacy_identity_mappings WHERE dataset_id=? AND entity_kind=? AND legacy_key=? AND mapping_version=?',
-      [_activeDataset, kind.wireName, key, _activeMappingVersion],
+      [context.datasetId, kind.wireName, key, context.mappingVersion],
     );
     return rows.isEmpty
         ? null
@@ -1097,7 +1154,7 @@ final class LegacyStateImportService {
   }
 
   String _mappingId(MigrationEntityKind kind, String key) =>
-      'legacyMapping.v1.${sha256.convert(utf8.encode('$_activeDataset\u0000$_activeMappingVersion\u0000${kind.wireName}\u0000$key')).toString()}';
+      'legacyMapping.v1.${sha256.convert(utf8.encode('${context.datasetId}\u0000${context.mappingVersion}\u0000${kind.wireName}\u0000$key')).toString()}';
   static String _locatorId(LegacyChapterLocatorV1 locator) =>
       'legacyLocator.v1.${base64Url.encode(utf8.encode(jsonEncode(locator.toJson()))).replaceAll('=', '')}';
   static String _theme(AppTheme value) => value.name;

@@ -18,7 +18,7 @@ replacement or release readiness. F3 is **NOT STARTED / NOT AUTHORIZED**.
 | F2.4 | EXIT APPROVED | `78b3c36057e4554e76bb98b0eb474ed614f39786`; [Run #11](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35172536438) |
 | F2.5 | EXIT APPROVED | `f1dd837942d49527b1a379fcce25e46e7035f027`; [Run #14](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35178792526) |
 | F2.6 | EXIT APPROVED | `0ec12e0356ad3fb8428c098d130876407472c168`; [Run #17](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35207590333) |
-| F2.7 | IMPLEMENTED — REVIEW PENDING | starting `412c2ae7d48828b3d25b2114e430ca9545b21676`; implementation SHA is the single commit carrying this evidence |
+| F2.7 | IMPLEMENTED — REVIEW PENDING | implementation / review-fix starting SHA `94ce8ce069af9309721c23c9a8505c48cf640e85`; review fix is the single `fix: close F2.7 legacy import review gaps` commit |
 
 F2.7 uses frozen legacy repository commit
 `d90d4d090c85a0a9c374684696c34befe12636d1`. Its implementation commit message
@@ -30,9 +30,10 @@ recorded.
 F2.7 uses schema version **1** and the existing Drift/SQLite tables and F2.6
 migration tables without schema changes. Dependencies, generated Drift code,
 schema snapshots, migration history, workflow and platform files are unchanged.
-The local full suite contains **180 passing tests**; the F2.7 focused suite
-contains **5 passing tests**. The F2.7 full fixture contains **21 expected /
-21 actual** units:
+The review-fix local full suite contains **361 passing tests**; the F2.7
+focused suites contain **186 passing tests** (original 5 plus 181 targeted
+review tests). Both corrected frozen-format full fixtures contain **21
+expected / 21 actual** verified units:
 
 | Entity kind | Expected | Actual |
 | --- | ---: | ---: |
@@ -54,17 +55,35 @@ close/reopen, failure-injection rollback/retry and post-import user-edit
 conflict behavior are covered. Safe sentinel search found no secret value in
 product or migration storage, and the full input blob is not retained.
 
+Review fixes enforce all required Book types, retain exact ordered `book.tag`
+baseline/candidates, distinguish absent from malformed Set/map/theme/Reader
+input, preserve integer aggregate semantics, require valid planned and durable
+selected-shelf mappings, verify the complete progress locator and pointer,
+and capture immutable dataset/mapping context per import. The concurrent
+same-service two-dataset test passes. Fixtures now contain required
+`coverIndex` and integer daily/book seconds; counts above are observed, not
+preserved by loosening parsing. See `F2_7_LEGACY_IMPORT_BASELINE.md` for the
+precise failure/unresolved policies and acceptance coverage.
+
 Validation observed before push:
 
 - `flutter pub get --enforce-lockfile`: PASS.
 - Formatting and no-change format check: PASS.
 - `flutter analyze --no-pub`: PASS, no issues.
-- `flutter test --no-pub`: PASS, 180 tests.
+- `flutter test --no-pub`: PASS, 361 tests.
 - `./tool/verify_generated.ps1`: PASS; schema and generated outputs unchanged.
 - `git diff --check`: PASS.
 - Windows packaged storage smoke: PASS; the actual F2.7 service imported an
   inline snapshot, wrote product state, closed/reopened the database and read
   back exact source-aware state.
+
+[Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354)
+for `94ce8ce069af9309721c23c9a8505c48cf640e85` is FAILURE: all five jobs failed
+before any workflow step ran, with empty step lists. This pre-execution CI
+failure provides **zero usable platform evidence** and does not demonstrate
+an F2.7 test/build failure. The review-fix run is **PENDING at this pre-push
+documentation point**. If it also fails before execution, it must be reported
+as external CI execution blockage, never PASS.
 
 The new post-push GitHub Actions result is intentionally not predeclared in
 this committed evidence. The final report must state only the actually

@@ -4,9 +4,11 @@ Status: **IMPLEMENTED — REVIEW PENDING**.
 
 Starting SHA: `412c2ae7d48828b3d25b2114e430ca9545b21676`.
 Frozen legacy SHA: `d90d4d090c85a0a9c374684696c34befe12636d1`.
-Implementation commit: the single commit containing this baseline and the
-F2.7 implementation, `feat: add committed legacy state importer`; its exact
-SHA is reported with the implementation commit.
+Implementation / review-fix starting SHA:
+`94ce8ce069af9309721c23c9a8505c48cf640e85`.
+Review fix: the single commit `fix: close F2.7 legacy import review gaps`;
+its exact SHA is reported after commit/push. Review-fix validation date:
+2026-09-17.
 
 F2.7 is implemented under the explicit F2.7 authorization. This document is
 evidence for human review, not an exit approval. F2 overall remains **EXIT
@@ -149,16 +151,68 @@ and do not become a false import success.
 
 ## Fixtures and validation
 
+### Review-fix policies
+
+The frozen Swift `Book`, `DailyStat` and `AppStateSnapshot` at the frozen SHA
+were re-read. Both full fixtures now include required integer `coverIndex`
+for every Book, integer daily seconds (12, not 12.5), and integer book seconds
+(88, not 88.25). Tests assert all eleven required Book fields and aggregate
+integer types; optional Book fields may be absent/null.
+
+A missing/wrong-type required Book field cannot produce known metadata. With
+a usable ID, allowlisted scalar evidence is retained and the record becomes
+a preserved-unresolved stub; without a usable ID, a deterministic record-local
+failure preserves available safe scalar evidence. Siblings continue. Every
+tag is baseline evidence at its exact ordinal; tag replacement or reordering
+creates conflict-candidate evidence and never overwrites the accepted tags.
+
+Absent fields retain frozen defaults. Present malformed Set/array/map
+containers and invalid members receive deterministic field/entry-local failed
+receipts, with allowlisted scalar candidates retained. Malformed saved/read
+Sets block successful Book/progress outcomes rather than verifying false
+flags. Valid Set duplicates collapse. Malformed maps do not reset unrelated
+state. Non-string/null/unknown themes retain safe evidence and use an
+unresolved system fallback; non-object or duplicate-key Reader containers
+fail without writing defaults, while invalid individual Reader fields are
+isolated. Daily/book statistics use integer evidence only; malformed decimal
+or incomplete aggregate records are failed candidates, not valid aggregates.
+
+Selected shelves must be uniquely and safely planned and actually have a
+resolved durable mapping; malformed, duplicated, missing or colliding shelves
+leave selection null with unresolved original evidence. No invented shelf or
+expected FK exception is used to handle selection.
+
+Progress verification checks the locator pointer, locator identity/version,
+dataset/source/book/legacy-book IDs, chapter index, exact offset key, fraction,
+and all additional locator evidence columns. Missing required state fails;
+different durable state conflicts. A no-locator payload requires a null
+pointer. Explicit corruption tests cover every field, missing rows/pointers
+and wrong pointers; no modern chapter identity is fabricated.
+
+Each invocation captures an immutable `LegacyImportExecutionContext`
+(datasetId, mappingVersion) in its apply/verify closures and owns its planner.
+No mutable per-import state or global mutex exists on the service. Concurrent
+imports on one service with two datasets and different mapping versions pass
+mapping, locator and receipt isolation assertions.
+
 Synthetic fixtures are:
 
 - `test/fixtures/f2_7_full_backup_v1.json`
 - `test/fixtures/f2_7_full_snapshot_v1.json`
 
-The F2.7 focused suite is `test/migration/legacy_state_import_test.dart` with
-5 tests covering backup and snapshot conversion, exact-repeat idempotency,
-post-import user-edit conflict, failure-injection rollback/retry, and
-file-backed close/reopen. The full fixture plans 21 units. Expected and actual
-happy-path counts are:
+The F2.7 focused suites contain **186 passing tests**: the original 5 in
+`test/migration/legacy_state_import_test.dart`, plus 181 targeted/table-driven
+tests in `test/migration/legacy_import_review_test.dart`. They cover exact
+source identities/non-aliases, all required Book fields, optional fields,
+tags, missing-field fill/existing-target precedence, Set/map corruption,
+shelf/group/split ordering and identity, selected shelf validity, progress
+precedence/offsets/dates/full locator readback, all Reader fields and enum
+values, themes, integer statistics, search fidelity, fatal input zero writes,
+all-column secret/blob exclusion, unchanged bytes and concurrent isolation.
+The original failure-injection/retry and file-backed close/reopen tests remain.
+Both corrected full fixtures still plan 21 units, independently asserted by
+tests (the count is not a format acceptance rule). Expected and actual
+happy-path counts for each fixture are:
 
 | Entity kind | Expected | Actual |
 | --- | ---: | ---: |
@@ -188,16 +242,28 @@ Local validation completed:
 | `flutter pub get --enforce-lockfile` | PASS |
 | `dart format .` / no-change format check | PASS |
 | `flutter analyze --no-pub` | PASS, no issues |
-| `flutter test --no-pub` | PASS, 180 tests |
+| `flutter test --no-pub` | PASS, 361 tests |
 | `./tool/verify_generated.ps1` | PASS; generated/schema outputs unchanged |
 | `git diff --check` | PASS |
 | Windows packaged `integration_test/storage_smoke_test.dart -d windows --no-pub` | PASS, actual F2.7 import/readback and reopen |
 
-The existing packaged smoke was extended with a small inline synthetic
-snapshot. Android and iOS packaged smoke are CI responsibilities; their new
-F2.7 run is not claimed here until actually observed. The prior F2.6 Run #18
+The packaged smoke executes a frozen-valid inline snapshot import and now
+explicitly checks progress/locator, ordered tag and app preference readback
+after reopening the production SQLite adapter. Windows executed successfully;
+Android and iOS packaged smoke are CI responsibilities. The prior F2.6 Run #18
 Android smoke instability is an existing CI/runtime harness issue and is not
 changed or repaired by F2.7.
+
+[Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354),
+for `94ce8ce069af9309721c23c9a8505c48cf640e85`, concluded FAILURE. All five
+jobs failed before workflow steps executed (empty step lists): this is
+pre-execution CI failure, not evidence of a test/build defect, and provides
+zero usable platform validation. It is not PASS. The review-fix SHA must
+trigger a fresh run. Its status is **PENDING at this pre-push documentation
+point** and is reported only when actually observed. No older run substitutes
+for final-SHA quality, Android debug/smoke, Windows debug/smoke or iOS
+unsigned debug/simulator smoke. Another zero-step failure is external CI
+execution blockage. No smoke gate is changed, skipped or retried here.
 
 ## Freeze and limitations
 

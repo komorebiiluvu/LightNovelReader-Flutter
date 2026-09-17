@@ -55,6 +55,32 @@ void main() {
       });
       await db.close();
       db = await openAppDatabase(storageRoot: () async => root);
+      final importedProgress = await db
+          .customSelect(
+            'SELECT p.has_read,p.chapter_id,l.dataset_id,l.book_id,l.legacy_book_id,l.chapter_index '
+            'FROM reading_progress p JOIN legacy_chapter_locators l ON p.legacy_locator_id=l.locator_id',
+          )
+          .getSingle();
+      expect(importedProgress.data, {
+        'has_read': 1,
+        'chapter_id': null,
+        'dataset_id': migrationDataset,
+        'book_id': 'wk8-00042',
+        'legacy_book_id': 'wk8-00042',
+        'chapter_index': 0,
+      });
+      expect(
+        (await db
+                .customSelect('SELECT theme,accent FROM app_preferences')
+                .getSingle())
+            .data,
+        {'theme': 'dark', 'accent': null},
+      );
+      expect(
+        (await db.customSelect('SELECT tag FROM book_tags').getSingle())
+            .read<String>('tag'),
+        'f2.7',
+      );
       expect(
         (await db
                 .customSelect(

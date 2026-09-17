@@ -4,6 +4,15 @@ import '../library/library_models.dart';
 import '../preferences/preferences.dart';
 import 'migration_models.dart';
 
+final class LegacyImportExecutionContext {
+  const LegacyImportExecutionContext({
+    required this.datasetId,
+    required this.mappingVersion,
+  });
+  final String datasetId;
+  final int mappingVersion;
+}
+
 /// Sanitized, immutable payloads produced by the concrete legacy planner.
 /// None of these types can carry a raw JSON object or an excluded field.
 sealed class LegacyImportPayload {

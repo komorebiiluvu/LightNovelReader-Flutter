@@ -319,6 +319,11 @@ final class MigrationRepository {
       );
       if (unit.isRecordFailure) {
         await _insertReceipt(key, unit);
+        await _insertEvidence(
+          key: key,
+          unit: unit,
+          purpose: SafeLegacyValuePurpose.conflictCandidate,
+        );
         failureInjector?.call(MigrationFailurePoint.beforeOutcome);
         await _upsertOutcome(
           key: key,
