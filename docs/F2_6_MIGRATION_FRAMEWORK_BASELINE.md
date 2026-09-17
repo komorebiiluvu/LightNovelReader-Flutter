@@ -1,13 +1,18 @@
 # F2.6 Migration Framework Baseline
 
-Status: **IMPLEMENTED — REVIEW PENDING**
+Status: **EXIT APPROVED**
 
 Starting SHA: `d7e0279121d1aa342fe6cc95a8f386e0daec208b`
 
 This baseline records the F2.6 implementation slice authorized on 2026-09-17.
-The single implementation commit is `feat: add legacy migration framework`.
+Implementation commit: `c76a69da6d704c57c2b17cfd577f7a01f5a49ca6`.
+Final approved review-fix commit:
+`0ec12e0356ad3fb8428c098d130876407472c168`.
 F2.1 and F2.2 remain implemented/accepted; F2.3, F2.4 and F2.5 remain exit
-approved. F2.6 is not self-approved by this record.
+approved. F2.6 exit approval is recorded below.
+
+Approved by: Human project owner
+Approval date: **2026-09-17**
 
 ## Scope and boundary
 
@@ -236,12 +241,46 @@ temporary-file reopen/resume. The local validation results are:
 | `git diff --check` | PASS |
 
 The focused F2.6 file contains 22 tests. Remote platform CI is reported only
-after the implementation commit is pushed and actually observed.
+after the implementation commit is pushed and actually observed. Final CI
+evidence for the approved review-fix commit is recorded below.
+
+## Final exit evidence
+
+The final approved review-fix commit was validated by GitHub Actions Run #17
+(Run ID `35207590333`), with overall result **SUCCESS** and the following
+results:
+
+| Check | Result |
+| --- | --- |
+| Quality | PASS |
+| Formatting | PASS |
+| Drift generation/schema verification | PASS |
+| Analyze | PASS |
+| Unit/widget tests | PASS |
+| Android debug | PASS |
+| Android packaged storage smoke | PASS |
+| Windows debug | PASS |
+| Windows packaged storage smoke | PASS |
+| iOS debug unsigned | PASS |
+| iOS simulator packaged storage smoke | PASS |
+| Overall relevant F2.6 regression matrix | PASS |
+
+The Android storage smoke executed successfully on an emulator. The local
+Unicode-path JNI/CMake limitation remains a local host/toolchain limitation,
+not an application, migration, or schema failure.
+
+The F2.6 review found and corrected two blocking gaps: the former production
+noop-handler/count-only verification path could have produced false COMPLETE,
+and malformed records with a safe stable ID could have received a positional
+receipt identity. The approved review-fix requires explicit handler and durable
+readback verifier injection, and preserves safe stable IDs while recording
+duplicate-ID conflicts explicitly. These are historical corrected issues, not
+unresolved defects.
 
 This slice proves migration infrastructure and safe persistence mechanics only.
 It does not prove a complete legacy import, product-state conversion, Reader or
 Source behavior, offline continuity, UI flow, or release readiness.
 
-F2.6: **IMPLEMENTED — REVIEW PENDING**
+F2.6 — Legacy Migration Framework: **EXIT APPROVED**
 
 F2.7: **NOT STARTED / NOT AUTHORIZED**
