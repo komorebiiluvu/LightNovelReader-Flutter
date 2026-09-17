@@ -5,8 +5,9 @@ Prepared: **2026-09-17**. Human approval: **APPROVED**.
 Approval date: **2026-09-17**. Approved by: **Human project owner**.
 F3 Entry: **APPROVED**.
 F3.1: **IMPLEMENTED / ACCEPTED**.
-F3.2: **AUTHORIZED**.
-F3.3–F3.7: **NOT AUTHORIZED**.
+F3.2: **IMPLEMENTED / ACCEPTED**.
+F3.3: **AUTHORIZED**.
+F3.4–F3.7: **NOT AUTHORIZED**.
 F3 Exit: **NOT APPROVED**.
 
 This accepted contract and [ADR 0004](adr/0004-f3-source-foundation.md) record
@@ -389,7 +390,7 @@ approval record.
 
 Approval record: **APPROVED**. Approver: **Human project owner**. Approval date:
 **2026-09-17**. F3 Entry: **APPROVED**. F3.1: **IMPLEMENTED / ACCEPTED**.
-F3.2: **AUTHORIZED**. F3.3–F3.7: **NOT AUTHORIZED**. F3 Exit:
+F3.2: **IMPLEMENTED / ACCEPTED**. F3.3: **AUTHORIZED**. F3.4–F3.7: **NOT AUTHORIZED**. F3 Exit:
 **NOT APPROVED**.
 
 ## 12. F3.1 implementation acceptance — 2026-09-18
@@ -408,3 +409,26 @@ F3.2 is **AUTHORIZED**. F3.3–F3.7 remain **NOT AUTHORIZED**, and F3 Exit remai
 **NOT APPROVED**. This acceptance authorizes no transport, network, secure
 storage, parser, runtime adapter, reconciliation, second Source, plugin, Reader,
 image, offline or schema work.
+
+## 13. F3.2 acceptance and F3.3 authorization — 2026-09-18
+
+The Human project owner approved F3.2 at accepted baseline SHA
+`37360101487db7904f9ef6c915724719ec90db25` on **2026-09-18**. F3.2 is
+**IMPLEMENTED / ACCEPTED** with 80 deterministic fixtures, 80 independent
+expected sidecars, 60 synthetic and 20 reconstructed entries, classifications
+PRESERVE 15 / FIX 23 / REGRESSION_TEST 37 / DEFER 5 / DROP 0, audited charset
+bytes, the six-node ordered-content fixture and whole-corpus secret scanning.
+Focused F3.2 tests passed: **17**; full suite: **418**.
+
+CI run [35258020716](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35258020716)
+passed Quality, Android debug, Android packaged storage smoke, Windows debug,
+Windows packaged storage smoke, iOS unsigned debug build and iOS simulator
+boot. iOS simulator packaged-storage smoke is **STALLED / INCOMPLETE — NOT
+F3.2 BLOCKING**. It is not an iOS PASS and not a reusable F3 platform waiver;
+fresh deterministic iOS runtime evidence remains required by F3.7 before F3
+Exit approval. Android or Windows results do not imply iOS PASS.
+
+F3.3 is **AUTHORIZED**. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit
+remains **NOT APPROVED**. This authorization does not approve a network or
+secure-storage package; a critical dependency still requires a separate ADR and
+explicit Human project owner approval.

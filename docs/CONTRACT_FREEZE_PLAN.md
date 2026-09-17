@@ -84,3 +84,34 @@ decoder/DOM or other dependency, production implementation beyond F3.1 or F3
 exit is approved by this checkpoint. Deterministic three-platform validation is
 the blocking F3 evidence; manual Wenku8 live smoke is supplemental and is not a
 CI or F3-exit gate.
+
+## F3.2 acceptance and F3.3 authorization checkpoint — 2026-09-18
+
+The Human project owner approved F3.2 at baseline SHA
+`37360101487db7904f9ef6c915724719ec90db25` on **2026-09-18**. F3.2 is
+**IMPLEMENTED / ACCEPTED**. The accepted evidence contains 80 deterministic
+fixtures and 80 independently authored expected sidecars, with 60 synthetic and
+20 reconstructed-from-frozen-evidence entries. Classifications are PRESERVE 15,
+FIX 23, REGRESSION_TEST 37, DEFER 5 and DROP 0. Audited byte vectors include
+GBK Chinese `d6d0cec4d0a1cbb5`, GB18030 `81308130` → U+0080 and GBK PUA
+`aaa1` → U+E000. The ordered-content corpus includes the explicit
+Text / Text / Image / Text / Image / Text sequence. Whole-corpus raw,
+manifest and expected-sidecar secret scanning passed. F2 opaque identity and
+ordered `ChapterContent.nodes` semantics remain unchanged. Focused F3.2 tests:
+**17 passed**; full suite: **418 passed**; format, analyze and diff checks passed.
+
+CI run [35258020716](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35258020716)
+was inspected for this baseline: Quality PASS, Android debug PASS, Android
+packaged storage smoke PASS, Windows debug PASS, Windows packaged storage smoke
+PASS, iOS debug build without signing PASS, iOS simulator boot PASS, and iOS
+simulator packaged-storage smoke **STALLED / INCOMPLETE — NOT F3.2 BLOCKING**.
+The stalled iOS packaged-storage smoke is not an iOS PASS and is not a reusable
+F3 platform waiver. Fresh deterministic iOS runtime evidence remains required
+at the appropriate later runtime/platform gate and must be resolved no later
+than F3.7 before F3 Exit approval. No platform PASS is inferred from Android or
+Windows.
+
+F3.3 is **AUTHORIZED**. F3.4–F3.7 remain **NOT AUTHORIZED**. F3 Exit remains
+**NOT APPROVED**. This authorization does not approve a networking or
+secure-storage dependency; any critical dependency still requires its separate
+ADR and explicit Human project owner approval under the accepted F3 contract.

@@ -1,11 +1,14 @@
 # F3.2 — Legacy Characterization and Fixture Harness
 
-Status: **IMPLEMENTED — HUMAN REVIEW REQUIRED**
+Status: **IMPLEMENTED / ACCEPTED**
 
 Slice: **F3.2 — Legacy Characterization + Fixture Harness**
 
 Frozen Legacy commit: `d90d4d090c85a0a9c374684696c34befe12636d1`
 Implementation starting SHA: `557ef34a1869daac4172268e154d2d6b959423e1`
+Accepted baseline SHA: `37360101487db7904f9ef6c915724719ec90db25`
+Human approval: **APPROVED** by the **Human project owner** on **2026-09-18**.
+F3.3: **AUTHORIZED**. F3.4–F3.7: **NOT AUTHORIZED**. F3 Exit: **NOT APPROVED**.
 
 This record is the deterministic evidence boundary for F3.2. It characterizes
 the frozen Swift/KMP implementation by read-only source inspection and a
@@ -32,7 +35,8 @@ synthetic and 20 reconstructed. Classifications are 15 `PRESERVE`, 23 `FIX`,
 ## Review integrity correction
 
 Review baseline: `fb5060a497cadbce205269cddfff9852d74aac73`.
-F3.2 remains unaccepted; F3.3 has not started.
+The review fixes were accepted at the baseline above; F3.3 authorization is a
+governance decision and does not authorize a network or secure-storage package.
 
 All 27 GBK/GB18030 entries were audited. Textual inputs previously saved as
 UTF-8 were transcoded with strict .NET code pages 936/54936 into `.bin` files.
