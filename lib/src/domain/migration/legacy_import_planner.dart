@@ -180,6 +180,8 @@ final class LegacyImportPlanner {
     for (final id in referenced.toList()..sort()) {
       final record = bookRecords[id];
       final validBook = record != null && _validBook(record.uniqueValues());
+      final savedKnown = _validSet(values['savedIDs']);
+      final updateFlagKnown = _validSet(values['updateFlagIDs']);
       final sourceById = sourceMap[id];
       final bookSource = record == null
           ? null
@@ -199,10 +201,15 @@ final class LegacyImportPlanner {
       final diagnostic = <MigrationDiagnosticCode>{};
       final evidence = <SafeLegacyEvidence>[
         SafeLegacyEvidence(field: 'book.id', value: SafeLegacyValue.string(id)),
-        SafeLegacyEvidence(
-          field: 'book.saved',
-          value: SafeLegacyValue.boolean(saved.contains(id)),
-        ),
+        savedKnown
+            ? SafeLegacyEvidence(
+                field: 'book.saved',
+                value: SafeLegacyValue.boolean(saved.contains(id)),
+              )
+            : const SafeLegacyEvidence(
+                field: 'book.saved',
+                value: SafeLegacyValue.string('unknown'),
+              ),
       ];
       String? title;
       String? author;
@@ -325,20 +332,30 @@ final class LegacyImportPlanner {
           ),
         );
       }
-      evidence.add(
-        SafeLegacyEvidence(
-          field: 'progress.updateFlag',
-          mapKey: id,
-          value: SafeLegacyValue.boolean(updateFlag),
-        ),
-      );
+      if (updateFlagKnown) {
+        evidence.add(
+          SafeLegacyEvidence(
+            field: 'progress.updateFlag',
+            mapKey: id,
+            value: SafeLegacyValue.boolean(updateFlag),
+          ),
+        );
+      } else {
+        evidence.add(
+          SafeLegacyEvidence(
+            field: 'progress.updateFlag',
+            mapKey: id,
+            value: const SafeLegacyValue.string('unknown'),
+          ),
+        );
+      }
       final payload = BookImportPayload(
         bookId: BookId(id),
         bookRef: SourceBookRef(
           sourceId: _sourceId(sourceName),
           bookId: BookId(id),
         ),
-        saved: saved.contains(id),
+        saved: savedKnown ? saved.contains(id) : null,
         sourceName: sourceName,
         sourceByIdName: sourceById,
         bookSourceName: bookSource,
@@ -357,7 +374,7 @@ final class LegacyImportPlanner {
         isCompleted: validBook ? completed : null,
         wordCountK: validBook ? wordCount : null,
         knownTotal: knownTotal,
-        updateFlag: _validSet(values['updateFlagIDs']) ? updateFlag : null,
+        updateFlag: updateFlagKnown ? updateFlag : null,
         sourceConflict: sourceConflict,
       );
       books[id] = payload;
@@ -370,7 +387,7 @@ final class LegacyImportPlanner {
             : diagnostic.isEmpty
             ? null
             : _diagnostic(diagnostic),
-        fatal: !_validSet(values['savedIDs']),
+        fatal: !savedKnown || !updateFlagKnown,
       );
       units.add(unit);
       payloads[_identity(unit)] = payload;

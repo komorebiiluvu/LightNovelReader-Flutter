@@ -1200,6 +1200,228 @@ void main() {
     );
     expect(await rows('SELECT * FROM library_entries'), isEmpty);
   });
+  test(
+    'malformed savedIDs shelf stub stays unknown and later true fills it',
+    () async {
+      final shelf = {
+        'id': 'shelf-a',
+        'name': 'Shelf',
+        'bookIDs': ['book-a'],
+      };
+      final first = await run({
+        'bookLibrary': [book()],
+        'savedIDs': 123,
+        'shelves': [shelf],
+      });
+      expect(first.run.state, MigrationRunState.partial);
+      expect((await row('SELECT saved,metadata_state FROM library_entries')), {
+        'saved': 0,
+        'metadata_state': 'stub',
+      });
+      expect(
+        await rows(
+          "SELECT * FROM safe_legacy_values WHERE entity_kind='book' AND field='book.saved' AND purpose='accepted-baseline'",
+        ),
+        isEmpty,
+      );
+      expect(
+        await rows(
+          "SELECT * FROM safe_legacy_values WHERE entity_kind='book' AND field='book.saved' AND value_type='string' AND text_value='unknown'",
+        ),
+        isNotEmpty,
+      );
+
+      final corrected = await run({
+        'bookLibrary': [book()],
+        'savedIDs': ['book-a'],
+        'shelves': [shelf],
+      });
+      expect(corrected.run.state, MigrationRunState.complete);
+      expect((await row('SELECT saved,metadata_state FROM library_entries')), {
+        'saved': 1,
+        'metadata_state': 'known',
+      });
+      expect(await rows('SELECT * FROM shelf_members'), hasLength(1));
+      expect(await rows('SELECT * FROM library_entries'), hasLength(1));
+      expect(
+        await rows(
+          "SELECT * FROM safe_legacy_values WHERE entity_kind='book' AND field='book.saved' AND purpose='accepted-baseline' AND value_type='boolean' AND boolean_value=1",
+        ),
+        isNotEmpty,
+      );
+    },
+  );
+
+  test(
+    'malformed savedIDs group dependency fills without false conflict',
+    () async {
+      final groupState = {
+        'savedIDs': 123,
+        'manualGroupByID': {'book-a': 'group-a'},
+        'groupDisplayName': {'group-a': 'Group'},
+      };
+      final first = await run(groupState);
+      expect(first.run.state, MigrationRunState.partial);
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 0);
+      final corrected = await run({
+        ...groupState,
+        'savedIDs': ['book-a'],
+      });
+      expect(corrected.run.state, MigrationRunState.complete);
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 1);
+      expect(await rows('SELECT * FROM group_members'), hasLength(1));
+    },
+  );
+
+  test(
+    'malformed savedIDs progress and split dependencies do not claim false',
+    () async {
+      final state = {
+        'savedIDs': 123,
+        'readBookIDs': ['book-a'],
+        'splitBookIDs': ['book-a'],
+        'lastChapterByID': {'book-a': 0},
+      };
+      final first = await run(state);
+      expect(first.run.state, MigrationRunState.partial);
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 0);
+      expect(
+        (await row('SELECT has_read FROM reading_progress'))['has_read'],
+        1,
+      );
+      expect(
+        (await row('SELECT is_split FROM split_overrides'))['is_split'],
+        1,
+      );
+      final corrected = await run({
+        ...state,
+        'savedIDs': ['book-a'],
+      });
+      expect(corrected.run.state, MigrationRunState.complete);
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 1);
+      expect(await rows('SELECT * FROM reading_progress'), hasLength(1));
+      expect(await rows('SELECT * FROM split_overrides'), hasLength(1));
+    },
+  );
+
+  test('malformed updateFlagIDs has no accepted false baseline and corrected true fills', () async {
+    final first = await run({
+      'bookLibrary': [book()],
+      'updateFlagIDs': 123,
+    });
+    expect(first.run.state, MigrationRunState.partial);
+    expect(
+      (await row(
+        'SELECT saved,metadata_state,update_flag FROM library_entries',
+      )),
+      {'saved': 0, 'metadata_state': 'stub', 'update_flag': null},
+    );
+    expect(
+      await rows(
+        "SELECT * FROM safe_legacy_values WHERE field='progress.updateFlag' AND purpose='accepted-baseline'",
+      ),
+      isEmpty,
+    );
+    final corrected = await run({
+      'bookLibrary': [book()],
+      'updateFlagIDs': ['book-a'],
+    });
+    expect(corrected.run.state, MigrationRunState.complete);
+    expect(
+      (await row('SELECT update_flag FROM library_entries'))['update_flag'],
+      1,
+    );
+    expect(
+      await rows(
+        "SELECT * FROM safe_legacy_values WHERE field='progress.updateFlag' AND purpose='accepted-baseline' AND value_type='boolean' AND boolean_value=1",
+      ),
+      isNotEmpty,
+    );
+  });
+
+  test(
+    'missing savedIDs and updateFlagIDs retain known false defaults',
+    () async {
+      final result = await run({
+        'bookLibrary': [book()],
+      });
+      expect(result.run.state, MigrationRunState.complete);
+      expect((await row('SELECT saved,update_flag FROM library_entries')), {
+        'saved': 0,
+        'update_flag': 0,
+      });
+      expect(
+        await rows(
+          "SELECT field,boolean_value FROM safe_legacy_values WHERE entity_kind='book' AND purpose='accepted-baseline' AND field IN ('book.saved','progress.updateFlag')",
+        ),
+        hasLength(2),
+      );
+    },
+  );
+
+  test(
+    'malformed readBookIDs and splitBookIDs never establish negative baselines',
+    () async {
+      final result = await run({
+        'bookLibrary': [book()],
+        'readBookIDs': 123,
+        'splitBookIDs': 123,
+      });
+      expect(result.run.state, MigrationRunState.partial);
+      expect(await rows('SELECT * FROM reading_progress'), isEmpty);
+      expect(await rows('SELECT * FROM split_overrides'), isEmpty);
+      expect(
+        await rows(
+          "SELECT * FROM safe_legacy_values WHERE purpose='accepted-baseline' AND (field='progress.hasRead' OR field='split.bookId')",
+        ),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'genuine preexisting saved=false target wins over corrected legacy true',
+    () async {
+      await db.customStatement(
+        "INSERT INTO source_registrations VALUES ('builtin.wenku8','文库8(在线)','unavailable')",
+      );
+      await db.customStatement(
+        "INSERT INTO library_entries(source_id,book_id,saved,metadata_state) VALUES ('builtin.wenku8','book-a',0,'known')",
+      );
+      final result = await run({
+        'bookLibrary': [book()],
+        'savedIDs': ['book-a'],
+      });
+      expect(result.run.state, MigrationRunState.partial);
+      expect(result.report.conflicts, greaterThan(0));
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 0);
+      expect(
+        await rows(
+          "SELECT * FROM safe_legacy_values WHERE field='book.saved' AND purpose='conflict-candidate' AND value_type='boolean' AND boolean_value=1",
+        ),
+        isNotEmpty,
+      );
+    },
+  );
+
+  test(
+    'changed valid saved export still conflicts after a valid baseline',
+    () async {
+      final first = await run({
+        'bookLibrary': [book()],
+        'savedIDs': [],
+      });
+      expect(first.run.state, MigrationRunState.complete);
+      final changed = await run({
+        'bookLibrary': [book()],
+        'savedIDs': ['book-a'],
+      });
+      expect(changed.run.state, MigrationRunState.partial);
+      expect(changed.report.conflicts, greaterThan(0));
+      expect((await row('SELECT saved FROM library_entries'))['saved'], 0);
+    },
+  );
+
   for (final fixture in [
     'f2_7_full_backup_v1.json',
     'f2_7_full_snapshot_v1.json',

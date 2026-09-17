@@ -75,6 +75,18 @@ accepted evidence remains a conflict candidate. Existing target values win:
 missing fields may be filled, differing fields are never overwritten, and
 ordered arrays are not silently unioned.
 
+Set membership is explicitly tri-state at the concrete import boundary. A
+missing `savedIDs` or `updateFlagIDs` field uses the frozen empty-Set default,
+so false is known and may be accepted. A valid Set establishes true/false
+membership. A present malformed Set produces unknown (`bool? == null`), never
+false. Migration-created stubs may therefore carry the schema's physical
+`saved=0` default or a null update flag without that value becoming semantic
+legacy evidence. Their unresolved provenance remains in existing migration
+evidence; a later valid Set in the same dataset lineage may fill that state.
+Genuine preexisting target/user state still wins and conflicts. The same audit
+applies to `readBookIDs` and `splitBookIDs`: malformed input creates no
+negative accepted baseline or invented split effect.
+
 ## Source and identity policy
 
 Legacy book IDs remain exact opaque values, including `wk8-<aid>` and IDs that
@@ -200,15 +212,19 @@ Synthetic fixtures are:
 - `test/fixtures/f2_7_full_backup_v1.json`
 - `test/fixtures/f2_7_full_snapshot_v1.json`
 
-The F2.7 focused suites contain **186 passing tests**: the original 5 in
+The F2.7 focused suites contain **194 passing tests**: the original 5 in
 `test/migration/legacy_state_import_test.dart`, plus 181 targeted/table-driven
-tests in `test/migration/legacy_import_review_test.dart`. They cover exact
+tests in `test/migration/legacy_import_review_test.dart`, plus 8 targeted
+provenance regressions. They cover exact
 source identities/non-aliases, all required Book fields, optional fields,
 tags, missing-field fill/existing-target precedence, Set/map corruption,
 shelf/group/split ordering and identity, selected shelf validity, progress
 precedence/offsets/dates/full locator readback, all Reader fields and enum
 values, themes, integer statistics, search fidelity, fatal input zero writes,
-all-column secret/blob exclusion, unchanged bytes and concurrent isolation.
+all-column secret/blob exclusion, unchanged bytes, concurrent isolation, and
+malformed-versus-missing Set provenance across saved, update, read and split
+state. The saved shelf/group/progress dependency paths, corrected later valid
+inputs, and genuine preexisting target protection are explicit regressions.
 The original failure-injection/retry and file-backed close/reopen tests remain.
 Both corrected full fixtures still plan 21 units, independently asserted by
 tests (the count is not a format acceptance rule). Expected and actual
@@ -242,7 +258,7 @@ Local validation completed:
 | `flutter pub get --enforce-lockfile` | PASS |
 | `dart format .` / no-change format check | PASS |
 | `flutter analyze --no-pub` | PASS, no issues |
-| `flutter test --no-pub` | PASS, 361 tests |
+| `flutter test --no-pub` | PASS, 369 tests |
 | `./tool/verify_generated.ps1` | PASS; generated/schema outputs unchanged |
 | `git diff --check` | PASS |
 | Windows packaged `integration_test/storage_smoke_test.dart -d windows --no-pub` | PASS, actual F2.7 import/readback and reopen |
@@ -255,15 +271,15 @@ Android smoke instability is an existing CI/runtime harness issue and is not
 changed or repaired by F2.7.
 
 [Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354),
-for `94ce8ce069af9309721c23c9a8505c48cf640e85`, concluded FAILURE. All five
-jobs failed before workflow steps executed (empty step lists): this is
-pre-execution CI failure, not evidence of a test/build defect, and provides
-zero usable platform validation. It is not PASS. The review-fix SHA must
-trigger a fresh run. Its status is **PENDING at this pre-push documentation
-point** and is reported only when actually observed. No older run substitutes
-for final-SHA quality, Android debug/smoke, Windows debug/smoke or iOS
-unsigned debug/simulator smoke. Another zero-step failure is external CI
-execution blockage. No smoke gate is changed, skipped or retried here.
+for `94ce8ce069af9309721c23c9a8505c48cf640e85`, remains historical
+pre-execution FAILURE evidence with empty job step lists. Its later hosted
+runner recovery is superseded by [Run #20 / 35217367323](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35217367323),
+which executed successfully for the prior SHA `f0687fe015edb0c51d79e33894ffc130310c4d66`:
+Quality, Android debug, Android packaged storage smoke, Windows debug,
+Windows packaged storage smoke, iOS debug unsigned and iOS simulator packaged
+storage smoke all PASS. Run #20 is evidence for that prior SHA only; it does
+not validate this review-fix commit. The final review-fix SHA requires its own
+fresh run. No smoke gate is changed, skipped or retried here.
 
 ## Freeze and limitations
 

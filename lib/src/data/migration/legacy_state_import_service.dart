@@ -238,7 +238,7 @@ final class _LegacyImportExecution {
         [
           sourceId.value,
           payload.bookId.value,
-          payload.saved ? 1 : 0,
+          payload.saved == true ? 1 : 0,
           known ? 'known' : 'stub',
           payload.title,
           payload.author,
@@ -250,8 +250,18 @@ final class _LegacyImportExecution {
       await _writeTags(db, payload.bookRef, payload.tags);
     } else {
       final row = rows.single;
-      if (row.read<int>('saved') != (payload.saved ? 1 : 0)) conflict = true;
       final updates = <String, Object?>{};
+      if (payload.saved != null &&
+          row.read<int>('saved') != (payload.saved! ? 1 : 0)) {
+        final unresolvedStub =
+            row.read<String>('metadata_state') == 'stub' &&
+            await _hasUnknownSavedStubProvenance(db, payload);
+        if (unresolvedStub) {
+          updates['saved'] = payload.saved! ? 1 : 0;
+        } else {
+          conflict = true;
+        }
+      }
       void merge(String column, Object? incoming) {
         if (incoming == null) return;
         final Object? existing = switch (column) {
@@ -662,7 +672,7 @@ final class _LegacyImportExecution {
       return MigrationVerificationDisposition.verificationFailure;
     }
     final row = rows.single;
-    if (row.read<int>('saved') != (p.saved ? 1 : 0)) {
+    if (p.saved != null && row.read<int>('saved') != (p.saved! ? 1 : 0)) {
       return MigrationVerificationDisposition.targetConflict;
     }
     if (p.title != null && row.readNullable<String>('title') != p.title) {
@@ -930,8 +940,20 @@ final class _LegacyImportExecution {
     await _write(
       db,
       'INSERT INTO library_entries(source_id,book_id,metadata_state,saved) VALUES (?,?,\'stub\',?) ON CONFLICT(source_id,book_id) DO NOTHING',
-      [p.bookRef.sourceId.value, p.bookId.value, p.saved ? 1 : 0],
+      [p.bookRef.sourceId.value, p.bookId.value, p.saved == true ? 1 : 0],
     );
+  }
+
+  Future<bool> _hasUnknownSavedStubProvenance(
+    AppDatabase db,
+    BookImportPayload p,
+  ) async {
+    final rows = await _rows(
+      db,
+      "SELECT 1 FROM safe_legacy_values WHERE dataset_id=? AND entity_kind='book' AND legacy_key=? AND field='book.saved' AND purpose='conflict-candidate' AND value_type='string' AND text_value='unknown' LIMIT 1",
+      [context.datasetId, p.bookId.value],
+    );
+    return rows.isNotEmpty;
   }
 
   Future<bool> _ensureMapping(

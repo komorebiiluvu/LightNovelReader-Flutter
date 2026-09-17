@@ -30,9 +30,9 @@ recorded.
 F2.7 uses schema version **1** and the existing Drift/SQLite tables and F2.6
 migration tables without schema changes. Dependencies, generated Drift code,
 schema snapshots, migration history, workflow and platform files are unchanged.
-The review-fix local full suite contains **361 passing tests**; the F2.7
-focused suites contain **186 passing tests** (original 5 plus 181 targeted
-review tests). Both corrected frozen-format full fixtures contain **21
+The review-fix local full suite contains **369 passing tests**; the F2.7
+focused suites contain **194 passing tests** (original 5 plus 181 targeted
+review tests and 8 Set-provenance regressions). Both corrected frozen-format full fixtures contain **21
 expected / 21 actual** verified units:
 
 | Entity kind | Expected | Actual |
@@ -60,7 +60,12 @@ baseline/candidates, distinguish absent from malformed Set/map/theme/Reader
 input, preserve integer aggregate semantics, require valid planned and durable
 selected-shelf mappings, verify the complete progress locator and pointer,
 and capture immutable dataset/mapping context per import. The concurrent
-same-service two-dataset test passes. Fixtures now contain required
+same-service two-dataset test passes. Malformed Set membership is now explicit
+unknown, not false: missing Sets retain the frozen empty-Set false default;
+migration-created unresolved stub physical defaults are not accepted semantic
+baselines; corrected valid Sets fill those stubs, while genuine preexisting
+target state still conflicts. This is covered for saved/update/read/split
+state, including shelf/group/progress dependency paths. Fixtures now contain required
 `coverIndex` and integer daily/book seconds; counts above are observed, not
 preserved by loosening parsing. See `F2_7_LEGACY_IMPORT_BASELINE.md` for the
 precise failure/unresolved policies and acceptance coverage.
@@ -70,7 +75,7 @@ Validation observed before push:
 - `flutter pub get --enforce-lockfile`: PASS.
 - Formatting and no-change format check: PASS.
 - `flutter analyze --no-pub`: PASS, no issues.
-- `flutter test --no-pub`: PASS, 361 tests.
+- `flutter test --no-pub`: PASS, 369 tests.
 - `./tool/verify_generated.ps1`: PASS; schema and generated outputs unchanged.
 - `git diff --check`: PASS.
 - Windows packaged storage smoke: PASS; the actual F2.7 service imported an
@@ -78,12 +83,15 @@ Validation observed before push:
   back exact source-aware state.
 
 [Run #19 / 35214416354](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35214416354)
-for `94ce8ce069af9309721c23c9a8505c48cf640e85` is FAILURE: all five jobs failed
-before any workflow step ran, with empty step lists. This pre-execution CI
-failure provides **zero usable platform evidence** and does not demonstrate
-an F2.7 test/build failure. The review-fix run is **PENDING at this pre-push
-documentation point**. If it also fails before execution, it must be reported
-as external CI execution blockage, never PASS.
+for `94ce8ce069af9309721c23c9a8505c48cf640e85` is historical
+pre-execution FAILURE evidence with empty job step lists. [Run #20 /
+35217367323](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35217367323)
+later executed successfully for the prior SHA `f0687fe015edb0c51d79e33894ffc130310c4d66`:
+Quality, Android debug, Android packaged storage smoke, Windows debug,
+Windows packaged storage smoke, iOS debug unsigned and iOS simulator packaged
+storage smoke all PASS. Run #20 is historical evidence for that prior SHA
+only; the final review-fix SHA requires its own CI run and this document does
+not predeclare that result.
 
 The new post-push GitHub Actions result is intentionally not predeclared in
 this committed evidence. The final report must state only the actually

@@ -54,7 +54,10 @@ final class BookImportPayload extends LegacyImportPayload {
 
   final BookId bookId;
   final SourceBookRef bookRef;
-  final bool saved;
+
+  /// Null means the legacy saved Set was present but malformed. It is not the
+  /// same semantic value as a known false membership.
+  final bool? saved;
   final String? sourceName;
   final String? sourceByIdName;
   final String? bookSourceName;
