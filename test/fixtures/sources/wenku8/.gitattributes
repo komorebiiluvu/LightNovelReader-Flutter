@@ -1,0 +1,3 @@
+raw/** -text
+expected/** -text
+manifest.json -text

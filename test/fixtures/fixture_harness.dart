@@ -1,6 +1,100 @@
 import 'dart:convert';
 import 'dart:io';
 
+// Exact inert values approved for this corpus; prefixes alone are not enough.
+const inertSecretValues = {
+  'SYNTHETIC_SESSION',
+  'SYNTHETIC_USER_INFO',
+  'one',
+  'two',
+  '',
+};
+
+bool containsSecretMaterial(Object? value) {
+  final sensitiveKey = RegExp(
+    r'^(authorization|proxy-authorization|password|passwd|pwd|PHPSESSID|jieqiUserInfo|(?:access[_-]?|refresh[_-]?|auth[_-]?)?token|cookie|cookieValue|secret|client_secret|api[_-]?key)$',
+    caseSensitive: false,
+  );
+  if (value is Map) {
+    for (final entry in value.entries) {
+      if (sensitiveKey.hasMatch('${entry.key}') &&
+          entry.value != null &&
+          !inertSecretValues.contains(entry.value)) {
+        return true;
+      }
+      if (containsSecretMaterial(entry.value)) return true;
+    }
+    return false;
+  }
+  if (value is List) return value.any(containsSecretMaterial);
+  if (value is! String) return false;
+  final assignments = RegExp(
+    r'''\b(authorization|proxy-authorization|password|passwd|pwd|PHPSESSID|jieqiUserInfo|(?:access[_-]?|refresh[_-]?|auth[_-]?)?token|cookieValue|secret|client_secret|api[_-]?key)["']?\s*[:=]\s*["']?([^\s;<>"'\\,}]*)''',
+    caseSensitive: false,
+  );
+  for (final match in assignments.allMatches(value)) {
+    if (!inertSecretValues.contains(match.group(2))) return true;
+  }
+  for (final match in RegExp(
+    r'''\bcookie\s*=\s*["']?([^\s;<>"'\\,}]*)''',
+    caseSensitive: false,
+  ).allMatches(value)) {
+    if (!inertSecretValues.contains(match.group(1))) return true;
+  }
+  if (RegExp(r'\bBearer\s+\S+', caseSensitive: false).hasMatch(value)) {
+    return true;
+  }
+  for (final header in RegExp(
+    r'(?:set-cookie|cookie)["\x27]?\s*:\s*([^\r\n\\]+)',
+    caseSensitive: false,
+  ).allMatches(value)) {
+    final pairs = header.group(1)!.split(';');
+    for (var i = 0; i < pairs.length; i++) {
+      final pair = pairs[i].trim();
+      final split = pair.indexOf('=');
+      if (split < 0) continue;
+      final name = pair.substring(0, split).toLowerCase();
+      if (i > 0 &&
+          {'path', 'domain', 'expires', 'max-age', 'samesite'}.contains(name)) {
+        continue;
+      }
+      if (!inertSecretValues.contains(pair.substring(split + 1))) return true;
+    }
+  }
+  // Inspect JSON structures as well as text embedded in metadata strings.
+  try {
+    final decoded = jsonDecode(value);
+    if (decoded is Map || decoded is List) {
+      return containsSecretMaterial(decoded);
+    }
+  } on FormatException {
+    /* Raw HTML and header fixtures are not JSON. */
+  }
+  return false;
+}
+
+bool validCharsetBytes(Map<String, dynamic> entry, List<int> bytes) {
+  if (!{'gbk', 'gb2312', 'gb18030'}.contains(entry['encoding'])) return true;
+  final hex = entry['byteExpectation'];
+  if (hex is! String || !RegExp(r'^(?:[0-9a-f]{2})+$').hasMatch(hex)) {
+    return false;
+  }
+  if (!(entry['fixture'] as String).endsWith('.bin')) return false;
+  final actual = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  if (actual != hex) return false;
+  // ASCII is shared by these encodings; non-ASCII valid UTF-8 is forbidden
+  // in this corpus to catch mislabeled text even after its hash is updated.
+  if (bytes.any((b) => b >= 128)) {
+    try {
+      utf8.decode(bytes);
+      return false;
+    } on FormatException {
+      return true;
+    }
+  }
+  return true;
+}
+
 const fixtureRootPath = 'test/fixtures/sources/wenku8';
 
 Map<String, dynamic> loadFixtureManifest() =>

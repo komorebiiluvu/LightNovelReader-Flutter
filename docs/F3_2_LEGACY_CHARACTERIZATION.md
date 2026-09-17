@@ -24,10 +24,54 @@ production parser. The harness rejects paths outside the fixture root,
 unexpected provenance, changed hashes, secret-like material, and references to
 production parser code.
 
-The corpus contains **79 entries**: 31 search, 9 explore, 7 book-detail, 9
-catalog, 14 chapter-content, and 9 authentication entries. Provenance is 59
+The corpus contains **80 entries**: 31 search, 9 explore, 7 book-detail, 9
+catalog, 15 chapter-content, and 9 authentication entries. Provenance is 60
 synthetic and 20 reconstructed. Classifications are 15 `PRESERVE`, 23 `FIX`,
-36 `REGRESSION_TEST`, 5 `DEFER`, and **0 `DROP`**.
+37 `REGRESSION_TEST`, 5 `DEFER`, and **0 `DROP`**.
+
+## Review integrity correction
+
+Review baseline: `fb5060a497cadbce205269cddfff9852d74aac73`.
+F3.2 remains unaccepted; F3.3 has not started.
+
+All 27 GBK/GB18030 entries were audited. Textual inputs previously saved as
+UTF-8 were transcoded with strict .NET code pages 936/54936 into `.bin` files.
+Every non-UTF entry now pins its complete raw hex in `byteExpectation`; the
+harness checks those bytes and rejects non-ASCII UTF-8 masquerading as these
+encodings even when its hash and hex have been updated. ASCII-only pages are
+valid in both encodings. Raw and expected files have byte-preserving Git
+attributes so checkout line-ending conversion cannot invalidate hashes.
+
+Independent Node ICU `TextDecoder` verification matched all 25 valid non-UTF
+inputs against their separately authored Unicode or original DOM text. The
+remaining two intentionally invalid/truncated vectors retain `8130ff` and
+`813081`. No product decoder or package was added.
+
+| Vector | Independently verified bytes | Unicode expectation |
+| --- | --- | --- |
+| GBK / GB2312-compatible Chinese | `d6d0cec4d0a1cbb5` | 中文小说 |
+| GB18030 four-byte vector | `81308130` (unchanged bytes) | U+0080; previous U+20000 sidecar was false |
+| GBK PUA | `aaa1` | U+E000; previous `8140` encoded U+4E02 instead |
+| Declaration disagreement | ASCII meta declaring UTF-8, then `d6d0cec4` inside the paragraph | GBK 中文; declaration conflicts with actual bytes |
+
+The dedicated `content-multi-interleaved` fixture requires exactly
+Text / Text / Image / Text / Image / Text in one `nodes` array. The test checks
+all six distinct values in order, not just the coverage tag. Locators are
+adapter metadata and no AssetId is fabricated.
+
+Security checks now traverse every corpus file, manifest JSON values and
+expected sidecars. Negative tests inject secret-bearing headers, assignments
+and nested JSON through each surface; harmless prose and exact existing inert
+sentinels remain allowed. This is a structural guard against accidental secret
+inclusion, not proof that arbitrary free prose can never conceal a secret.
+Provenance is unchanged for existing entries; the new fixture is synthetic.
+No entry is a capture and no DROP classification was introduced.
+
+The path check resolves actual filesystem paths without lowercasing them,
+preserving case-sensitive checkout compatibility and detecting symlink escapes.
+Review validation: focused tests **17 passed**, full suite **418 passed**;
+format and static analysis passed. Production code, dependencies, schemas,
+workflows and platform files remain unchanged.
 
 ## Characterization matrix
 
@@ -59,12 +103,12 @@ SHA-256 implementation. It validates:
   frozen Legacy commit;
 * fixture/sidecar existence, root containment and both SHA-256 values;
 * independent sidecars (no production parser imports or implementation names);
-* inert authentication metadata and a secret scan for credentials, bearer
+* inert authentication metadata and a whole-corpus secret scan for credentials, bearer
   headers, non-synthetic cookie values and password-like assignments;
 * byte vectors for the GBK/GB18030 cases and invalid/truncated input;
 * required operation/category/edge-case coverage and zero `DROP` entries; and
-* the absence of public-provider URLs except the reserved `.invalid` asset
-  examples.
+* URL checks allowing the characterized provider hosts and reserved `.invalid`
+  examples, without executing requests.
 
 No test performs HTTP, secure-storage access, DOM decoding, image retrieval,
 Legacy execution, or live Wenku8 smoke. Those are later-slice concerns.

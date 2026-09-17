@@ -17,6 +17,7 @@ const allowedOperations = {
 const allowedProvenance = {'synthetic', 'reconstructed_from_frozen_evidence'};
 const allowedClassifications = {'PRESERVE', 'FIX', 'REGRESSION_TEST', 'DEFER'};
 const requiredCoverage = {
+  'content.multi-interleaved-order',
   'encoding.gb18030-extension',
   'encoding.invalid-sequence',
   'encoding.truncated-sequence',
@@ -73,7 +74,7 @@ const requiredCoverage = {
 };
 
 String _absolute(String path) =>
-    File(path).absolute.path.replaceAll('\\', '/').toLowerCase();
+    File(path).resolveSymbolicLinksSync().replaceAll('\\', '/');
 
 void main() {
   late Map<String, dynamic> manifest;
@@ -87,7 +88,7 @@ void main() {
     expect(manifest['schema'], 'f3.2.fixture-manifest.v1');
     expect(manifest['sourceId'], 'builtin.wenku8');
     expect(manifest['frozenLegacyCommit'], frozenCommit);
-    expect(entries, hasLength(79));
+    expect(entries, hasLength(80));
   });
 
   test('entries have unique IDs and valid operation metadata', () {
@@ -147,31 +148,6 @@ void main() {
     }
   });
 
-  test('authentication material is inert and secret-safe', () {
-    final secretPatterns = [
-      RegExp(r'authorization\s*:', caseSensitive: false),
-      RegExp(r'\bbearer\s+[a-z0-9._-]+', caseSensitive: false),
-      RegExp(r'password\s*=', caseSensitive: false),
-    ];
-    for (final entry in entries) {
-      final text = fixtureText(entry);
-      for (final pattern in secretPatterns) {
-        expect(pattern.hasMatch(text), isFalse, reason: '${entry['id']}');
-      }
-      expect(entry['sanitization']['rawAuthenticated'], isFalse);
-      expect(entry['sanitization']['inert'], isTrue);
-      for (final match in RegExp(
-        r'(PHPSESSID|jieqiUserInfo)=([^;\s]*)',
-      ).allMatches(text)) {
-        expect(
-          {'SYNTHETIC_SESSION', 'SYNTHETIC_USER_INFO', ''},
-          contains(match.group(2)),
-          reason: '${entry['id']} contains a non-synthetic cookie',
-        );
-      }
-    }
-  });
-
   test('binary encoding vectors retain their intended bytes', () {
     for (final entry in entries) {
       final expectation = entry['byteExpectation'];
@@ -184,6 +160,154 @@ void main() {
         reason: '${entry['id']}',
       );
     }
+  });
+
+  test('all non-UTF charset entries prove their raw bytes', () {
+    for (final entry in entries) {
+      expect(
+        validCharsetBytes(
+          entry,
+          File('$fixtureRootPath/${entry['fixture']}').readAsBytesSync(),
+        ),
+        isTrue,
+        reason: '${entry['id']}',
+      );
+      if (entry['encoding'] == 'utf-8' || entry['encoding'] == 'metadata') {
+        expect(
+          () => utf8.decode(
+            File('$fixtureRootPath/${entry['fixture']}').readAsBytesSync(),
+          ),
+          returnsNormally,
+        );
+      }
+    }
+  });
+
+  test(
+    'charset integrity rejects UTF-8 masquerading even with matching hex',
+    () {
+      final bytes = utf8.encode('中文小说');
+      final entry = <String, dynamic>{
+        'encoding': 'gbk',
+        'fixture': 'fake.bin',
+        'byteExpectation': bytes.map((b) => b.toRadixString(16)).join(),
+      };
+      expect(validCharsetBytes(entry, bytes), isFalse);
+      expect(
+        validCharsetBytes({...entry, 'byteExpectation': null}, [0xd6, 0xd0]),
+        isFalse,
+      );
+    },
+  );
+
+  test('audited charset vectors pin independent bytes and Unicode', () {
+    const vectors = {
+      'enc-simplified-chinese': ['d6d0cec4d0a1cbb5', '中文小说'],
+      'enc-gb18030-extension': ['81308130', '\u0080'],
+      'enc-gbk-pua': ['aaa1', '\ue000'],
+      'enc-invalid-sequence': ['8130ff', '�'],
+      'enc-truncated-sequence': ['813081', '�'],
+    };
+    for (final vector in vectors.entries) {
+      final entry = entries.singleWhere((e) => e['id'] == vector.key);
+      expect(
+        File('$fixtureRootPath/${entry['fixture']}').readAsBytesSync(),
+        hexDecode(vector.value[0]),
+      );
+      final sidecar = jsonDecode(
+        File('$fixtureRootPath/${entry['expected']}').readAsStringSync(),
+      );
+      expect(sidecar['decoded'], vector.value[1]);
+    }
+    final declaration = entries.singleWhere(
+      (e) => e['id'] == 'enc-declared-disagreement',
+    );
+    expect(
+      File('$fixtureRootPath/${declaration['fixture']}').readAsBytesSync(),
+      [
+        ...ascii.encode('<meta charset="utf-8"><p>'),
+        ...hexDecode('d6d0cec4'),
+        ...ascii.encode('</p>'),
+      ],
+    );
+  });
+
+  test('six-node sidecar preserves every distinct text and image position', () {
+    final entry = entries.singleWhere(
+      (e) => e['id'] == 'content-multi-interleaved',
+    );
+    final sidecar = jsonDecode(
+      File('$fixtureRootPath/${entry['expected']}').readAsStringSync(),
+    ) as Map;
+    expect(sidecar['nodes'], [
+      {'type': 'text', 'text': 'First'},
+      {'type': 'text', 'text': 'Second'},
+      {'type': 'image', 'locator': '/first.jpg'},
+      {'type': 'text', 'text': 'Third'},
+      {'type': 'image', 'locator': '/second.jpg'},
+      {'type': 'text', 'text': 'Fourth'},
+    ]);
+    expect(sidecar.containsKey('paragraphs'), isFalse);
+    expect(sidecar.containsKey('images'), isFalse);
+    expect(jsonEncode(sidecar), isNot(contains('assetId')));
+  });
+
+  test('complete corpus raw manifest and sidecars contain no secrets', () {
+    expect(containsSecretMaterial(manifest), isFalse);
+    for (final file in Directory(
+      fixtureRootPath,
+    ).listSync(recursive: true).whereType<File>()) {
+      expect(
+        containsSecretMaterial(
+          utf8.decode(file.readAsBytesSync(), allowMalformed: true),
+        ),
+        isFalse,
+        reason: file.path,
+      );
+    }
+    for (final entry in entries) {
+      expect(entry['sanitization']['rawAuthenticated'], isFalse);
+      expect(entry['sanitization']['inert'], isTrue);
+    }
+  });
+
+  test('scanner rejects secret structures on every metadata surface', () {
+    for (final secret in [
+      'Authorization: Basic NOT_A_REAL_SECRET',
+      'Bearer NOT_A_REAL_SECRET',
+      'password=NOT_A_REAL_SECRET',
+      'cookie=NOT_A_REAL_SECRET',
+      'token=NOT_A_REAL_SECRET',
+      'PHPSESSID=NOT_A_REAL_SECRET',
+      'jieqiUserInfo=NOT_A_REAL_SECRET',
+      'Cookie: other=NOT_A_REAL_SECRET',
+      'Set-Cookie: other=NOT_A_REAL_SECRET; Path=/',
+      {'password': 'NOT_A_REAL_SECRET'},
+      {'access_token': 'NOT_A_REAL_SECRET'},
+      {'cookie': 'NOT_A_REAL_SECRET'},
+      {'authorization': 'NOT_A_REAL_SECRET'},
+      {'PHPSESSID': 'NOT_A_REAL_SECRET'},
+      {'jieqiUserInfo': 'NOT_A_REAL_SECRET'},
+    ]) {
+      expect(containsSecretMaterial(secret), isTrue);
+      expect(containsSecretMaterial({'notes': secret}), isTrue);
+      expect(containsSecretMaterial(jsonEncode({'expected': secret})), isTrue);
+    }
+  });
+
+  test('scanner allows prose and exact inert sentinel structures', () {
+    for (final safe in [
+      'password policy and cookie names',
+      'Cookie: PHPSESSID=SYNTHETIC_SESSION',
+      'Set-Cookie: A=one; Expires=Wed, 21 Oct 2015 07:28:00 GMT; Path=/',
+      {
+        'cookieNames': ['PHPSESSID', 'jieqiUserInfo'],
+      },
+      {'PHPSESSID': 'SYNTHETIC_SESSION'},
+    ]) {
+      expect(containsSecretMaterial(safe), isFalse);
+    }
+    expect(containsSecretMaterial({'token': 'SYNTHETIC_UNAPPROVED'}), isTrue);
   });
 
   test('required characterization coverage is present', () {

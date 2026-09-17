@@ -1,9 +1,9 @@
 {
   "schema": "f3.2.expected.v1",
   "kind": "encoding",
-  "decoded": "𠀀",
+  "decoded": "",
   "malformed": false,
   "codePoints": [
-    "U+20000"
+    "U+0080"
   ]
 }

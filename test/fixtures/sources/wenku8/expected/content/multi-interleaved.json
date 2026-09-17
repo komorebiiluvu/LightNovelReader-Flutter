@@ -1,0 +1,31 @@
+{
+  "schema": "f3.2.expected.v1",
+  "kind": "chapter-content",
+  "nodes": [
+    {
+      "type": "text",
+      "text": "First"
+    },
+    {
+      "type": "text",
+      "text": "Second"
+    },
+    {
+      "type": "image",
+      "locator": "/first.jpg"
+    },
+    {
+      "type": "text",
+      "text": "Third"
+    },
+    {
+      "type": "image",
+      "locator": "/second.jpg"
+    },
+    {
+      "type": "text",
+      "text": "Fourth"
+    }
+  ],
+  "ordered": true
+}
