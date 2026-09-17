@@ -227,7 +227,9 @@ final class MigrationUnit {
   bool get isRecordFailure =>
       diagnostic == MigrationDiagnosticCode.invalidField ||
       diagnostic == MigrationDiagnosticCode.unsupported ||
-      diagnostic == MigrationDiagnosticCode.missingEvidence;
+      diagnostic == MigrationDiagnosticCode.missingEvidence ||
+      diagnostic == MigrationDiagnosticCode.conflictingEvidence ||
+      diagnostic == MigrationDiagnosticCode.verificationFailed;
 }
 
 final class MigrationPlan {

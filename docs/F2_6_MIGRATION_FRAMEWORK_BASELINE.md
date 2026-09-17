@@ -134,6 +134,12 @@ product-effect handler, receipt, accepted/candidate safe evidence and outcome.
 An injected handler failure rolls back the product effect and evidence; the
 coordinator records a safe failed outcome so other units can proceed.
 
+The coordinator requires both an explicit `MigrationUnitHandler` and an explicit
+`MigrationUnitVerifier`; there is no production no-op handler fallback. The
+handler owns the durable application effect, while the verifier is read-only and
+must read that committed effect back. A receipt, accepted evidence row or
+provisional outcome is never proof of product success by itself.
+
 ## Receipts, outcomes and evidence
 
 Receipt identity is exactly `(datasetId, importerVersion, entityKind, legacyKey)`
@@ -169,10 +175,29 @@ exclusion and without JSON map stringification.
 Retries reuse the same run and existing receipts. A receipt without an accepted
 baseline does not make a failed unit complete; the unit can be retried. Valid
 sibling units are not replayed destructively. Verification counts outcomes for
-the planned run: all expected units with acceptable outcomes produce
-`complete`; failed or conflict coverage produces `partial`; incomplete coverage
-cannot produce `complete`. Verification failures use a safe typed failure and
-never claim completion.
+the planned run only after checking receipt/evidence consistency and successful
+durable readback through the explicit verifier. Only verified units contribute to
+`verified_units`; all expected units must verify and no failed/conflict blocker
+may remain before `complete`. A verifier false result or exception records the
+`verification-failed` diagnostic, preserves already committed durable data and
+leaves the run `partial` (the safe policy for this framework). Incomplete
+coverage cannot produce `complete`.
+
+If a process stops after a unit transaction commits but before verification,
+resume reuses the receipt and accepted baseline and does not replay the handler
+for that committed unit. The verifier reads the durable effect after reopen;
+receipt existence alone still cannot complete the run.
+
+For independently framed malformed book and shelf records, planning retains an
+exact nonempty string `id` when there is exactly one safe `id` field, even when a
+different field contains duplicate keys or invalid content. Missing, empty,
+wrong-type or duplicated `id` fields use a deterministic positional failure key.
+When two records in one input resolve to the same `(entityKind, legacyKey)`, the
+planner emits one explicit `conflicting-evidence` failure unit for that identity
+and keeps distinct siblings independently planned. This deliberate conflict
+record policy matches the v1 schema's unique outcome identity, prevents an
+outcome overwrite from becoming a hidden success, makes `expected_units`
+verifiable, and guarantees the run cannot become `complete`.
 
 The focused tests include a temporary file-backed database that closes and
 reopens before resuming the same run. No production Application Support root,
@@ -194,9 +219,11 @@ schema version, tables, indexes and migration history are unchanged.
 
 Focused F2.6 validation covers scalar/parser cases, malformed input and limits,
 explicit envelope selection, envelope-fatal zero-write behavior, duplicate
-record isolation, run identity, atomic handler rollback, baseline conflicts,
-secret exclusion, byte immutability, state transitions and temporary-file
-reopen/resume. The local validation results are:
+record isolation and stable identities, duplicate-ID conflict policy, run
+identity, explicit handler/verifier behavior, receipt-only false-complete
+prevention, verifier failure/exception handling, atomic handler rollback,
+baseline conflicts, secret exclusion, byte immutability, state transitions and
+temporary-file reopen/resume. The local validation results are:
 
 | Command | Result |
 | --- | --- |
@@ -204,11 +231,11 @@ reopen/resume. The local validation results are:
 | `dart format .` | PASS |
 | `dart format --output=none --set-exit-if-changed .` | PASS |
 | `flutter analyze --no-pub` | PASS, no issues |
-| `flutter test --no-pub` | PASS, 168 tests |
+| `flutter test --no-pub` | PASS, 175 tests |
 | `./tool/verify_generated.ps1` | PASS; generated/schema snapshots unchanged |
 | `git diff --check` | PASS |
 
-The focused F2.6 file contains 15 tests. Remote platform CI is reported only
+The focused F2.6 file contains 22 tests. Remote platform CI is reported only
 after the implementation commit is pushed and actually observed.
 
 This slice proves migration infrastructure and safe persistence mechanics only.

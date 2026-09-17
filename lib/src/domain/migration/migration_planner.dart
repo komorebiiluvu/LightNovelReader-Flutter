@@ -23,13 +23,14 @@ final class MigrationPlanner {
     _planSources(state, units);
     _planReaderPreferences(state, units);
     _planAppPreferences(state, units);
-    if (units.length > limits.maxPlannedUnits) {
+    final normalizedUnits = _normalizeReceiptIdentities(units);
+    if (normalizedUnits.length > limits.maxPlannedUnits) {
       throw const MigrationFailure(MigrationFailureReason.resourceLimit);
     }
     return MigrationPlan(
       inputType: input.inputType,
       runKey: input.runKey,
-      units: units,
+      units: normalizedUnits,
     );
   }
 
@@ -101,7 +102,12 @@ final class MigrationPlanner {
     for (var index = 0; index < raw.values.length; index++) {
       final record = raw.values[index];
       if (record is! RawJsonObject || record.containsDuplicateKeysDeep()) {
-        units.add(_failed(MigrationEntityKind.book, 'bookLibrary[$index]'));
+        units.add(
+          _failed(
+            MigrationEntityKind.book,
+            _stableFramedKey(record, 'bookLibrary', index, 'id'),
+          ),
+        );
         continue;
       }
       units.add(_bookUnit(record, index));
@@ -213,7 +219,12 @@ final class MigrationPlanner {
     for (var index = 0; index < raw.values.length; index++) {
       final record = raw.values[index];
       if (record is! RawJsonObject || record.containsDuplicateKeysDeep()) {
-        units.add(_failed(MigrationEntityKind.shelf, 'shelves[$index]'));
+        units.add(
+          _failed(
+            MigrationEntityKind.shelf,
+            _stableFramedKey(record, 'shelves', index, 'id'),
+          ),
+        );
         continue;
       }
       final values = record.uniqueValues();
@@ -430,6 +441,52 @@ final class MigrationPlanner {
     legacyKey: key,
     diagnostic: MigrationDiagnosticCode.invalidField,
   );
+
+  String _stableFramedKey(
+    RawJsonValue? record,
+    String collection,
+    int index,
+    String idField,
+  ) {
+    if (record is RawJsonObject) {
+      final idFields = record.fields.where((field) => field.name == idField);
+      if (idFields.length == 1) {
+        final id = idFields.single.value;
+        if (id is RawJsonString && id.value.isNotEmpty) return id.value;
+      }
+    }
+    return '$collection[$index]';
+  }
+
+  List<MigrationUnit> _normalizeReceiptIdentities(List<MigrationUnit> units) {
+    final seen = <({MigrationEntityKind kind, String key})>{};
+    final duplicateKeys = <({MigrationEntityKind kind, String key})>{};
+    for (final unit in units) {
+      final identity = (kind: unit.entityKind, key: unit.legacyKey);
+      if (!seen.add(identity)) duplicateKeys.add(identity);
+    }
+    if (duplicateKeys.isEmpty) return units;
+
+    final emitted = <({MigrationEntityKind kind, String key})>{};
+    final normalized = <MigrationUnit>[];
+    for (final unit in units) {
+      final identity = (kind: unit.entityKind, key: unit.legacyKey);
+      if (!duplicateKeys.contains(identity)) {
+        normalized.add(unit);
+        continue;
+      }
+      if (emitted.add(identity)) {
+        normalized.add(
+          MigrationUnit(
+            entityKind: unit.entityKind,
+            legacyKey: unit.legacyKey,
+            diagnostic: MigrationDiagnosticCode.conflictingEvidence,
+          ),
+        );
+      }
+    }
+    return normalized;
+  }
 
   void _checkPlannedUnits(List<MigrationUnit> units) {
     if (units.length > limits.maxPlannedUnits) {

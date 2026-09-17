@@ -20,6 +20,11 @@ typedef MigrationUnitHandler = Future<void> Function(
   AppDatabase database,
 );
 
+typedef MigrationUnitVerifier = Future<bool> Function(
+  MigrationUnit unit,
+  AppDatabase database,
+);
+
 final class MigrationOutcomeRecord {
   const MigrationOutcomeRecord({
     required this.key,
@@ -194,6 +199,7 @@ final class MigrationRepository {
         unit,
         SafeLegacyValuePurpose.acceptedBaseline,
       );
+      final previousOutcome = await _outcomeFor(key, unit);
 
       if (unit.isRecordFailure) {
         await _insertReceipt(key, unit);
@@ -236,6 +242,21 @@ final class MigrationRepository {
         );
         failureInjector?.call(MigrationFailurePoint.beforeCommit);
         return MigrationOutcome.conflict;
+      }
+
+      if (receiptExists &&
+          baseline.isEmpty &&
+          previousOutcome != null &&
+          _isAcceptable(previousOutcome)) {
+        failureInjector?.call(MigrationFailurePoint.beforeOutcome);
+        await _upsertOutcome(
+          key: key,
+          unit: unit,
+          outcome: MigrationOutcome.unchanged,
+          diagnostic: unit.diagnostic,
+        );
+        failureInjector?.call(MigrationFailurePoint.beforeCommit);
+        return MigrationOutcome.unchanged;
       }
 
       // A failed unit may already have a receipt but no accepted baseline. It
@@ -284,7 +305,11 @@ final class MigrationRepository {
     });
   });
 
-  Future<MigrationRun> verifyRun(MigrationRunKey key) => _safe(() async {
+  Future<MigrationRun> verifyRun({
+    required MigrationRunKey key,
+    required List<MigrationUnit> units,
+    required MigrationUnitVerifier verifier,
+  }) => _safe(() async {
     try {
       return await database.transaction(() async {
         final current = await _requireRun(key);
@@ -293,27 +318,63 @@ final class MigrationRepository {
             MigrationFailureReason.invalidStateTransition,
           );
         }
-        final rows = await _select(
-          'SELECT outcome,count(*) AS n FROM record_outcomes '
-          'WHERE dataset_id=? AND importer_version=? AND input_digest=? '
-          'GROUP BY outcome ORDER BY outcome',
-          [key.datasetId, key.importerVersion, key.inputDigest],
-        );
-        var total = 0;
+        if (units.length != current.expectedUnits) {
+          throw const MigrationFailure(
+            MigrationFailureReason.verificationFailure,
+          );
+        }
+        final identities = <({MigrationEntityKind kind, String key})>{};
+        if (!units.every(
+          (unit) =>
+              identities.add((kind: unit.entityKind, key: unit.legacyKey)),
+        )) {
+          throw const MigrationFailure(
+            MigrationFailureReason.verificationFailure,
+          );
+        }
         var verified = 0;
         var bad = false;
-        for (final row in rows) {
-          final outcome = row.read<String>('outcome');
-          final count = row.read<int>('n');
-          total += count;
-          if (outcome == MigrationOutcome.failed.wireName ||
-              outcome == MigrationOutcome.conflict.wireName) {
+        for (final unit in units) {
+          final outcome = await _outcomeFor(key, unit);
+          var unitVerified = false;
+          if (outcome == null || !_isAcceptable(outcome)) {
             bad = true;
           } else {
-            verified += count;
+            try {
+              final receipt = await _receiptExists(
+                unit,
+                key.datasetId,
+                key.importerVersion,
+              );
+              final baseline = await _safeRows(
+                key.datasetId,
+                key.importerVersion,
+                unit,
+                SafeLegacyValuePurpose.acceptedBaseline,
+              );
+              final evidenceConsistent =
+                  receipt &&
+                  (unit.evidence.isEmpty ||
+                      _sameEvidence(baseline, unit.evidence));
+              unitVerified =
+                  evidenceConsistent && await verifier(unit, database);
+            } catch (_) {
+              unitVerified = false;
+            }
+            if (unitVerified) {
+              verified++;
+            } else {
+              bad = true;
+              await _upsertOutcome(
+                key: key,
+                unit: unit,
+                outcome: MigrationOutcome.failed,
+                diagnostic: MigrationDiagnosticCode.verificationFailed,
+              );
+            }
           }
         }
-        final complete = total == current.expectedUnits && !bad;
+        final complete = verified == current.expectedUnits && !bad;
         final state = complete
             ? MigrationRunState.complete
             : bad
@@ -539,6 +600,24 @@ final class MigrationRepository {
     );
   }
 
+  Future<MigrationOutcome?> _outcomeFor(
+    MigrationRunKey key,
+    MigrationUnit unit,
+  ) async {
+    final rows = await _select(
+      'SELECT outcome FROM record_outcomes WHERE dataset_id=? AND '
+      'importer_version=? AND input_digest=? AND entity_kind=? AND legacy_key=?',
+      [
+        key.datasetId,
+        key.importerVersion,
+        key.inputDigest,
+        unit.entityKind.wireName,
+        unit.legacyKey,
+      ],
+    );
+    return rows.isEmpty ? null : _outcome(rows.single.read<String>('outcome'));
+  }
+
   Future<bool> _receiptExists(
     MigrationUnit unit,
     String datasetId,
@@ -711,6 +790,10 @@ final class MigrationRepository {
     List<SafeLegacyEvidence> stored,
     List<SafeLegacyEvidence> current,
   ) => candidateIdFor(stored) == candidateIdFor(current);
+
+  static bool _isAcceptable(MigrationOutcome outcome) =>
+      outcome != MigrationOutcome.failed &&
+      outcome != MigrationOutcome.conflict;
 
   static String _candidateId(Iterable<SafeLegacyEvidence> evidence) {
     return candidateIdFor(evidence);

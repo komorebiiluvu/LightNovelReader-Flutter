@@ -2,21 +2,21 @@ import '../../domain/migration/migration_failure.dart';
 import '../../domain/migration/migration_models.dart';
 import '../../domain/migration/migration_planner.dart';
 import '../../domain/migration/raw_json.dart';
-import '../persistence/database.dart' show AppDatabase;
 import 'migration_repository.dart';
 
 final class MigrationCoordinator {
   MigrationCoordinator(
     this.repository, {
+    required this.handler,
+    required this.verifier,
     MigrationResourceLimits limits = const MigrationResourceLimits(),
-    MigrationUnitHandler? handler,
     this.failureInjector,
-  }) : planner = MigrationPlanner(limits: limits),
-       handler = handler ?? _noopHandler;
+  }) : planner = MigrationPlanner(limits: limits);
 
   final MigrationRepository repository;
   final MigrationPlanner planner;
   final MigrationUnitHandler handler;
+  final MigrationUnitVerifier verifier;
   final MigrationFailureInjector? failureInjector;
 
   Future<MigrationRun> importInput(MigrationInput input) async {
@@ -34,7 +34,11 @@ final class MigrationCoordinator {
     if (run.state == MigrationRunState.complete) return run;
 
     if (run.state == MigrationRunState.verifying) {
-      return repository.verifyRun(run.key);
+      return repository.verifyRun(
+        key: run.key,
+        units: plan.units,
+        verifier: verifier,
+      );
     }
     run = await repository.transition(run.key, MigrationRunState.applying);
 
@@ -57,11 +61,10 @@ final class MigrationCoordinator {
       }
     }
     run = await repository.transition(run.key, MigrationRunState.verifying);
-    return repository.verifyRun(run.key);
+    return repository.verifyRun(
+      key: run.key,
+      units: plan.units,
+      verifier: verifier,
+    );
   }
-
-  static Future<void> _noopHandler(
-    MigrationUnit unit,
-    AppDatabase database,
-  ) async {}
 }

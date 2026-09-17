@@ -40,6 +40,37 @@ Future<int> count(AppDatabase db, String table) async =>
     (await db.customSelect('SELECT count(*) AS n FROM $table').getSingle())
         .read<int>('n');
 
+Future<void> syntheticHandler(MigrationUnit unit, AppDatabase database) =>
+    database.customStatement(
+      'INSERT INTO synthetic_effects(legacy_key,canonical_value) VALUES (?,?) '
+      'ON CONFLICT(legacy_key) DO UPDATE SET canonical_value=excluded.canonical_value',
+      [unit.legacyKey, candidateIdFor(unit.evidence)],
+    );
+
+Future<bool> syntheticVerifier(MigrationUnit unit, AppDatabase database) async {
+  final rows = await database
+      .customSelect(
+        'SELECT canonical_value FROM synthetic_effects WHERE legacy_key=?',
+        variables: [Variable<String>(unit.legacyKey)],
+      )
+      .get();
+  return rows.length == 1 &&
+      rows.single.read<String>('canonical_value') ==
+          candidateIdFor(unit.evidence);
+}
+
+MigrationCoordinator coordinatorFor(
+  MigrationRepository repository, {
+  MigrationUnitHandler handler = syntheticHandler,
+  MigrationUnitVerifier verifier = syntheticVerifier,
+  MigrationFailureInjector? failureInjector,
+}) => MigrationCoordinator(
+  repository,
+  handler: handler,
+  verifier: verifier,
+  failureInjector: failureInjector,
+);
+
 void main() {
   late AppDatabase db;
   late MigrationRepository repository;
@@ -54,6 +85,10 @@ void main() {
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
     await db.customSelect('SELECT 1').get();
+    await db.customStatement(
+      'CREATE TABLE synthetic_effects('
+      'legacy_key TEXT PRIMARY KEY, canonical_value TEXT NOT NULL)',
+    );
     repository = MigrationRepository(db);
   });
 
@@ -176,7 +211,7 @@ void main() {
     'explicit backup and snapshot types have distinct envelope rules',
     () async {
       await repository.ensureDataset('snapshot-dataset');
-      final coordinator = MigrationCoordinator(repository);
+      final coordinator = coordinatorFor(repository);
       final snapshotRun = await coordinator.importInput(
         snapshot('{"theme":"dark"}'),
       );
@@ -212,7 +247,7 @@ void main() {
 
   test('fatal envelope failure writes no migration rows', () async {
     await repository.ensureDataset('fatal-dataset');
-    final coordinator = MigrationCoordinator(repository);
+    final coordinator = coordinatorFor(repository);
     final invalid = MigrationInput(
       datasetId: 'fatal-dataset',
       inputType: MigrationInputType.legacyBackupV1,
@@ -269,7 +304,7 @@ void main() {
       '{"id":"c","title":"C"}]}',
       datasetId: 'records-dataset',
     );
-    final coordinator = MigrationCoordinator(repository);
+    final coordinator = coordinatorFor(repository);
     final partial = await coordinator.importInput(first);
     expect(partial.state, MigrationRunState.partial);
     final outcomes = await repository.listOutcomes(first.runKey);
@@ -281,7 +316,13 @@ void main() {
         MigrationOutcome.imported,
       ]),
     );
-    expect(await repository.listReceipts('records-dataset', 1), hasLength(3));
+    expect(
+      (await repository.listReceipts(
+        'records-dataset',
+        1,
+      )).map((receipt) => receipt.legacyKey),
+      ['a', 'b', 'c'],
+    );
 
     final corrected = backup(
       '{"bookLibrary":['
@@ -292,8 +333,79 @@ void main() {
     );
     final complete = await coordinator.importInput(corrected);
     expect(complete.state, MigrationRunState.complete);
-    expect(await count(db, 'record_receipts'), 4);
+    expect(await count(db, 'record_receipts'), 3);
   });
+
+  test('malformed record with duplicate non-ID field keeps its stable ID', () {
+    final plan = MigrationPlanner().plan(
+      backup('{"bookLibrary":[{"id":"b","title":"B","title":"duplicate"}]}'),
+    );
+    expect(plan.units.single.legacyKey, 'b');
+    expect(plan.units.single.diagnostic, MigrationDiagnosticCode.invalidField);
+  });
+
+  test('duplicate ID fields use a positional failure key', () {
+    final plan = MigrationPlanner().plan(
+      backup('{"bookLibrary":[{"id":"b","id":"other","title":"B"}]}'),
+    );
+    expect(plan.units.single.legacyKey, 'bookLibrary[0]');
+    expect(plan.units.single.legacyKey, isNot(anyOf('b', 'other')));
+  });
+
+  test('malformed shelf with duplicate non-ID field keeps its stable ID', () {
+    final plan = MigrationPlanner().plan(
+      backup('{"shelves":[{"id":"shelf-b","name":"B","name":"duplicate"}]}'),
+    );
+    expect(plan.units.single.entityKind, MigrationEntityKind.shelf);
+    expect(plan.units.single.legacyKey, 'shelf-b');
+    expect(plan.units.single.diagnostic, MigrationDiagnosticCode.invalidField);
+  });
+
+  test(
+    'duplicate stable IDs become one explicit conflict while siblings survive',
+    () async {
+      await repository.ensureDataset('duplicate-id-dataset');
+      final input = backup(
+        '{"bookLibrary":['
+        '{"id":"same","title":"A"},'
+        '{"id":"same","title":"B"},'
+        '{"id":"sibling","title":"S"}]}',
+        datasetId: 'duplicate-id-dataset',
+      );
+      final plan = MigrationPlanner().plan(input);
+      expect(plan.units, hasLength(2));
+      expect(plan.units.first.legacyKey, 'same');
+      expect(
+        plan.units.first.diagnostic,
+        MigrationDiagnosticCode.conflictingEvidence,
+      );
+
+      final run = await coordinatorFor(repository).importInput(input);
+      expect(run.state, MigrationRunState.partial);
+      expect(run.expectedUnits, 2);
+      expect(run.verifiedUnits, 1);
+      final outcomes = await repository.listOutcomes(input.runKey);
+      expect(
+        outcomes.map(
+          (outcome) => '${outcome.legacyKey}:${outcome.outcome.wireName}',
+        ),
+        containsAll(<String>['same:failed', 'sibling:imported']),
+      );
+      expect(
+        outcomes
+            .singleWhere((outcome) => outcome.legacyKey == 'same')
+            .diagnostic,
+        MigrationDiagnosticCode.conflictingEvidence,
+      );
+      expect(
+        (await repository.listReceipts(
+          'duplicate-id-dataset',
+          1,
+        )).map((receipt) => receipt.legacyKey),
+        ['same', 'sibling'],
+      );
+    },
+  );
 
   test('run identity is exact bytes, dataset, and importer version', () async {
     await repository.ensureDataset('identity-a');
@@ -308,7 +420,7 @@ void main() {
       importerVersion: 2,
     );
     await repository.ensureDataset('identity-a');
-    final coordinator = MigrationCoordinator(repository);
+    final coordinator = coordinatorFor(repository);
     final firstRun = await coordinator.importInput(one);
     final sameRun = await coordinator.importInput(same);
     final changedRun = await coordinator.importInput(changed);
@@ -324,7 +436,7 @@ void main() {
 
   test('accepted baseline stays immutable and changed evidence becomes conflict candidate', () async {
     await repository.ensureDataset('conflict-dataset');
-    final coordinator = MigrationCoordinator(repository);
+    final coordinator = coordinatorFor(repository);
     final first = backup(
       '{"bookLibrary":[{"id":"book","title":"Original"}]}',
       datasetId: 'conflict-dataset',
@@ -377,19 +489,18 @@ void main() {
   test(
     'handler mutation rolls back atomically while sibling units commit',
     () async {
-      await db.customStatement(
-        'CREATE TABLE synthetic_effects(legacy_key TEXT PRIMARY KEY)',
-      );
       await repository.ensureDataset('atomic-dataset');
       final coordinator = MigrationCoordinator(
         repository,
         handler: (unit, database) async {
           await database.customStatement(
-            'INSERT INTO synthetic_effects(legacy_key) VALUES (?)',
-            [unit.legacyKey],
+            'INSERT INTO synthetic_effects(legacy_key,canonical_value) '
+            'VALUES (?,?)',
+            [unit.legacyKey, candidateIdFor(unit.evidence)],
           );
           if (unit.legacyKey == 'b') throw StateError('synthetic failure');
         },
+        verifier: syntheticVerifier,
       );
       final input = backup(
         '{"bookLibrary":[{"id":"a","title":"A"},{"id":"b","title":"B"}]}',
@@ -417,6 +528,10 @@ void main() {
     );
     var fileDb = AppDatabase(NativeDatabase(File(path)));
     await fileDb.customSelect('SELECT 1').get();
+    await fileDb.customStatement(
+      'CREATE TABLE IF NOT EXISTS synthetic_effects('
+      'legacy_key TEXT PRIMARY KEY, canonical_value TEXT NOT NULL)',
+    );
     var fileRepository = MigrationRepository(fileDb);
     await fileRepository.ensureDataset('file-dataset');
     var failOnce = true;
@@ -427,7 +542,9 @@ void main() {
           failOnce = false;
           throw StateError('interrupt');
         }
+        await syntheticHandler(unit, database);
       },
+      verifier: syntheticVerifier,
     );
     final first = await firstCoordinator.importInput(bytes);
     expect(first.state, MigrationRunState.partial);
@@ -435,11 +552,22 @@ void main() {
 
     fileDb = AppDatabase(NativeDatabase(File(path)));
     await fileDb.customSelect('SELECT 1').get();
+    await fileDb.customStatement(
+      'CREATE TABLE IF NOT EXISTS synthetic_effects('
+      'legacy_key TEXT PRIMARY KEY, canonical_value TEXT NOT NULL)',
+    );
     fileRepository = MigrationRepository(fileDb);
-    final resumed = await MigrationCoordinator(fileRepository)
-        .importInput(bytes);
+    var resumedHandlerCalls = 0;
+    final resumed = await coordinatorFor(
+      fileRepository,
+      handler: (unit, database) async {
+        resumedHandlerCalls++;
+        await syntheticHandler(unit, database);
+      },
+    ).importInput(bytes);
     expect(resumed.key, first.key);
     expect(resumed.state, MigrationRunState.complete);
+    expect(resumedHandlerCalls, 1);
     expect(await fileRepository.listReceipts('file-dataset', 1), hasLength(2));
     await fileDb.close();
     await directory.delete(recursive: true);
@@ -459,7 +587,7 @@ void main() {
       inputType: MigrationInputType.legacyBackupV1,
       bytes: original,
     );
-    final run = await MigrationCoordinator(repository).importInput(input);
+    final run = await coordinatorFor(repository).importInput(input);
     expect(run.state, MigrationRunState.complete);
     expect(input.bytes, original);
     final values = await db
@@ -477,6 +605,94 @@ void main() {
     expect(
       outcomes.map((row) => row.read<String>('legacy_key')),
       isNot(contains('SYNTHETIC_SECRET_DO_NOT_STORE')),
+    );
+  });
+
+  test('receipt and outcome alone cannot cause COMPLETE', () async {
+    await repository.ensureDataset('receipt-only-dataset');
+    final input = backup(
+      '{"bookLibrary":[{"id":"manual","title":"Manual"}]}',
+      datasetId: 'receipt-only-dataset',
+    );
+    final plan = MigrationPlanner().plan(input);
+    final run = await repository.createOrReuseRun(
+      key: plan.runKey,
+      mappingVersion: input.mappingVersion,
+      expectedUnits: plan.units.length,
+    );
+    await repository.transition(run.key, MigrationRunState.applying);
+    await repository.upsertReceipt(
+      datasetId: input.datasetId,
+      importerVersion: input.importerVersion,
+      entityKind: plan.units.single.entityKind,
+      legacyKey: plan.units.single.legacyKey,
+    );
+    await repository.upsertOutcome(
+      key: run.key,
+      unit: plan.units.single,
+      outcome: MigrationOutcome.imported,
+    );
+    await repository.transition(run.key, MigrationRunState.verifying);
+    final verified = await repository.verifyRun(
+      key: run.key,
+      units: plan.units,
+      verifier: syntheticVerifier,
+    );
+    expect(verified.state, MigrationRunState.partial);
+    expect(verified.verifiedUnits, 0);
+    expect(
+      (await repository.getOutcome(
+        run.key,
+        entityKind: plan.units.single.entityKind,
+        legacyKey: plan.units.single.legacyKey,
+      ))!.diagnostic,
+      MigrationDiagnosticCode.verificationFailed,
+    );
+  });
+
+  test(
+    'verifier false blocks COMPLETE without clearing durable state',
+    () async {
+      await repository.ensureDataset('false-verifier-dataset');
+      final input = backup(
+        '{"bookLibrary":[{"id":"false","title":"False"}]}',
+        datasetId: 'false-verifier-dataset',
+      );
+      final run = await coordinatorFor(
+        repository,
+        verifier: (unit, database) async => false,
+      ).importInput(input);
+      expect(run.state, MigrationRunState.partial);
+      expect(await count(db, 'synthetic_effects'), 1);
+      expect(
+        (await repository.getOutcome(
+          input.runKey,
+          entityKind: MigrationEntityKind.book,
+          legacyKey: 'false',
+        ))!.diagnostic,
+        MigrationDiagnosticCode.verificationFailed,
+      );
+    },
+  );
+
+  test('verifier exception becomes a safe verification failure', () async {
+    await repository.ensureDataset('exception-verifier-dataset');
+    final input = backup(
+      '{"bookLibrary":[{"id":"exception","title":"Exception"}]}',
+      datasetId: 'exception-verifier-dataset',
+    );
+    final run = await coordinatorFor(
+      repository,
+      verifier: (unit, database) async => throw StateError('verification'),
+    ).importInput(input);
+    expect(run.state, MigrationRunState.partial);
+    expect(
+      (await repository.getOutcome(
+        input.runKey,
+        entityKind: MigrationEntityKind.book,
+        legacyKey: 'exception',
+      ))!.diagnostic,
+      MigrationDiagnosticCode.verificationFailed,
     );
   });
 
