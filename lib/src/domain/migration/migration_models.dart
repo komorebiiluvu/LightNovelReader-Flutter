@@ -216,6 +216,7 @@ final class MigrationUnit {
     this.evidence = const [],
     this.omittedFieldCount = 0,
     this.diagnostic,
+    this.fatal,
   });
 
   final MigrationEntityKind entityKind;
@@ -224,12 +225,17 @@ final class MigrationUnit {
   final int omittedFieldCount;
   final MigrationDiagnosticCode? diagnostic;
 
+  /// F2.7 can preserve a record with a best-effort fallback. A null value
+  /// retains the F2.6 diagnostic-derived behavior for existing callers.
+  final bool? fatal;
+
   bool get isRecordFailure =>
-      diagnostic == MigrationDiagnosticCode.invalidField ||
-      diagnostic == MigrationDiagnosticCode.unsupported ||
-      diagnostic == MigrationDiagnosticCode.missingEvidence ||
-      diagnostic == MigrationDiagnosticCode.conflictingEvidence ||
-      diagnostic == MigrationDiagnosticCode.verificationFailed;
+      fatal ??
+      (diagnostic == MigrationDiagnosticCode.invalidField ||
+          diagnostic == MigrationDiagnosticCode.unsupported ||
+          diagnostic == MigrationDiagnosticCode.missingEvidence ||
+          diagnostic == MigrationDiagnosticCode.conflictingEvidence ||
+          diagnostic == MigrationDiagnosticCode.verificationFailed);
 }
 
 final class MigrationPlan {
@@ -254,6 +260,65 @@ final class MigrationVerificationResult {
   final MigrationRunState state;
   final int expectedUnits;
   final int verifiedUnits;
+}
+
+/// The concrete product effect and its disposition, returned by a typed
+/// migration applier. This is intentionally separate from [MigrationUnit],
+/// which contains only sanitized identity/evidence.
+enum MigrationEffectKind { materialized, preservationOnly }
+
+final class MigrationApplyResult {
+  const MigrationApplyResult({
+    required this.outcome,
+    this.diagnostic,
+    this.effect = MigrationEffectKind.materialized,
+  });
+
+  const MigrationApplyResult.imported({MigrationDiagnosticCode? diagnostic})
+    : this(outcome: MigrationOutcome.imported, diagnostic: diagnostic);
+
+  const MigrationApplyResult.unchanged({MigrationDiagnosticCode? diagnostic})
+    : this(outcome: MigrationOutcome.unchanged, diagnostic: diagnostic);
+
+  const MigrationApplyResult.preservedUnresolved({
+    MigrationDiagnosticCode? diagnostic,
+  }) : this(
+         outcome: MigrationOutcome.preservedUnresolved,
+         diagnostic: diagnostic,
+       );
+
+  const MigrationApplyResult.deferredPreserved()
+    : this(
+        outcome: MigrationOutcome.deferredPreserved,
+        effect: MigrationEffectKind.preservationOnly,
+      );
+
+  const MigrationApplyResult.intentionallyExcluded({
+    MigrationDiagnosticCode? diagnostic,
+  }) : this(
+         outcome: MigrationOutcome.intentionallyExcluded,
+         diagnostic: diagnostic,
+         effect: MigrationEffectKind.preservationOnly,
+       );
+
+  const MigrationApplyResult.conflict({
+    MigrationDiagnosticCode diagnostic =
+        MigrationDiagnosticCode.conflictingEvidence,
+  }) : this(outcome: MigrationOutcome.conflict, diagnostic: diagnostic);
+
+  const MigrationApplyResult.failed({
+    MigrationDiagnosticCode diagnostic = MigrationDiagnosticCode.invalidField,
+  }) : this(outcome: MigrationOutcome.failed, diagnostic: diagnostic);
+
+  final MigrationOutcome outcome;
+  final MigrationDiagnosticCode? diagnostic;
+  final MigrationEffectKind effect;
+}
+
+enum MigrationVerificationDisposition {
+  verified,
+  targetConflict,
+  verificationFailure,
 }
 
 String _validatedText(String value) {

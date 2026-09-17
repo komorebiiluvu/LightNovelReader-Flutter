@@ -25,6 +25,17 @@ typedef MigrationUnitVerifier = Future<bool> Function(
   AppDatabase database,
 );
 
+typedef MigrationUnitApplier = Future<MigrationApplyResult> Function(
+  MigrationUnit unit,
+  AppDatabase database,
+);
+
+typedef MigrationTypedUnitVerifier =
+    Future<MigrationVerificationDisposition> Function(
+      MigrationUnit unit,
+      AppDatabase database,
+    );
+
 final class MigrationOutcomeRecord {
   const MigrationOutcomeRecord({
     required this.key,
@@ -200,7 +211,6 @@ final class MigrationRepository {
         SafeLegacyValuePurpose.acceptedBaseline,
       );
       final previousOutcome = await _outcomeFor(key, unit);
-
       if (unit.isRecordFailure) {
         await _insertReceipt(key, unit);
         failureInjector?.call(MigrationFailurePoint.beforeOutcome);
@@ -286,6 +296,101 @@ final class MigrationRepository {
       return receiptExists
           ? MigrationOutcome.unchanged
           : MigrationOutcome.imported;
+    });
+  });
+
+  /// Typed F2.7 counterpart to [applyUnit]. The older void/bool API remains
+  /// intact for F2.6 callers. A typed result lets concrete conversion report
+  /// preserved-unresolved and deferred-preserved without weakening the
+  /// receipt/evidence/product atomicity boundary.
+  Future<MigrationOutcome> applyUnitWithResult({
+    required MigrationRunKey key,
+    required MigrationUnit unit,
+    required MigrationUnitApplier applier,
+    MigrationFailureInjector? failureInjector,
+  }) => _safe(() async {
+    return database.transaction(() async {
+      failureInjector?.call(MigrationFailurePoint.beforeHandler);
+      final baseline = await _safeRows(
+        key.datasetId,
+        key.importerVersion,
+        unit,
+        SafeLegacyValuePurpose.acceptedBaseline,
+      );
+      if (unit.isRecordFailure) {
+        await _insertReceipt(key, unit);
+        failureInjector?.call(MigrationFailurePoint.beforeOutcome);
+        await _upsertOutcome(
+          key: key,
+          unit: unit,
+          outcome: MigrationOutcome.failed,
+          diagnostic: unit.diagnostic,
+        );
+        failureInjector?.call(MigrationFailurePoint.beforeCommit);
+        return MigrationOutcome.failed;
+      }
+
+      if (baseline.isNotEmpty && _sameEvidence(baseline, unit.evidence)) {
+        failureInjector?.call(MigrationFailurePoint.beforeOutcome);
+        await _upsertOutcome(
+          key: key,
+          unit: unit,
+          outcome: MigrationOutcome.unchanged,
+          diagnostic: unit.diagnostic,
+        );
+        failureInjector?.call(MigrationFailurePoint.beforeCommit);
+        return MigrationOutcome.unchanged;
+      }
+
+      if (baseline.isNotEmpty && !_sameEvidence(baseline, unit.evidence)) {
+        await _insertReceipt(key, unit);
+        await _insertEvidence(
+          key: key,
+          unit: unit,
+          purpose: SafeLegacyValuePurpose.conflictCandidate,
+        );
+        failureInjector?.call(MigrationFailurePoint.beforeOutcome);
+        await _upsertOutcome(
+          key: key,
+          unit: unit,
+          outcome: MigrationOutcome.conflict,
+          diagnostic: MigrationDiagnosticCode.conflictingEvidence,
+        );
+        failureInjector?.call(MigrationFailurePoint.beforeCommit);
+        return MigrationOutcome.conflict;
+      }
+
+      // Receipt-without-baseline is the retry path after an interrupted or
+      // failed unit. It must invoke the concrete applier again; receipt alone
+      // is never a successful product effect.
+      final result = await applier(unit, database);
+      failureInjector?.call(MigrationFailurePoint.afterHandler);
+      if (result.outcome == MigrationOutcome.conflict ||
+          result.outcome == MigrationOutcome.failed) {
+        await _insertReceipt(key, unit);
+        await _insertEvidence(
+          key: key,
+          unit: unit,
+          purpose: SafeLegacyValuePurpose.conflictCandidate,
+        );
+      } else {
+        await _insertReceipt(key, unit);
+        await _insertEvidence(
+          key: key,
+          unit: unit,
+          purpose: SafeLegacyValuePurpose.acceptedBaseline,
+        );
+      }
+      failureInjector?.call(MigrationFailurePoint.beforeReceipt);
+      failureInjector?.call(MigrationFailurePoint.beforeOutcome);
+      await _upsertOutcome(
+        key: key,
+        unit: unit,
+        outcome: result.outcome,
+        diagnostic: result.diagnostic ?? unit.diagnostic,
+      );
+      failureInjector?.call(MigrationFailurePoint.beforeCommit);
+      return result.outcome;
     });
   });
 
@@ -408,6 +513,152 @@ final class MigrationRepository {
       } catch (_) {
         // Preserve the stable verification failure below.
       }
+      throw const MigrationFailure(MigrationFailureReason.verificationFailure);
+    }
+  });
+
+  Future<MigrationRun> verifyRunWithResult({
+    required MigrationRunKey key,
+    required List<MigrationUnit> units,
+    required MigrationTypedUnitVerifier verifier,
+  }) => _verifyTyped(
+    key: key,
+    units: units,
+    verifier: verifier,
+    allowComplete: false,
+  );
+
+  /// Re-checks a completed typed run when the same bytes are presented again.
+  /// This is what turns a post-import user edit into an explicit conflict
+  /// instead of returning a stale false COMPLETE result.
+  Future<MigrationRun> verifyCompletedRun({
+    required MigrationRunKey key,
+    required List<MigrationUnit> units,
+    required MigrationTypedUnitVerifier verifier,
+  }) => _verifyTyped(
+    key: key,
+    units: units,
+    verifier: verifier,
+    allowComplete: true,
+  );
+
+  Future<MigrationRun> _verifyTyped({
+    required MigrationRunKey key,
+    required List<MigrationUnit> units,
+    required MigrationTypedUnitVerifier verifier,
+    required bool allowComplete,
+  }) => _safe(() async {
+    try {
+      return await database.transaction(() async {
+        final current = await _requireRun(key);
+        if (current.state != MigrationRunState.verifying &&
+            !(allowComplete && current.state == MigrationRunState.complete)) {
+          throw const MigrationFailure(
+            MigrationFailureReason.invalidStateTransition,
+          );
+        }
+        if (units.length != current.expectedUnits) {
+          throw const MigrationFailure(
+            MigrationFailureReason.verificationFailure,
+          );
+        }
+        final identities = <({MigrationEntityKind kind, String key})>{};
+        if (!units.every(
+          (unit) =>
+              identities.add((kind: unit.entityKind, key: unit.legacyKey)),
+        )) {
+          throw const MigrationFailure(
+            MigrationFailureReason.verificationFailure,
+          );
+        }
+        var verified = 0;
+        var bad = false;
+        for (final unit in units) {
+          final outcome = await _outcomeFor(key, unit);
+          if (outcome == null || !_isAcceptable(outcome)) {
+            bad = true;
+            continue;
+          }
+          final receipt = await _receiptExists(
+            unit,
+            key.datasetId,
+            key.importerVersion,
+          );
+          final baseline = await _safeRows(
+            key.datasetId,
+            key.importerVersion,
+            unit,
+            SafeLegacyValuePurpose.acceptedBaseline,
+          );
+          final evidenceConsistent =
+              receipt &&
+              (unit.evidence.isEmpty || _sameEvidence(baseline, unit.evidence));
+          if (!evidenceConsistent) {
+            bad = true;
+            await _upsertOutcome(
+              key: key,
+              unit: unit,
+              outcome: MigrationOutcome.failed,
+              diagnostic: MigrationDiagnosticCode.verificationFailed,
+            );
+            continue;
+          }
+          final disposition = switch (outcome) {
+            MigrationOutcome.deferredPreserved ||
+            MigrationOutcome.intentionallyExcluded =>
+              MigrationVerificationDisposition.verified,
+            _ => await verifier(unit, database),
+          };
+          switch (disposition) {
+            case MigrationVerificationDisposition.verified:
+              verified++;
+            case MigrationVerificationDisposition.targetConflict:
+              bad = true;
+              await _upsertOutcome(
+                key: key,
+                unit: unit,
+                outcome: MigrationOutcome.conflict,
+                diagnostic: MigrationDiagnosticCode.conflictingEvidence,
+              );
+            case MigrationVerificationDisposition.verificationFailure:
+              bad = true;
+              await _upsertOutcome(
+                key: key,
+                unit: unit,
+                outcome: MigrationOutcome.failed,
+                diagnostic: MigrationDiagnosticCode.verificationFailed,
+              );
+          }
+        }
+        final complete = verified == current.expectedUnits && !bad;
+        final nextState = complete
+            ? MigrationRunState.complete
+            : MigrationRunState.partial;
+        await database.customStatement(
+          'UPDATE migration_runs SET state=?,verified_units=? WHERE '
+          'dataset_id=? AND importer_version=? AND input_digest=?',
+          [
+            nextState.name,
+            verified,
+            key.datasetId,
+            key.importerVersion,
+            key.inputDigest,
+          ],
+        );
+        return MigrationRun(
+          key: key,
+          mappingVersion: current.mappingVersion,
+          state: nextState,
+          expectedUnits: current.expectedUnits,
+          verifiedUnits: verified,
+        );
+      });
+    } on MigrationFailure {
+      rethrow;
+    } catch (_) {
+      try {
+        await transition(key, MigrationRunState.failed, verifiedUnits: 0);
+      } catch (_) {}
       throw const MigrationFailure(MigrationFailureReason.verificationFailure);
     }
   });

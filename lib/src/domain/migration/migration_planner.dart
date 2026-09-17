@@ -14,9 +14,7 @@ final class MigrationPlanner {
   final MigrationResourceLimits limits;
 
   MigrationPlan plan(MigrationInput input) {
-    final root = RawJsonParser(limits: limits)
-        .parse(input.bytes, allowDuplicateKeys: true);
-    final state = _validatedState(root, input.inputType);
+    final state = parseState(input);
     final units = <MigrationUnit>[];
     _planBookLibrary(state, units);
     _planShelves(state, units);
@@ -32,6 +30,15 @@ final class MigrationPlanner {
       runKey: input.runKey,
       units: normalizedUnits,
     );
+  }
+
+  /// Parses and validates the selected F2 input without exposing an untyped
+  /// JSON bag to application handlers. Concrete planners may use this same
+  /// boundary to construct their own typed payloads.
+  RawJsonObject parseState(MigrationInput input) {
+    final root = RawJsonParser(limits: limits)
+        .parse(input.bytes, allowDuplicateKeys: true);
+    return _validatedState(root, input.inputType);
   }
 
   RawJsonObject _validatedState(

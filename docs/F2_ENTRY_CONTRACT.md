@@ -8,7 +8,7 @@ Human approval: **APPROVED**. Approval date: **2026-09-16**.
 Approved by: Human project owner.
 Current implementation status: **F2.1 IMPLEMENTED / ACCEPTED; F2.2 IMPLEMENTED /
 ACCEPTED; F2.3 EXIT APPROVED; F2.4 EXIT APPROVED; F2.5 EXIT APPROVED; F2.6
-EXIT APPROVED; F2.7 NOT STARTED / NOT AUTHORIZED**.
+EXIT APPROVED; F2.7 IMPLEMENTED — REVIEW PENDING**.
 F2.4 human exit approval: **2026-09-17**, recorded in
 [Library / Groups Baseline](F2_4_LIBRARY_GROUPS_BASELINE.md).
 F2.3 human exit approval: **2026-09-17**, recorded in
@@ -19,6 +19,10 @@ they do not authorize implementation beyond the current slice or F2 exit.
 F2.6 implementation and exit evidence are recorded in the
 [Migration Framework Baseline](F2_6_MIGRATION_FRAMEWORK_BASELINE.md). F2.6
 human exit approval is recorded there for **2026-09-17**.
+F2.7 implementation evidence and the aggregate F2 review record are recorded
+in the [F2.7 Legacy Import Baseline](F2_7_LEGACY_IMPORT_BASELINE.md) and
+[F2 Exit Evidence](F2_EXIT_EVIDENCE.md). F2 exit remains **NOT APPROVED / REVIEW
+PENDING**; F3 remains **NOT STARTED / NOT AUTHORIZED**.
 
 This is a proposed normative contract: MUST/MUST NOT become implementation
 requirements only after explicit human acceptance of this document and

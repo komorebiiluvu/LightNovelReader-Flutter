@@ -1,8 +1,13 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:light_novel_reader/src/data/migration/legacy_state_import_service.dart';
 import 'package:light_novel_reader/src/data/persistence/database.dart';
 import 'package:light_novel_reader/src/data/persistence/database_open.dart';
+import 'package:light_novel_reader/src/domain/migration/migration_models.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +23,27 @@ void main() {
     const book = ' wk8-00042/#.文😀 ';
     try {
       db = await openAppDatabase(storageRoot: () async => root);
+      const migrationDataset = 'f2-7-packaged-smoke';
+      final migration = LegacyStateImportService(db);
+      await migration.repository.ensureDataset(migrationDataset);
+      final imported = await migration.importWithReport(
+        MigrationInput(
+          datasetId: migrationDataset,
+          inputType: MigrationInputType.legacyIosSnapshotV1,
+          bytes: utf8.encode(
+            '{"theme":"dark","savedIDs":["wk8-00042"],'
+            '"sourceByID":{"wk8-00042":"文库8(在线)"},'
+            '"bookLibrary":[{"id":"wk8-00042","title":"Smoke",'
+            '"author":"Test","tags":["f2.7"],"source":"文库8(在线)",'
+            '"intro":"Packaged migration","totalChapters":1,'
+            '"lastChapter":0,"hasUpdate":false,"hits":0,"coverIndex":0}],'
+            '"lastChapterByID":{"wk8-00042":0},'
+            '"readBookIDs":["wk8-00042"]}',
+          ),
+        ),
+      );
+      expect(imported.run.state, MigrationRunState.complete);
+      expect(imported.report.accentUnavailable, isTrue);
       await db.transaction(() async {
         await db!.customStatement(
           "INSERT INTO source_registrations VALUES ('smoke-source','Smoke','unresolved')",
@@ -31,7 +57,20 @@ void main() {
       db = await openAppDatabase(storageRoot: () async => root);
       expect(
         (await db
-                .customSelect('SELECT book_id FROM library_entries')
+                .customSelect(
+                  'SELECT book_id FROM library_entries WHERE source_id=?',
+                  variables: [const Variable<String>('builtin.wenku8')],
+                )
+                .getSingle())
+            .read<String>('book_id'),
+        'wk8-00042',
+      );
+      expect(
+        (await db
+                .customSelect(
+                  'SELECT book_id FROM library_entries WHERE source_id=?',
+                  variables: [const Variable<String>('smoke-source')],
+                )
                 .getSingle())
             .read<String>('book_id'),
         book,
