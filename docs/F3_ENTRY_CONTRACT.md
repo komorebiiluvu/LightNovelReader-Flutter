@@ -482,17 +482,17 @@ F3.4 Wenku8 Pure Parser + Request Builder is **AUTHORIZED**. F3.5–F3.7 remain
 not approve a decoder, charset, HTML or DOM dependency; any critical dependency
 requires its own dependency review, ADR and Human approval.
 
-## 17. F3.4 parser dependency proposal checkpoint — 2026-09-18
+## 17. F3.4 parser dependency acceptance checkpoint — 2026-09-18
 
-[ADR 0006](adr/0006-f3-parser-dependencies.md) is **PROPOSED / NOT ACCEPTED**.
-It evaluates the Dart UTF-8 capability, `charset_codec: 0.1.1` for
-GBK/GB2312-compatible and GB18030 decoding, and `html: 0.15.7` for HTML5 DOM
-parsing. It records exact versions, licenses, platform/toolchain evidence,
-GB18030 proof requirements, security boundaries, fixture gates and rejected
-alternatives without changing the accepted F3 semantics.
+[ADR 0006](adr/0006-f3-parser-dependencies.md) is **ACCEPTED** at baseline
+`c0ad8a3b64166c0a95a52aaa9caa9c9d9d04dd51`, approved by the **Human project
+owner** on **2026-09-18**. The accepted dependencies are Dart's existing
+`dart:convert` for UTF-8, `charset_codec: 0.1.1` for GBK/GB2312-compatible and
+GB18030 decoding, and `html: 0.15.7` for HTML5 DOM parsing. The `html` license
+evidence is pub metadata unavailable/unknown with upstream `dart-lang/tools`
+BSD-3-Clause evidence accepted for this dependency decision.
 
-F3.4 remains **AUTHORIZED as a slice**, but implementation that adds or uses a
-proposed decoder or DOM dependency is blocked until ADR 0006 is accepted by the
-Human project owner. No dependency, lockfile entry, parser, decoder or request
-builder implementation is approved by this checkpoint. F3.5–F3.7 remain **NOT
-AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+F3.4 is **AUTHORIZED** for decoder, HTML parser, request builder and
+provider-neutral parsed-structure foundations only. No arbitrary or additional
+dependency is approved. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
+**NOT APPROVED**.

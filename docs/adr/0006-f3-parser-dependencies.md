@@ -1,14 +1,16 @@
 # ADR 0006 — F3.4 Parser Dependencies
 
-Status: **PROPOSED / NOT ACCEPTED**. Human approval: **PENDING**.
+Status: **ACCEPTED**. Human approval: **APPROVED** by the Human project owner
+on **2026-09-18**. Accepted baseline:
+`c0ad8a3b64166c0a95a52aaa9caa9c9d9d04dd51`.
 Proposal date: **2026-09-18**. Slice: **F3.4 — Wenku8 Pure Parser + Request
 Builder**.
 
-This ADR is a dependency proposal only. It does not add a package, change the
-lockfile, implement a decoder, implement an HTML parser, or implement a
-Wenku8 request builder. F3.4 is authorized as a slice, but implementation that
-uses a proposed dependency is blocked until this ADR is accepted by the Human
-project owner. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
+This ADR records the accepted F3.4 dependency set. It does not add a package,
+change the lockfile, implement a decoder, implement an HTML parser, or
+implement a Wenku8 request builder. F3.4 is authorized only for the accepted
+decoder, HTML parser, request builder and provider-neutral parsed-structure
+foundations. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
 APPROVED**.
 
 ## Context
@@ -112,7 +114,7 @@ extraction is implemented by this ADR.
 
 Evidence was checked on **2026-09-18** against the package pages, changelogs,
 API documentation and upstream repositories linked below. Versions are exact
-proposal candidates; they are not approved dependencies.
+candidates reviewed for this ADR; the accepted choices are recorded below.
 
 ### Decoder candidates
 
@@ -132,13 +134,13 @@ pages nondeterministic; F3.4 must not silently guess.
 
 | Candidate | Version / license | Compatibility and maintenance | Parsing and selectors | Dependencies / assessment |
 | --- | --- | --- | --- | --- |
-| `html` | `0.15.7`; pub metadata license is unavailable/unknown; the upstream `dart-lang/tools` repository carries BSD-3-Clause evidence for the maintained `html` package | Min Dart 3.6; pub.dev lists Dart/Flutter support for Android, iOS, Windows, Linux, macOS and web. Published recently by `tools.dart.dev`; 150/160 pub points and a maintained Dart tools repository. | HTML5 tree builder with malformed-input tolerance, DOM traversal, `querySelector`/`querySelectorAll` and deterministic String parsing. The package intentionally dropped non-UTF-8 input support, which reinforces the separate decoder boundary. | `csslib` and `source_span`; no network or browser runtime. **Proposed with upstream BSD-3-Clause license evidence accepted for this proposal; resolved archive/license inventory remains required before addition.** [Package](https://pub.dev/packages/html/versions/0.15.7), [changelog](https://pub.dev/packages/html/changelog), [upstream tools package](https://github.com/dart-lang/tools/tree/main/pkgs/html) |
+| `html` | `0.15.7`; pub metadata license is unavailable/unknown; the upstream `dart-lang/tools` repository carries BSD-3-Clause evidence for the maintained `html` package | Min Dart 3.6; pub.dev lists Dart/Flutter support for Android, iOS, Windows, Linux, macOS and web. Published recently by `tools.dart.dev`; 150/160 pub points and a maintained Dart tools repository. | HTML5 tree builder with malformed-input tolerance, DOM traversal, `querySelector`/`querySelectorAll` and deterministic String parsing. The package intentionally dropped non-UTF-8 input support, which reinforces the separate decoder boundary. | `csslib` and `source_span`; no network or browser runtime. **Accepted with upstream BSD-3-Clause license evidence; resolved archive/license inventory remains required before addition.** [Package](https://pub.dev/packages/html/versions/0.15.7), [changelog](https://pub.dev/packages/html/changelog), [upstream tools package](https://github.com/dart-lang/tools/tree/main/pkgs/html) |
 
 No alternative HTML dependency meets a stronger requirement for this slice.
 `package:xml` is an XML parser, not an HTML5 error-correcting parser; browser
 or WebView parsing is nondeterministic and violates the pure parser boundary.
 
-The proposed license evidence for `html: 0.15.7` is explicit:
+The accepted license evidence for `html: 0.15.7` is explicit:
 
 ```yaml
 html: 0.15.7
@@ -150,19 +152,19 @@ license_decision: accept upstream BSD-3-Clause evidence
 Pub metadata does not expose a recognized package license for this version.
 The `dart-lang/tools` upstream repository carries BSD-3-Clause evidence and
 contains the maintained `html` package, so that upstream evidence is accepted
-for this proposal. Before any dependency addition, the resolved archive and
-license inventory must be recorded and must agree; otherwise the dependency
-remains blocked and this ADR must be amended.
+for this dependency decision. Before any dependency addition, the resolved
+archive and license inventory must be recorded and must agree; otherwise the
+dependency addition remains blocked and this ADR must be amended.
 
-## Proposed decision
+## Accepted decision
 
-Subject to Human approval, use the following exact dependency set in F3.4:
+Use the following exact accepted dependency set in F3.4:
 
-| Concern | Proposed package | Status |
+| Concern | Package | Status |
 | --- | --- | --- |
 | UTF-8 decoding | Dart SDK `dart:convert` | Existing capability; no dependency addition |
-| GBK/GB2312-compatible and GB18030 decoding | `charset_codec: 0.1.1` | Proposed; not accepted |
-| HTML5 parsing and DOM querying | `html: 0.15.7` | Proposed; not accepted |
+| GBK/GB2312-compatible and GB18030 decoding | `charset_codec: 0.1.1` | Accepted |
+| HTML5 parsing and DOM querying | `html: 0.15.7` | Accepted |
 | Request building | Existing source-neutral Dart contracts and `SourceHttpRequest` | No new dependency |
 
 The F3.4 adapter must expose one source-neutral decoder facade and one parser
@@ -239,9 +241,9 @@ parser may generate its own expected sidecar.
 
 | Risk | Mitigation / disposition |
 | --- | --- |
-| `charset_codec` is new, unverified and uses native assets/Rust | Require a clean resolved graph, license/SBOM review, toolchain review and deterministic iOS/Android/Windows smoke before acceptance. If any target fails, stop and amend this ADR; do not silently substitute. |
+| `charset_codec` is new, unverified and uses native assets/Rust | Require a clean resolved graph, license/SBOM review, toolchain review and deterministic iOS/Android/Windows smoke before package addition/use. If any target fails, stop and amend this ADR; do not silently substitute. |
 | GB18030 mapping differs from the F3.2 oracle | Pin the true four-byte and additional independent vectors; strict byte/Unicode assertions block acceptance. |
-| `html` pub metadata leaves the license unknown | The upstream `dart-lang/tools` repository provides BSD-3-Clause evidence, which is the proposed license decision. Record the resolved archive/license inventory before any addition and amend this ADR if the archive disagrees. |
+| `html` pub metadata leaves the license unknown | The upstream `dart-lang/tools` repository provides BSD-3-Clause evidence, which is the accepted license decision. Record the resolved archive/license inventory before any addition and amend this ADR if the archive disagrees. |
 | DOM memory or selector complexity grows with hostile pages | Keep F3.3 byte limits, add parser node/attribute budgets and use fixed selectors; record bounded failure as typed parse/incompatible response. |
 | Package behavior changes under a version update | Pin exact versions. Any upgrade or replacement requires an amended ADR, fixture rerun and Human approval. |
 | Encoding metadata is absent or contradictory | Require explicit evidence or return a typed failure; never guess or silently prefer a document declaration. |
@@ -250,13 +252,14 @@ The neutral decoder/parser/request-builder facades are the migration seam. A
 future replacement must preserve the same F3.2 expected outputs and failure
 semantics. A pure-Dart decoder, `charset_converter`, or another HTML parser may
 be reconsidered only through a new or amended Human-approved dependency
-decision. No parser dependency is approved by this proposal.
+decision. No additional parser or decoder dependency is approved by this ADR.
 
 ## Approval record
 
-ADR 0006: **PROPOSED / NOT ACCEPTED**.
-Human approval: **PENDING**.
-F3.4 remains **AUTHORIZED as a slice**, but dependency-using implementation is
-blocked pending this ADR. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
-**NOT APPROVED**. No dependency was added and no F3.4 production implementation
-was started.
+ADR 0006: **ACCEPTED** at baseline
+`c0ad8a3b64166c0a95a52aaa9caa9c9d9d04dd51`.
+Human approval: **APPROVED** by the Human project owner on **2026-09-18**.
+F3.4 is **AUTHORIZED** for the accepted dependency set and foundations only.
+F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. No
+dependency was added and no F3.4 production implementation was started by this
+governance commit.
