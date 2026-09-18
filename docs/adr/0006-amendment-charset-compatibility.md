@@ -129,17 +129,185 @@ version, license/archive evidence, maintenance, Dart/Flutter compatibility,
 GBK and GB18030 mappings, PUA behavior, malformed-input behavior, native or
 toolchain requirements, and the resolved transitive graph.
 
-### Question C — upgrade `sqlite3`
+### Question C — change / potentially downgrade `sqlite3`
 
 Changing `sqlite3` to a version compatible with `hooks <2.1.0` is a separate
-decision. Before considering it, review:
+decision. The compatibility investigation must consider a change or potential
+downgrade from the current `sqlite3: 3.6.0`; it must not assume that an upgrade
+is the available direction. Before considering any change, review:
 
 * Drift code-generation and runtime compatibility;
 * SQLite database compatibility and native ABI behavior on iOS, Android and
   Windows; and
 * migration, rollback and packaged-storage risk.
 
-No `sqlite3` upgrade is selected or performed by this amendment.
+No `sqlite3` change or downgrade is selected or performed by this amendment.
+
+## Charset compatibility investigation — 2026-09-18
+
+This section records reproducible probes performed outside the repository. No
+package was added to this repository and no production decoder was written.
+The probes used the frozen F3.2 vectors:
+
+```text
+GBK / legacy Windows CP936-compatible: d6d0cec4d0a1cbb5 -> 中文小说
+GBK / legacy PUA:                     aaa1             -> U+E000
+GB18030:                              81308130         -> U+0080
+invalid strict:                       8130ff           -> failure
+truncated strict:                     813081           -> failure
+query encoding:                       中文小说          -> d6d0cec4d0a1cbb5
+```
+
+The `aaa1` vector is retained exactly as frozen. The evidence below calls it
+legacy Windows CP936-compatible / legacy GBK-compatible where that is more
+precise than claiming that every platform implements the same standards-only
+GBK table. GB18030 remains a distinct codec and is never substituted for GBK.
+
+### Candidate A — `charset_converter: 2.5.1`
+
+Archive and package evidence:
+
+* The pub archive contains a BSD-3-Clause `LICENSE`, has no Dart package
+  dependencies, requires Dart `^3.12.0` and Flutter `>=3.44.0`, and declares
+  Android, iOS, Windows, Linux and macOS plugin implementations.
+* The repository's Flutter 3.47.4 toolchain satisfies the package floor. A
+  temporary Flutter project containing `charset_converter: 2.5.1` and the
+  repository's `sqlite3: 3.6.0` resolved successfully, so the direct graph is
+  **PASS**. This is a graph result only; it does not approve the package.
+* Android delegates to `java.nio.charset.Charset`; iOS delegates to
+  CoreFoundation/NSString; Windows delegates to Win32 code pages. These are
+  different native conversion surfaces, not one shared codec implementation.
+
+The controlled Windows desktop smoke used the package's actual plugin. Its
+results were:
+
+| Vector / behavior | Windows result |
+| --- | --- |
+| Chinese legacy bytes | **PASS** through `gb2312` (Win32 code page 936) |
+| `aaa1 -> U+E000` | **PASS** through `gb2312`; **PASS** through `GB18030` |
+| `81308130 -> U+0080` | **PASS** through `GB18030` |
+| Chinese encode/query bytes | **PASS** through `gb2312` and `GB18030` |
+| strict invalid/truncated input | **FAIL**: Win32 flags used by the plugin returned replacement/legacy code points instead of a deterministic exception |
+| replacement behavior | **UNPROVEN as a contract**: replacement occurred on Windows, but no explicit replacement mode exists |
+| `GBK`, `CP936`, `windows-936` labels | **FAIL** on Windows: plugin lookup rejected these labels |
+| `gb2312` label | **PASS** as the package's Windows alias for code page 936 |
+| `windows-54936` label | **FAIL** on Windows; `GB18030` is the available label |
+
+Android's packaged charset list includes `GBK` and `GB18030` and the source
+uses `Charset.forName`, while iOS's list includes `cp936`, `gb2312` and
+`gb18030` and the source uses CoreFoundation name conversion. No Android
+device/emulator or iOS runtime was available for this investigation, so the
+mandatory vectors and malformed-input behavior on those two targets remain
+**UNPROVEN**. The platform-specific labels therefore cannot be frozen from
+static inspection alone. Evidence: [package versions](https://pub.dev/packages/charset_converter/versions),
+[API documentation](https://pub.dev/documentation/charset_converter/latest/charset_converter/),
+and the exact 2.5.1 archive source.
+
+Candidate A is therefore **not selected**. It is a possible future path only
+if a new decision accepts canonical per-platform labels, defines one explicit
+strict/replacement contract above the plugin, and supplies Android and iOS
+runtime evidence for every mandatory vector.
+
+### Candidate B — `charset: 2.0.1`
+
+The exact archive is Apache-2.0 and pure Dart with no runtime dependencies.
+The probe confirmed Chinese GBK decode, `aaa1 -> U+E000`, Chinese encode, and
+strict failure for invalid and truncated sequences. Its `GbkCodec` also exposes
+`allowMalformed: true` and emits U+FFFD. However, its label map aliases
+`gb18030` to the same GBK codec: `81308130` did not decode to U+0080. This is a
+deterministic **FAIL** for the required GB18030 vector, even though its GBK
+behavior is otherwise useful. Candidate B is **not sufficient** as the sole
+decoder.
+
+### Candidate C — `fast_gbk: 1.0.0`
+
+The exact archive is BSD-3-Clause and pure Dart with no runtime dependencies,
+but the package is an old release with an unverified uploader and a package SDK
+constraint below Dart 3. The current Dart 3.13.3 probe still resolved it and
+confirmed Chinese GBK decode, `aaa1 -> U+E000`, Chinese encode, strict failure,
+and U+FFFD replacement through `GbkCodec(allowMalformed: true)`. It provides
+GBK only and has no GB18030 four-byte implementation; `81308130` is therefore
+a deterministic **FAIL**. Candidate C is **not sufficient** as the sole
+decoder.
+
+### Candidate D — `gbk_codec: 0.4.0`
+
+The exact archive is MIT and pure Dart, but it directly depends on `html` and
+ships HTML-related conversion artifacts. That couples a decoder candidate to
+the parser dependency boundary. The probe decoded Chinese and encoded the
+query vector, but returned a non-PUA character for `aaa1`, decoded the
+GB18030 vector as ordinary GBK text, and did not fail deterministically for
+invalid or truncated input. These are **FAIL** results for PUA, GB18030 and
+strict malformed behavior. Candidate D is rejected for both semantic and
+architectural reasons.
+
+### Existing `charset_codec: 0.1.1`
+
+The exact accepted candidate remains the strongest pure API match for the
+GB18030 vector, strict failures, U+FFFD replacement mode and deterministic
+encoding. The probe also reconfirmed its GBK PUA failure (`aaa1` is rejected),
+and its native Rust hook requires `hooks >=2.0.2 <2.1.0`. `dart pub outdated`
+reported no newer resolvable `charset_codec` release; only its transitive
+toolchain packages have newer releases. No compatibility override or fork is
+proposed.
+
+### Empirical score matrix
+
+`PASS` means the exact probe or archive evidence establishes the behavior;
+`FAIL` means it contradicts a mandatory requirement; `UNPROVEN` means the
+required target runtime or contract was not observed; `N/A` means the vector is
+outside that candidate's declared scope.
+
+| Requirement | `charset_codec 0.1.1` | `charset_converter 2.5.1` | `charset 2.0.1` | `fast_gbk 1.0.0` | `gbk_codec 0.4.0` |
+| --- | --- | --- | --- | --- | --- |
+| Chinese legacy decode/encode | PASS | PASS on Windows via `gb2312`; Android/iOS UNPROVEN | PASS | PASS | PASS |
+| `aaa1 -> U+E000` | FAIL for GBK; PASS for GB18030 | PASS on Windows via `gb2312`; Android/iOS UNPROVEN | PASS | PASS | FAIL |
+| GB18030 `81308130 -> U+0080` | PASS | PASS on Windows; Android/iOS UNPROVEN | FAIL | FAIL | FAIL |
+| strict invalid/truncated | PASS | FAIL on Windows; Android/iOS UNPROVEN | PASS | PASS | FAIL |
+| explicit replacement mode | PASS | UNPROVEN as a common contract | PASS | PASS | FAIL |
+| fixed aliases across targets | UNPROVEN | FAIL on Windows; Android/iOS UNPROVEN | FAIL (`gb18030` aliases GBK) | N/A | N/A |
+| deterministic query encoding | PASS | PASS on Windows; Android/iOS UNPROVEN | PASS | PASS | PASS |
+| graph with current `sqlite3 3.6.0` | FAIL (`hooks` conflict) | PASS in temporary Flutter graph | PASS | PASS | PASS, with `html` coupling |
+| license / shape | MIT; native Rust hooks | BSD-3-Clause; native platform APIs | Apache-2.0; pure Dart | BSD-3-Clause; pure Dart | MIT; pure Dart plus `html` |
+| disposition | blocked by PUA and graph | conditional candidate only | GBK-only | GBK-only | rejected |
+
+No candidate currently satisfies every mandatory vector, one explicit error
+contract and all three target runtimes with a repository-compatible graph.
+
+### sqlite3 compatibility evidence
+
+The repository currently pins `sqlite3: 3.6.0`, whose resolved graph requires
+`hooks ^2.2.0`; this conflicts with `charset_codec 0.1.1`, which requires
+`hooks >=2.0.2 <2.1.0`. This remains a real resolution failure.
+
+Temporary exact-version probes showed that `sqlite3` 3.5.2, 3.5.1, 3.5.0,
+3.4.0 and 3.3.4 can resolve with `charset_codec 0.1.1` and select `hooks
+2.0.2`. That establishes **graph compatibility only**. It does not establish
+Drift API compatibility, database migration safety, SQLite ABI equivalence,
+packaged-storage behavior or rollback safety. Those are a separate Human
+decision before changing or potentially downgrading `sqlite3`; this amendment
+does not select any version and does not modify project dependencies.
+
+### Controlled pure-Dart feasibility
+
+The [WHATWG Encoding Standard](https://encoding.spec.whatwg.org/) defines GBK
+and GB18030 as separate legacy multi-byte encodings, separate label rules,
+stateful decoder/encoder algorithms and explicit `replacement`/`fatal` error
+modes. A controlled Dart implementation would need an authoritative GB18030
+index/range table, a reviewed CP936/legacy-GBK compatibility overlay for the
+frozen PUA vector, reverse maps for encoding, streaming state and the exact
+strict/replacement diagnostics. The tables and tests would be a material
+binary/data addition and their provenance and license would need review.
+This is feasible in principle but remains **UNPROVEN**, unimplemented and
+deferred; no table was generated in this investigation.
+
+### Investigation disposition
+
+The amendment remains **PROPOSED — ADDITIONAL PLATFORM EVIDENCE REQUIRED**.
+The investigation does not select a dependency, authorize an alias shim,
+approve a `sqlite3` change, add a pure-Dart implementation or unblock F3.4.
+The next Human decision must choose one complete path and require the missing
+Android/iOS or compatibility evidence before implementation.
 
 ## Preserved architecture requirements
 
