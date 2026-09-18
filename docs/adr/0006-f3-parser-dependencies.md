@@ -65,6 +65,23 @@ GB18030 require a codec with explicit deterministic support. F3.2's independent
 vectors, including `d6d0cec4d0a1cbb5`, `aaa1 -> U+E000` and
 `81308130 -> U+0080`, are mandatory acceptance cases.
 
+#### Decoder provenance design note
+
+The future `DecodedDocument` result is a design concept only; this ADR does not
+implement it. The decoder result should preserve enough safe provenance for
+debugging and fixture comparison:
+
+* decoded text;
+* selected canonical encoding;
+* decoding evidence/reason, such as an explicit override, BOM, trusted
+  transport metadata or a recorded disagreement; and
+* decoding failure metadata where safe, such as a stable failure kind and byte
+  offset.
+
+This provenance must not retain raw response bytes, credentials, cookies,
+arbitrary server messages or whole-response dumps. It must remain outside F2
+`ChapterContent`, Reader models and persistence.
+
 ### HTML parser
 
 The parser accepts `DecodedDocument` text and returns source-neutral parsed
@@ -115,11 +132,27 @@ pages nondeterministic; F3.4 must not silently guess.
 
 | Candidate | Version / license | Compatibility and maintenance | Parsing and selectors | Dependencies / assessment |
 | --- | --- | --- | --- | --- |
-| `html` | `0.15.7`; upstream `dart-lang/tools` is BSD-3-Clause, while pub.dev currently reports the package license as unknown and therefore requires a resolved-license audit before addition | Min Dart 3.6; pub.dev lists Dart/Flutter support for Android, iOS, Windows, Linux, macOS and web. Published recently by `tools.dart.dev`; 150/160 pub points and a maintained Dart tools repository. | HTML5 tree builder with malformed-input tolerance, DOM traversal, `querySelector`/`querySelectorAll` and deterministic String parsing. The package intentionally dropped non-UTF-8 input support, which reinforces the separate decoder boundary. | `csslib` and `source_span`; no network or browser runtime. **Proposed** after license verification and target smoke. [Package](https://pub.dev/packages/html/versions/0.15.7), [changelog](https://pub.dev/packages/html/changelog), [upstream tools package](https://github.com/dart-lang/tools/tree/main/pkgs/html) |
+| `html` | `0.15.7`; pub metadata license is unavailable/unknown; the upstream `dart-lang/tools` repository carries BSD-3-Clause evidence for the maintained `html` package | Min Dart 3.6; pub.dev lists Dart/Flutter support for Android, iOS, Windows, Linux, macOS and web. Published recently by `tools.dart.dev`; 150/160 pub points and a maintained Dart tools repository. | HTML5 tree builder with malformed-input tolerance, DOM traversal, `querySelector`/`querySelectorAll` and deterministic String parsing. The package intentionally dropped non-UTF-8 input support, which reinforces the separate decoder boundary. | `csslib` and `source_span`; no network or browser runtime. **Proposed with upstream BSD-3-Clause license evidence accepted for this proposal; resolved archive/license inventory remains required before addition.** [Package](https://pub.dev/packages/html/versions/0.15.7), [changelog](https://pub.dev/packages/html/changelog), [upstream tools package](https://github.com/dart-lang/tools/tree/main/pkgs/html) |
 
 No alternative HTML dependency meets a stronger requirement for this slice.
 `package:xml` is an XML parser, not an HTML5 error-correcting parser; browser
 or WebView parsing is nondeterministic and violates the pure parser boundary.
+
+The proposed license evidence for `html: 0.15.7` is explicit:
+
+```yaml
+html: 0.15.7
+pub_metadata_license: unavailable_or_unknown
+upstream_repository_license: BSD-3-Clause
+license_decision: accept upstream BSD-3-Clause evidence
+```
+
+Pub metadata does not expose a recognized package license for this version.
+The `dart-lang/tools` upstream repository carries BSD-3-Clause evidence and
+contains the maintained `html` package, so that upstream evidence is accepted
+for this proposal. Before any dependency addition, the resolved archive and
+license inventory must be recorded and must agree; otherwise the dependency
+remains blocked and this ADR must be amended.
 
 ## Proposed decision
 
@@ -208,7 +241,7 @@ parser may generate its own expected sidecar.
 | --- | --- |
 | `charset_codec` is new, unverified and uses native assets/Rust | Require a clean resolved graph, license/SBOM review, toolchain review and deterministic iOS/Android/Windows smoke before acceptance. If any target fails, stop and amend this ADR; do not silently substitute. |
 | GB18030 mapping differs from the F3.2 oracle | Pin the true four-byte and additional independent vectors; strict byte/Unicode assertions block acceptance. |
-| `html` pub metadata does not recognize a license | Verify the upstream BSD-3-Clause license in the resolved archive and record the inventory. If it cannot be verified, do not add the package. |
+| `html` pub metadata leaves the license unknown | The upstream `dart-lang/tools` repository provides BSD-3-Clause evidence, which is the proposed license decision. Record the resolved archive/license inventory before any addition and amend this ADR if the archive disagrees. |
 | DOM memory or selector complexity grows with hostile pages | Keep F3.3 byte limits, add parser node/attribute budgets and use fixed selectors; record bounded failure as typed parse/incompatible response. |
 | Package behavior changes under a version update | Pin exact versions. Any upgrade or replacement requires an amended ADR, fixture rerun and Human approval. |
 | Encoding metadata is absent or contradictory | Require explicit evidence or return a typed failure; never guess or silently prefer a document declaration. |
