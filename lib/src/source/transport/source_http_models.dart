@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../../domain/identity/opaque_ids.dart';
 import '../source_cancellation.dart';
 import '../source_operation.dart';
+import '../session/source_session_binding.dart';
 import 'source_transport_policy.dart';
 
 /// HTTP methods understood by the source-neutral transport boundary.
@@ -92,13 +93,23 @@ final class SourceHttpHeaders {
 /// A safe redirect record. It intentionally contains no request/response
 /// headers or bodies.
 final class SourceRedirectHop {
-  const SourceRedirectHop({required this.uri, required this.statusCode});
+  const SourceRedirectHop({required Uri uri, required this.statusCode})
+    // ignore: prefer_initializing_formals, the public parameter is sanitized
+    : _uri = uri;
 
-  final Uri uri;
+  /// Query, fragment and user-info are deliberately removed.
+  Uri get uri => Uri(
+    scheme: _uri.scheme,
+    host: _uri.host,
+    port: _uri.hasPort ? _uri.port : null,
+    path: _uri.path.isEmpty ? '/' : _uri.path,
+  );
+
+  final Uri _uri;
   final int statusCode;
 
   @override
-  String toString() => 'SourceRedirectHop($statusCode, <uri>)';
+  String toString() => 'SourceRedirectHop($statusCode, $uri)';
 }
 
 /// A raw transport response. Bytes are never decoded at this boundary.
@@ -143,6 +154,7 @@ final class SourceHttpRequest {
     required this.policy,
     required this.cancellation,
     required this.sessionGeneration,
+    this.sessionBinding,
   }) : bodyBytes = bodyBytes == null ? null : Uint8List.fromList(bodyBytes) {
     if ((uri.scheme != 'http' && uri.scheme != 'https') ||
         uri.host.isEmpty ||
@@ -151,6 +163,16 @@ final class SourceHttpRequest {
     }
     if (sessionGeneration < 0) {
       throw ArgumentError.value(sessionGeneration, 'sessionGeneration');
+    }
+    if (headers.contains('cookie')) {
+      throw ArgumentError(
+        'Cookie request state is supplied by SourceSessionManager at execution time.',
+      );
+    }
+    if (sessionBinding != null &&
+        (sessionBinding!.sourceId != sourceId ||
+            sessionBinding!.generation != sessionGeneration)) {
+      throw ArgumentError.value(sessionBinding, 'sessionBinding');
     }
     if (method == SourceHttpMethod.get || method == SourceHttpMethod.head) {
       if (this.bodyBytes != null && this.bodyBytes!.isNotEmpty) {
@@ -168,6 +190,7 @@ final class SourceHttpRequest {
   final SourceTransportPolicy policy;
   final SourceCancellation cancellation;
   final int sessionGeneration;
+  final SourceSessionBinding? sessionBinding;
 
   @override
   String toString() =>

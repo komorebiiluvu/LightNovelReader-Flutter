@@ -6,6 +6,8 @@ Slice: **F3.3 — Transport + Session + Security Foundation**
 
 Starting SHA: `961e19e3387c0f66aad0ac519efc7061c383b6b2`
 
+Review-fix starting SHA: `1455bb3c13147b4fd1819297689c656de79564dd`
+
 ADR 0005 is **ACCEPTED / APPROVED** by the Human project owner on
 2026-09-18. F3.3 is **AUTHORIZED**. F3.4–F3.7 remain **NOT AUTHORIZED** and
 F3 Exit remains **NOT APPROVED**. This record does not approve a provider
@@ -31,7 +33,12 @@ Concrete implementations are isolated under
   cookie persistence and logging disabled. It preserves raw bytes, follows
   only bounded approved redirects, strips credentials on cross-origin hops,
   enforces phase and overall deadlines, bounds retries and response size, and
-  maps package failures to the accepted `SourceFailure` boundary.
+  maps package failures to the accepted `SourceFailure` boundary. A request
+  may carry one `SourceSessionBinding`; every redirect hop validates that
+  binding, obtains the exact target Cookie header from the
+  `SourceSessionAuthority`, commits Set-Cookie fields before following the
+  next hop, and treats a stale generation as neutral cancellation. Caller
+  supplied Cookie headers are rejected at the request boundary.
 * `FlutterSecureCredentialStore` is the only production import of
   `flutter_secure_storage`. It provides read/write/delete through the neutral
   store, maps plugin failures to `secureStorage`, and has no plaintext
@@ -62,6 +69,34 @@ preferences, ordinary file or Legacy credential/session fallback exists.
 Wenku8 passwords remain transient by source policy. A future source may
 request another durable credential model only through an explicitly reviewed
 secure design and the same abstraction; this slice does not implement one.
+
+Remembered session values use the opaque `SecureValue` primitive through
+`RememberedSessionStore`. Clear/delete failures are surfaced as
+`secureStorage`, and a failed delete blocks restore for the remainder of the
+process until a successful remember. The approved three-method storage
+contract cannot provide a crash-safe tombstone if the process dies during a
+failed delete; restart behavior remains a deferred storage-contract decision.
+
+## Runtime safety controls
+
+Transport capacity is finite and injectable: the default is four concurrent
+requests with at most sixteen FIFO queued requests. Queued cancellation,
+operation-deadline expiry and overflow are typed failures, and every permit is
+released on success, failure or cancellation. Authentication work is
+serialized per `SourceId` with an independent bounded queue for each Source.
+
+One operation deadline covers queue wait, all redirect hops, request/response
+I/O, body buffering and retry backoff. Retry-After is interpreted as bounded
+delta seconds; malformed values use the finite retry policy, authentication
+POSTs are never replayed, and explicit cancellation remains cancellation while
+waiting in backoff.
+
+Redirect history is safe metadata: query, fragment and user-info are removed
+from each recorded hop. The full `finalUri` is retained separately for the
+transport response contract. Session cookie identity is keyed by SourceId,
+name, domain and path; host-only status remains a matching attribute rather
+than an identity dimension, while cookie equality includes the complete
+cookie value and attributes.
 
 ## Dependency and platform inventory
 
@@ -99,11 +134,16 @@ the current runner has the required ATL/toolchain path.
 The focused F3.3 suite uses scripted Dio adapters and in-memory secure-store
 backends only. It covers raw GET/POST bytes, repeated headers, status
 preservation, cancellation before/during I/O, listener cleanup, timeout and
-finite retry mapping, cancellation-aware retry delay, exact response-size
-boundaries, redirects and credential stripping, cookie attributes and
-selection, source isolation, generation races, secure-store CRUD/failures and
-redaction, plus the package-import boundary. Focused and full-suite counts
-are recorded below.
+finite retry mapping, bounded Retry-After and deadline-aware backoff, exact
+response-size boundaries, same-origin/multi-hop/cross-origin redirects,
+caller-Cookie rejection, stale-generation suppression, safe redirect metadata,
+finite transport capacity and FIFO queue behavior, per-Source authentication
+coordination, cookie attributes and selection, source isolation, generation
+races, secure-store CRUD/failures and redaction, remembered-session clear and
+delete-failure behavior, plus the package-import boundary. Focused and
+full-suite counts are recorded below. Secret assertions use a runtime-generated
+sentinel, including redirect query material, authorization values and secure
+session values.
 
 Local platform evidence:
 
@@ -115,10 +155,10 @@ Local platform evidence:
 * Windows packaged storage smoke (SQLite plus secure-storage
   write/read/delete): **PASS**; ATL-backed plugin registration was exercised.
 * iOS unsigned build, simulator boot and packaged secure-storage smoke were
-  not runnable on this Windows checkout. The repository CI iOS job is the
-  required evidence path; its result is reported for the pushed commit and
-  any incomplete smoke remains **STALLED / INCOMPLETE**, never PASS or an
-  F3 Exit waiver.
+  not runnable on this Windows checkout. Repository CI run `35271649731`
+  supplied **PASS** evidence for all three iOS checks, including packaged
+  secure-storage smoke. This is platform evidence for the accepted runtime
+  path, not an F3 Exit approval or waiver for later changes.
 
 No public-provider request or live Wenku8 smoke is part of deterministic F3.3
 acceptance. Any later manual live smoke remains bounded, non-CI evidence.
@@ -129,8 +169,8 @@ The final implementation run records:
 
 * `dart format --output=none --set-exit-if-changed .`: **PASS**
 * `flutter analyze --no-pub`: **PASS**
-* focused F3.3 tests: **24 passed**
-* `flutter test --no-pub`: **441 passed**
+* focused F3.3 tests: **41 passed**
+* `flutter test --no-pub`: **459 passed**
 * `git diff --check`: **PASS**
 
 The status is intentionally not F3.3 accepted. Human review must assess the

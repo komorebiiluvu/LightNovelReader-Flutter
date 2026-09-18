@@ -57,7 +57,7 @@ final class SourceCookie {
   }
 
   String get identityKey =>
-      '${sourceId.value}\u0000$name\u0000$domain\u0000$path\u0000$hostOnly';
+      '${sourceId.value}\u0000$name\u0000$domain\u0000$path';
 
   String get headerPair => '$name=$value';
 
@@ -186,6 +186,8 @@ final class SourceCookie {
   bool operator ==(Object other) =>
       other is SourceCookie &&
       identityKey == other.identityKey &&
+      value == other.value &&
+      hostOnly == other.hostOnly &&
       secure == other.secure &&
       httpOnly == other.httpOnly &&
       expires == other.expires &&
@@ -193,7 +195,7 @@ final class SourceCookie {
 
   @override
   int get hashCode =>
-      Object.hash(identityKey, secure, httpOnly, expires, sameSite);
+      Object.hash(identityKey, hostOnly, secure, httpOnly, expires, sameSite);
 
   @override
   String toString() =>

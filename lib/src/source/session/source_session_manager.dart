@@ -6,7 +6,7 @@ import 'source_session.dart';
 import '../../domain/identity/opaque_ids.dart';
 
 /// The single application-owned, source-scoped session authority.
-final class SourceSessionManager {
+final class SourceSessionManager implements SourceSessionAuthority {
   final Map<SourceId, _MutableSession> _sessions =
       <SourceId, _MutableSession>{};
   DateTime Function() now = () => DateTime.now().toUtc();
@@ -22,6 +22,7 @@ final class SourceSessionManager {
     );
   }
 
+  @override
   bool isCurrent(SourceSessionBinding binding) =>
       _session(binding.sourceId).generation == binding.generation;
 
@@ -62,6 +63,7 @@ final class SourceSessionManager {
 
   /// Commits repeated Set-Cookie fields only for the captured generation.
   /// Returns false when the response is stale and therefore ignored.
+  @override
   bool commitResponseCookies(
     SourceSessionBinding binding,
     Uri responseUri,
@@ -91,6 +93,7 @@ final class SourceSessionManager {
     SourceHttpResponse response,
   ) => commitResponseCookies(binding, response.finalUri, response.headers);
 
+  @override
   String? cookieHeader(SourceSessionBinding binding, Uri requestUri) {
     final session = _session(binding.sourceId);
     if (session.generation != binding.generation) {

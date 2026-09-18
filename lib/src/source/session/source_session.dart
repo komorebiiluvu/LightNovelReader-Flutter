@@ -1,6 +1,23 @@
 import '../../domain/identity/opaque_ids.dart';
 import '../source_auth.dart';
+import '../transport/source_http_models.dart';
 import 'source_cookie.dart';
+import 'source_session_binding.dart';
+
+export 'source_session_binding.dart';
+
+/// The only session hook transport may use for request-time cookie state.
+abstract interface class SourceSessionAuthority {
+  bool isCurrent(SourceSessionBinding binding);
+
+  String? cookieHeader(SourceSessionBinding binding, Uri requestUri);
+
+  bool commitResponseCookies(
+    SourceSessionBinding binding,
+    Uri responseUri,
+    SourceHttpHeaders headers,
+  );
+}
 
 /// An immutable request-time view of one Source's session authority.
 final class SourceSessionSnapshot {
@@ -40,22 +57,4 @@ final class SourceSessionSnapshot {
   String toString() =>
       'SourceSessionSnapshot(${sourceId.runtimeType}(<opaque>), '
       'generation=$generation, cookies=${cookies.length})';
-}
-
-/// Captured authority used to conditionally commit response cookies.
-final class SourceSessionBinding {
-  const SourceSessionBinding({
-    required this.sourceId,
-    required this.generation,
-  });
-
-  final SourceId sourceId;
-  final int generation;
-
-  int get sessionGeneration => generation;
-
-  @override
-  String toString() =>
-      'SourceSessionBinding(${sourceId.runtimeType}(<opaque>), '
-      'generation=$generation)';
 }
