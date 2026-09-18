@@ -496,3 +496,19 @@ F3.4 is **AUTHORIZED** for decoder, HTML parser, request builder and
 provider-neutral parsed-structure foundations only. No arbitrary or additional
 dependency is approved. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
 **NOT APPROVED**.
+
+## 18. F3.4 charset compatibility amendment checkpoint — 2026-09-18
+
+[ADR 0006 amendment](adr/0006-amendment-charset-compatibility.md) is
+**PROPOSED** and requires Human approval. F3.4 remains **AUTHORIZED but BLOCKED
+— DEPENDENCY COMPATIBILITY REVIEW REQUIRED** because the repository graph cannot
+resolve `sqlite3: 3.6.0` with accepted `charset_codec: 0.1.1`: their `hooks`
+constraints are `^2.2.0` and `>=2.0.2 <2.1.0`, respectively. The external probe
+also found that `charset_codec` rejects the mandatory GBK PUA vector
+`aaa1 -> U+E000`; its GB18030 vector `81308130 -> U+0080` passes.
+
+No dependency override, version substitution, compatibility layer or F3.4
+implementation is approved by this checkpoint. ADR 0006 remains accepted, but
+F3.4 cannot resume until a Human-approved amendment resolves the graph and
+proves the encoding contract. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit
+remains **NOT APPROVED**.
