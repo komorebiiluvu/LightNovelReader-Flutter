@@ -1,1 +1,1 @@
-kw=中文&charset=gbk
+searchtype=articlename&searchkey=中文&page=1

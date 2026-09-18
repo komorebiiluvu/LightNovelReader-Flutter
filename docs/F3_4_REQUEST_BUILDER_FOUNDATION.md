@@ -83,7 +83,8 @@ executes it or reads any external state.
 
 Focused tests cover:
 
-* exact CP936-compatible percent bytes for `中文小说` (`D6 D0 CE C4 D0 A1 CB B5`);
+* the independently authored F3.2 request fixture and exact CP936-compatible
+  percent bytes for `中文` (`D6 D0 CE C4`);
 * ASCII, spaces, reserved characters, empty input and unsupported characters;
 * frozen origins and paths for every operation;
 * exploration category, tag and page query ordering;

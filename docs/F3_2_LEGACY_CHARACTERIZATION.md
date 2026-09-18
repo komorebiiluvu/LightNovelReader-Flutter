@@ -112,7 +112,10 @@ SHA-256 implementation. It validates:
 * byte vectors for the GBK/GB18030 cases and invalid/truncated input;
 * required operation/category/edge-case coverage and zero `DROP` entries; and
 * URL checks allowing the characterized provider hosts and reserved `.invalid`
-  examples, without executing requests.
+  examples, without executing requests; and
+* the reconstructed request fixture preserves the frozen Legacy
+  `searchtype=articlename&searchkey=<GBK-percent-bytes>&page=1` query shape, not
+  only an illustrative encoded field.
 
 No test performs HTTP, secure-storage access, DOM decoding, image retrieval,
 Legacy execution, or live Wenku8 smoke. Those are later-slice concerns.

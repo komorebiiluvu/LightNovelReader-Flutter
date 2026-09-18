@@ -301,8 +301,8 @@
         "request.no-secret"
       ],
       "notes": "Request expectation only; no network call.",
-      "sha256": "9730d7dca24aa7f9455103deb76d2eaae8320e8e05a6900671373c56e7479c3e",
-      "expectedSha256": "5568044c927314ad25730f6cc7429bb60bb8440c10e65d732533ae23bf108fef",
+      "sha256": "eb5057b9da7635b56e66a39650c82cc70285bba2be0732527f0a0f17327e9c8b",
+      "expectedSha256": "348a75a196215854ac0a5096a5814cb55175f9f9635ee1de6d320ec421e3c38d",
       "_unused": null
     },
     {

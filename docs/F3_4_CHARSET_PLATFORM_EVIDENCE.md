@@ -34,9 +34,11 @@ guessing or fallback is part of this evidence.
 
 Android and iOS remain explicit evidence gaps. The Windows result does not
 waive either gap, and Android/iOS unavailability is not converted into a
-platform PASS. The F3.4 platform gate is therefore incomplete for parser-entry
-purposes until real Android runtime execution and iOS simulator/device
-execution are recorded.
+platform PASS. At this historical gate, the then-defined parser-entry evidence
+was incomplete. Current governance records the later F3.4.2/F3.4.3
+implementations separately and requires fresh Android runtime and iOS
+simulator/device evidence at F3.7 before F3 Exit. This is not a retrospective
+PASS or reusable waiver.
 
 ## Infrastructure and scope audit
 

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:light_novel_reader/src/source/source_operation.dart';
 import 'package:light_novel_reader/src/sources/wenku8/wenku8.dart';
@@ -71,17 +74,30 @@ void main() {
   });
 
   group('Wenku8 search query construction', () {
-    test('uses exact CP936-compatible bytes and percent encoding', () {
-      final built = builder.buildSearch(Wenku8SearchIntent(query: '中文小说'));
+    test('matches the accepted F3.2 GBK request fixture exactly', () {
+      final raw = File(
+        'test/fixtures/sources/wenku8/raw/request/gbk-query.txt',
+      ).readAsStringSync().trim();
+      final input = Uri.parse('https://fixture.invalid/?$raw').queryParameters;
+      final expected = jsonDecode(
+        File(
+          'test/fixtures/sources/wenku8/expected/request/gbk-query.json',
+        ).readAsStringSync(),
+      ) as Map<String, dynamic>;
+
+      expect(input['searchtype'], 'articlename');
+      expect(input['page'], '1');
+      final built = builder.buildSearch(
+        Wenku8SearchIntent(query: input['searchkey']!),
+      );
 
       expect(
-        built.request.uri.toString(),
-        'https://www.wenku8.net/modules/article/search.php?'
-        'searchtype=articlename&searchkey=%D6%D0%CE%C4%D0%A1%CB%B5&page=1',
+        built.request.uri.query,
+        expected['query'],
       );
-      expect(built.query.encodedQuery, contains('%D6%D0%CE%C4%D0%A1%CB%B5'));
+      expect(built.query.encodedQuery, expected['query']);
       expect(built.query.legacyEncodedFields, ['searchkey']);
-      expect(built.query.inputByteLength, 8);
+      expect(built.query.inputByteLength, 4);
     });
 
     test('preserves ASCII while escaping spaces and reserved characters', () {
