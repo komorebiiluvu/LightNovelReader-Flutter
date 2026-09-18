@@ -75,14 +75,13 @@ void main() {
 
   group('Wenku8 search query construction', () {
     test('matches the accepted F3.2 GBK request fixture exactly', () {
-      final raw = File(
-        'test/fixtures/sources/wenku8/raw/request/gbk-query.txt',
-      ).readAsStringSync().trim();
+      final raw = File('test/fixtures/sources/wenku8/raw/request/gbk-query.txt')
+          .readAsStringSync()
+          .trim();
       final input = Uri.parse('https://fixture.invalid/?$raw').queryParameters;
       final expected = jsonDecode(
-        File(
-          'test/fixtures/sources/wenku8/expected/request/gbk-query.json',
-        ).readAsStringSync(),
+        File('test/fixtures/sources/wenku8/expected/request/gbk-query.json')
+            .readAsStringSync(),
       ) as Map<String, dynamic>;
 
       expect(input['searchtype'], 'articlename');
@@ -91,10 +90,7 @@ void main() {
         Wenku8SearchIntent(query: input['searchkey']!),
       );
 
-      expect(
-        built.request.uri.query,
-        expected['query'],
-      );
+      expect(built.request.uri.query, expected['query']);
       expect(built.query.encodedQuery, expected['query']);
       expect(built.query.legacyEncodedFields, ['searchkey']);
       expect(built.query.inputByteLength, 4);
