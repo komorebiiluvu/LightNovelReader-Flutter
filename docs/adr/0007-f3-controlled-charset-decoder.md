@@ -1,18 +1,21 @@
 # ADR 0007 — F3.4 Controlled Charset Decoder Strategy
 
-Status: **PROPOSED**. Human approval: **PENDING**.
+Status: **ACCEPTED**. Human approval: **APPROVED** by the Human project owner
+on **2026-09-18**. Accepted baseline:
+`d4c74a6874779ea2558a97fdcf25ec9da976fa58`.
 Proposal date: **2026-09-18**. Source baseline:
 `8eec93a6d6fc8842a24f8cc060215e6d0bf0b8a7`.
 
-This ADR is an architecture evaluation only. It does not implement a decoder,
-generate mapping tables, add a dependency, change `pubspec.yaml` or
-`pubspec.lock`, or authorize the rest of F3.4. F3.4 remains blocked pending a
-Human decision on one complete charset compatibility path.
+This ADR records the Human-approved controlled project-owned charset strategy.
+It authorizes the charset foundation only; it does not accept F3.4, authorize
+the Wenku8 parser or runtime, or approve F3 Exit. The decoder portion of ADR
+0006 is superseded by this ADR. No dependency is added or required by this
+decision.
 
 ## Context
 
-ADR 0006 accepted `charset_codec: 0.1.1` as the F3.4 decoder dependency. Its
-realization is blocked for two independent reasons:
+ADR 0006 previously accepted `charset_codec: 0.1.1` as the F3.4 decoder
+dependency. Its realization failed for two independent reasons:
 
 ```text
 charset_codec 0.1.1: hooks >=2.0.2 <2.1.0
@@ -260,12 +263,13 @@ semantics, subject to those gates.
 
 ## Recommendation and gates
 
-**Proposed recommendation:** pursue a controlled project-owned Dart decoder
-with the two explicit strategies `LegacyCP936Decoder` and `GB18030Decoder`,
-subject to a Human-approved implementation slice. This is a recommendation for
-the next decision, not implementation authorization.
+**Accepted decision:** use a controlled project-owned Dart decoder with the two
+explicit strategies `LegacyCP936Decoder` and `GB18030Decoder`. The runtime
+foundation and its independent vectors are implemented in the repository, but
+remain subject to implementation review and the unresolved Android/iOS runtime
+evidence gate.
 
-Before implementation can start, a Human-approved amendment must freeze:
+For implementation and later acceptance, this ADR freezes:
 
 1. the exact mapping source revisions, hashes, notices and CP936 overlay rule;
 2. the generated-data representation and reproducible generator boundary;
@@ -274,7 +278,16 @@ Before implementation can start, a Human-approved amendment must freeze:
 5. the full Android, iOS and Windows deterministic test plan; and
 6. the acceptance rule for changes to mapping data.
 
-Until those gates are approved, ADR 0006's decoder decision remains
-unrealized, ADR 0006's compatibility amendment remains proposed, and F3.4
-remains blocked. This ADR does not authorize a dependency, a `sqlite3` change,
-table generation or production implementation.
+The mapping, generator, strict/replacement, encode and platform gates remain
+acceptance requirements for the charset foundation. Android and iOS runtime
+vector evidence are still **UNPROVEN**; Windows evidence is recorded
+separately. This gap is not a PASS or waiver and remains an F3.7/F3 Exit
+blocker. F3.4.2 and F3.4.3 implementation status is recorded in the current
+F3 governance checkpoint and is not accepted by this ADR.
+
+## Approval record
+
+ADR 0007: **ACCEPTED** at baseline
+`d4c74a6874779ea2558a97fdcf25ec9da976fa58`.
+Human approval: **APPROVED** by the Human project owner on **2026-09-18**.
+The accepted strategy supersedes the decoder dependency portion of ADR 0006.

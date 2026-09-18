@@ -1,21 +1,20 @@
 # ADR 0006 Amendment — F3.4 Charset Compatibility
 
-Status: **PROPOSED**. Human approval: **PENDING**.
+Status: **SUPERSEDED** by accepted ADR 0007. Human approval: **NOT REQUIRED**.
 Proposal date: **2026-09-18**. Source baseline:
 `4026967a400954b06bcbf8904d0c9d353f3c1390`.
 
-This is a documentation-only compatibility amendment proposal. It does not
-add a dependency, change `pubspec.yaml` or `pubspec.lock`, implement a decoder,
-or start F3.4 parser/request-builder work. ADR 0006 remains accepted as the
-current dependency decision, but F3.4 is **BLOCKED — DEPENDENCY COMPATIBILITY
-REVIEW REQUIRED** until the questions in this amendment are resolved by a new
-or amended Human-approved decision.
+This document records the historical compatibility investigation that led to
+ADR 0007. It is retained as evidence and is no longer the current decoder
+decision. ADR 0006 remains accepted for the HTML parser dependency; its
+`charset_codec` decoder portion is superseded by ADR 0007. No dependency
+override, lockfile edit or SQLite change was selected.
 
 ## Current governance state
 
-F3.1, F3.2 and F3.3 are **IMPLEMENTED / ACCEPTED**. F3.4 remains
-**AUTHORIZED but BLOCKED**. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit
-remains **NOT APPROVED**.
+F3.1, F3.2 and F3.3 are **IMPLEMENTED / ACCEPTED**. F3.4 foundations are
+implemented and remain **HUMAN REVIEW REQUIRED**. F3.5–F3.7 remain **NOT
+AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
 
 The accepted ADR 0006 baseline is
 `c0ad8a3b64166c0a95a52aaa9caa9c9d9d04dd51`. This amendment does not replace or
@@ -90,9 +89,10 @@ implementation.
 
 ## Unresolved decision questions
 
-### Question A — compatibility layer over `charset_codec`
+### Question A — compatibility layer over `charset_codec` (historical)
 
-F3.4 may continue with `charset_codec: 0.1.1` plus a narrowly scoped
+At the time of this investigation, F3.4 could have continued with
+`charset_codec: 0.1.1` plus a narrowly scoped
 compatibility layer only if independent tests prove all of the following on
 iOS, Android and Windows:
 
@@ -303,11 +303,12 @@ deferred; no table was generated in this investigation.
 
 ### Investigation disposition
 
-The amendment remains **PROPOSED — ADDITIONAL PLATFORM EVIDENCE REQUIRED**.
-The investigation does not select a dependency, authorize an alias shim,
-approve a `sqlite3` change, add a pure-Dart implementation or unblock F3.4.
-The next Human decision must choose one complete path and require the missing
-Android/iOS or compatibility evidence before implementation.
+At the time of the investigation, the amendment remained **PROPOSED —
+ADDITIONAL PLATFORM EVIDENCE REQUIRED**. The investigation did not select a
+dependency, authorize an alias shim, approve a `sqlite3` change, add a
+pure-Dart implementation or unblock F3.4. The later accepted ADR 0007 selected
+the controlled project-owned decoder strategy and superseded this historical
+amendment.
 
 ## Preserved architecture requirements
 
@@ -340,7 +341,7 @@ or authentication.
 
 ## Required follow-up evidence
 
-Before F3.4 implementation resumes, a Human-approved amendment must identify
+The historical follow-up gate required a Human-approved amendment to identify
 one realizable dependency/compatibility path and provide:
 
 1. a satisfiable repository lockfile graph;
@@ -350,4 +351,6 @@ one realizable dependency/compatibility path and provide:
 5. strict/replacement behavior and query-encoding proofs; and
 6. a deterministic compatibility test plan without public-provider requests.
 
-Until then, F3.4 remains **BLOCKED — DEPENDENCY COMPATIBILITY REVIEW REQUIRED**.
+This historical amendment is superseded. Android and iOS charset runtime
+evidence remain **UNPROVEN** and are tracked as a later platform/exit gate;
+that evidence gap is not a PASS or waiver.

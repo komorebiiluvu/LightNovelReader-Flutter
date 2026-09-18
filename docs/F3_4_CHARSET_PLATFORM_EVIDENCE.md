@@ -3,7 +3,9 @@
 Evidence scope: the already implemented charset foundation at
 `be7462871e656286e740b384350603837dfca0b1`. This gate covers runtime
 execution only. It does not authorize or include an HTML parser, Wenku8
-parser, request builder, Source runtime, or F3.5.
+parser, request builder, Source runtime, or F3.5. This is a historical evidence
+gate record; later F3.4.2/F3.4.3 implementation does not alter these results
+and remains HUMAN REVIEW REQUIRED.
 
 ## Required vectors
 
@@ -44,6 +46,8 @@ create a second CI framework, add a dependency, change a workflow, or alter the
 existing storage smoke. The storage smoke is not treated as charset evidence
 because it does not execute the charset vectors.
 
-The charset foundation remains **IMPLEMENTED**. No parser work, Wenku8 work,
-request-builder work, network work, Source runtime work, schema work, or F3.5
-work was started by this gate.
+The charset foundation remains **IMPLEMENTED**. At the time of this gate, no
+parser work, Wenku8 work, request-builder work, network work, Source runtime
+work, schema work, or F3.5 work was started. F3.4.2 and F3.4.3 were later
+implemented as separate foundations and are still HUMAN REVIEW REQUIRED; this
+document does not mark F3.4 accepted or waive the Android/iOS evidence gap.

@@ -1,8 +1,10 @@
 # F3.4 Charset Decoder Foundation Evidence
 
 Status: **IMPLEMENTED — HUMAN REVIEW REQUIRED**. This document records the
-charset-only implementation authorized by ADR 0007. It does not authorize the
-HTML parser, Wenku8 parser, request builder, Source runtime, or F3.5.
+charset-only implementation authorized by ADR 0007 and its historical evidence
+gate. Later F3.4.2 and F3.4.3 foundations are tracked separately and remain
+human-review items; this document does not authorize the Wenku8 parser, Source
+runtime, or F3.5.
 
 ## Boundary and modes
 
@@ -79,12 +81,15 @@ path, and the same unchanged repository built successfully with an ASCII
 temporary Pub cache. There is no Android emulator/device on this host, so
 Android runtime vector execution remains an evidence gap. iOS runtime evidence
 is also an evidence gap because this Windows host has no iOS simulator or
-macOS build runner. These gaps are explicit and must be resolved by the F3.4
-platform gate; no parser work may start while either required target evidence is
-missing.
+macOS build runner. These gaps were explicit at the decoder evidence gate and
+remain unresolved. Later parser/request-builder implementation does not change
+the results or turn the gap into a waiver. Fresh deterministic Android and iOS
+runtime evidence remains an F3.7/F3 Exit requirement.
 
 ## Scope exclusions
 
-This change contains no HTML/DOM parser, Wenku8 parser or request builder, no
-Source runtime, no network or authentication path, no persistence, no Reader
-work, no new dependency, and no F3.5 implementation.
+At the decoder implementation baseline, this change contained no HTML/DOM
+parser, Wenku8 parser or request builder, no Source runtime, no network or
+authentication path, no persistence, no Reader work, no new dependency, and no
+F3.5 implementation. The later F3.4.2/F3.4.3 slices are separate and remain
+IMPLEMENTED / HUMAN REVIEW REQUIRED.

@@ -6,11 +6,11 @@ on **2026-09-18**. Accepted baseline:
 Proposal date: **2026-09-18**. Slice: **F3.4 — Wenku8 Pure Parser + Request
 Builder**.
 
-This ADR records the accepted F3.4 dependency set. It does not add a package,
-change the lockfile, implement a decoder, implement an HTML parser, or
-implement a Wenku8 request builder. F3.4 is authorized only for the accepted
-decoder, HTML parser, request builder and provider-neutral parsed-structure
-foundations. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
+This ADR records the accepted F3.4 parser dependency decision. Its HTML parser
+decision remains active. The decoder dependency decision for
+`charset_codec: 0.1.1` is superseded by accepted ADR 0007; the current
+implementation uses the project-owned charset foundation and does not add
+`charset_codec`. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
 APPROVED**.
 
 ## Context
@@ -156,24 +156,23 @@ for this dependency decision. Before any dependency addition, the resolved
 archive and license inventory must be recorded and must agree; otherwise the
 dependency addition remains blocked and this ADR must be amended.
 
-## Accepted decision
+## Accepted decision at the ADR 0006 baseline (historical)
 
-Use the following exact accepted dependency set in F3.4:
+At that baseline, the exact accepted dependency set for F3.4 was:
 
 | Concern | Package | Status |
 | --- | --- | --- |
 | UTF-8 decoding | Dart SDK `dart:convert` | Existing capability; no dependency addition |
-| GBK/GB2312-compatible and GB18030 decoding | `charset_codec: 0.1.1` | Accepted |
+| GBK/GB2312-compatible and GB18030 decoding | `charset_codec: 0.1.1` | Historical accepted selection; superseded by ADR 0007 and not used |
 | HTML5 parsing and DOM querying | `html: 0.15.7` | Accepted |
 | Request building | Existing source-neutral Dart contracts and `SourceHttpRequest` | No new dependency |
 
 The F3.4 adapter must expose one source-neutral decoder facade and one parser
 facade. Provider code may depend on those facades but not on package types.
-`charset_codec` must be configured only for strict or explicit replacement
-behavior; its `ignore` and other lossy modes are not part of the contract.
-The exact resolved dependency graph, license inventory, native-toolchain
-requirements and three-target build/runtime evidence must be reviewed before
-any `pubspec` or lockfile change.
+The historical `charset_codec` selection was constrained to strict or explicit
+replacement behavior; its `ignore` and other lossy modes were not part of the
+contract. The current implementation uses the accepted project-owned decoder
+strategy in ADR 0007, with no `charset_codec` dependency or lockfile entry.
 
 ## Security and boundary controls
 
@@ -250,16 +249,15 @@ parser may generate its own expected sidecar.
 
 The neutral decoder/parser/request-builder facades are the migration seam. A
 future replacement must preserve the same F3.2 expected outputs and failure
-semantics. A pure-Dart decoder, `charset_converter`, or another HTML parser may
-be reconsidered only through a new or amended Human-approved dependency
-decision. No additional parser or decoder dependency is approved by this ADR.
+semantics. ADR 0007 is the accepted decision for the current pure-Dart
+decoder. No additional parser or decoder dependency is approved by this ADR.
 
 ## Approval record
 
 ADR 0006: **ACCEPTED** at baseline
 `c0ad8a3b64166c0a95a52aaa9caa9c9d9d04dd51`.
 Human approval: **APPROVED** by the Human project owner on **2026-09-18**.
-F3.4 is **AUTHORIZED** for the accepted dependency set and foundations only.
-F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. No
-dependency was added and no F3.4 production implementation was started by this
-governance commit.
+The `html: 0.15.7` parser dependency remains accepted. The
+`charset_codec: 0.1.1` decoder portion is superseded by ADR 0007 and is not
+used by the current implementation. F3.5–F3.7 remain **NOT AUTHORIZED** and
+F3 Exit remains **NOT APPROVED**.

@@ -171,13 +171,12 @@ require a separate dependency ADR and Human approval.
 
 [ADR 0006](adr/0006-f3-parser-dependencies.md) is **ACCEPTED** at baseline
 `c0ad8a3b64166c0a95a52aaa9caa9c9d9d04dd51`, approved by the **Human project
-owner** on **2026-09-18**. The accepted dependency set is Dart's existing
-`dart:convert` for UTF-8, `charset_codec: 0.1.1` for GBK/GB2312-compatible and
-GB18030 decoding, and `html: 0.15.7` for HTML5 DOM parsing. The accepted license
-evidence for `html` is pub metadata unavailable/unknown and upstream
-`dart-lang/tools` BSD-3-Clause. Exact versions, target compatibility, GB18030
-vectors, security boundaries and fixture-first acceptance gates remain recorded
-in the ADR.
+owner** on **2026-09-18**. Its active parser dependency decision is
+`html: 0.15.7` for HTML5 DOM parsing, with the accepted license evidence of
+pub metadata unavailable/unknown and upstream `dart-lang/tools` BSD-3-Clause.
+The former `charset_codec: 0.1.1` decoder selection is superseded by accepted
+[ADR 0007](adr/0007-f3-controlled-charset-decoder.md) and is not used by the
+current implementation.
 
 F3.4 is **AUTHORIZED** for the accepted decoder, HTML parser, request builder
 and provider-neutral parsed-structure foundations only. No arbitrary or
@@ -188,15 +187,29 @@ remains **NOT APPROVED**.
 ## F3.4 charset compatibility amendment checkpoint — 2026-09-18
 
 [ADR 0006 amendment](adr/0006-amendment-charset-compatibility.md) is
-**PROPOSED** and requires Human approval. F3.4 is **AUTHORIZED but BLOCKED —
-DEPENDENCY COMPATIBILITY REVIEW REQUIRED** after repository resolution showed
-that `sqlite3: 3.6.0` requires `hooks ^2.2.0`, while the accepted
-`charset_codec: 0.1.1` requires `hooks >=2.0.2 <2.1.0`. The external probe also
-showed that `charset_codec` rejects the mandatory GBK PUA vector `aaa1 ->
-U+E000`, even though its GB18030 codec passes `81308130 -> U+0080`.
+**SUPERSEDED by accepted ADR 0007**. It remains a historical record of the
+dependency graph conflict and mandatory-vector failure: `sqlite3: 3.6.0`
+requires `hooks ^2.2.0`, while `charset_codec: 0.1.1` requires
+`hooks >=2.0.2 <2.1.0`, and the external probe rejected `aaa1 -> U+E000`.
+The amendment is no longer the current decoder path; it does not alter the
+accepted HTML parser decision.
 
-No dependency override, version substitution, compatibility layer, parser,
-decoder or request-builder implementation is approved by this checkpoint.
-ADR 0006 remains accepted, but no F3.4 implementation may proceed until a
-Human-approved compatibility amendment resolves the graph and encoding proof.
-F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+## F3.4 current implementation checkpoint — 2026-09-19
+
+[ADR 0007](adr/0007-f3-controlled-charset-decoder.md) is **ACCEPTED** at
+baseline `d4c74a6874779ea2558a97fdcf25ec9da976fa58`, approved by the Human
+project owner on **2026-09-18**. It supersedes the decoder portion of ADR 0006
+and adds no dependency. The current F3.4 slice state is:
+
+- F3.4.1 charset foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
+- F3.4.2 HTML parser foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
+- F3.4.3 request builder foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
+- F3.4.4 Wenku8 parser: **NOT STARTED**
+- F3.5–F3.7: **NOT AUTHORIZED**
+- F3 Exit: **NOT APPROVED**
+
+Windows charset runtime evidence is recorded as PASS. Android and iOS charset
+runtime evidence remain **UNPROVEN**. Fresh deterministic runtime evidence on
+both platforms is required at the F3.7 gate; the gap is neither a platform PASS
+nor a reusable waiver. Implementing F3.4.2 or F3.4.3 does not constitute F3.4
+acceptance or F3 Exit approval.

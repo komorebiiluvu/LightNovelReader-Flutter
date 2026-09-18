@@ -4,7 +4,10 @@ Status: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
 
 This slice provides generic HTML parser infrastructure only. It does not parse
 any provider's selectors or construct domain identity, and it does not start
-the next runtime slice.
+the next runtime slice. F3.4 remains HUMAN REVIEW REQUIRED, F3.5–F3.7 remain
+NOT AUTHORIZED, and F3 Exit remains NOT APPROVED. Android and iOS charset
+runtime evidence are still UNPROVEN and remain an F3.7 gate; this implementation
+does not convert that gap into a PASS or waiver.
 
 ## Boundary
 

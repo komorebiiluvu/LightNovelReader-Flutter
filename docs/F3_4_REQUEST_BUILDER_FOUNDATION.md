@@ -5,7 +5,10 @@ Status: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
 This slice is a pure, synchronous request-description boundary. It consumes an
 explicit Wenku8 intent and returns a source-neutral `SourceHttpRequest` wrapped
 with reviewed construction evidence. It performs no I/O and has no asynchronous
-work.
+work. F3.4 remains HUMAN REVIEW REQUIRED, F3.5–F3.7 remain NOT AUTHORIZED, and
+F3 Exit remains NOT APPROVED. Android and iOS charset runtime evidence are
+still UNPROVEN and remain an F3.7 gate; this implementation does not convert
+that gap into a PASS or waiver.
 
 ## Boundary
 
