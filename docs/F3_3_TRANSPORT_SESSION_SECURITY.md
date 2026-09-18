@@ -33,7 +33,10 @@ Concrete implementations are isolated under
   cookie persistence and logging disabled. It preserves raw bytes, follows
   only bounded approved redirects, strips credentials on cross-origin hops,
   enforces phase and overall deadlines, bounds retries and response size, and
-  maps package failures to the accepted `SourceFailure` boundary. A request
+  owns one finite FIFO capacity gate for its entire lifetime. Capacity is
+  configured at transport construction; request timeout, retry and redirect
+  policies cannot create additional pools. It maps package failures to the
+  accepted `SourceFailure` boundary. A request
   may carry one `SourceSessionBinding`; every redirect hop validates that
   binding, obtains the exact target Cookie header from the
   `SourceSessionAuthority`, commits Set-Cookie fields before following the
@@ -79,8 +82,9 @@ failed delete; restart behavior remains a deferred storage-contract decision.
 
 ## Runtime safety controls
 
-Transport capacity is finite and injectable: the default is four concurrent
-requests with at most sixteen FIFO queued requests. Queued cancellation,
+Transport capacity is finite and injectable at `DioSourceTransport`
+construction: the default is four concurrent requests with at most sixteen
+FIFO queued requests. Queued cancellation,
 operation-deadline expiry and overflow are typed failures, and every permit is
 released on success, failure or cancellation. Authentication work is
 serialized per `SourceId` with an independent bounded queue for each Source.
@@ -91,9 +95,10 @@ delta seconds; malformed values use the finite retry policy, authentication
 POSTs are never replayed, and explicit cancellation remains cancellation while
 waiting in backoff.
 
-Redirect history is safe metadata: query, fragment and user-info are removed
-from each recorded hop. The full `finalUri` is retained separately for the
-transport response contract. Session cookie identity is keyed by SourceId,
+Redirect history is safe metadata: only scheme, host, effective port and
+status are retained; path, query, fragment and user-info are removed from each
+recorded hop. The full `finalUri` is retained separately for the transport
+response contract. Session cookie identity is keyed by SourceId,
 name, domain and path; host-only status remains a matching attribute rather
 than an identity dimension, while cookie equality includes the complete
 cookie value and attributes.
@@ -169,8 +174,8 @@ The final implementation run records:
 
 * `dart format --output=none --set-exit-if-changed .`: **PASS**
 * `flutter analyze --no-pub`: **PASS**
-* focused F3.3 tests: **41 passed**
-* `flutter test --no-pub`: **459 passed**
+* focused F3.3 tests: **44 passed**
+* `flutter test --no-pub`: **462 passed**
 * `git diff --check`: **PASS**
 
 The status is intentionally not F3.3 accepted. Human review must assess the

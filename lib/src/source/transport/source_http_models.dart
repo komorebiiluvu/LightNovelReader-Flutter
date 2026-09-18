@@ -97,13 +97,13 @@ final class SourceRedirectHop {
     // ignore: prefer_initializing_formals, the public parameter is sanitized
     : _uri = uri;
 
-  /// Query, fragment and user-info are deliberately removed.
-  Uri get uri => Uri(
-    scheme: _uri.scheme,
-    host: _uri.host,
-    port: _uri.hasPort ? _uri.port : null,
-    path: _uri.path.isEmpty ? '/' : _uri.path,
-  );
+  /// Only scheme, host and effective port are retained; path, query,
+  /// fragment and user-info are deliberately removed.
+  int get port => _uri.hasPort
+      ? _uri.port
+      : (_uri.scheme.toLowerCase() == 'https' ? 443 : 80);
+
+  Uri get uri => Uri(scheme: _uri.scheme, host: _uri.host, port: port);
 
   final Uri _uri;
   final int statusCode;

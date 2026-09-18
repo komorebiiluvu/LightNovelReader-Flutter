@@ -21,7 +21,11 @@ final class DioSourceTransport implements SourceTransport {
     Dio? dio,
     HttpClientAdapter? adapter,
     this._sessionAuthority,
-  }) : _dio = dio ?? Dio() {
+    SourceTransportCapacityPolicy? capacity,
+  }) : _dio = dio ?? Dio(),
+       _capacityGate = _TransportCapacityGate(
+         capacity ?? SourceTransportCapacityPolicy(),
+       ) {
     if (adapter != null) _dio.httpClientAdapter = adapter;
     _dio.interceptors.clear(keepImplyContentTypeInterceptor: false);
     _dio.options.followRedirects = false;
@@ -31,17 +35,13 @@ final class DioSourceTransport implements SourceTransport {
 
   final Dio _dio;
   final SourceSessionAuthority? _sessionAuthority;
-  final Map<String, _TransportCapacityGate> _capacityGates = {};
+  final _TransportCapacityGate _capacityGate;
 
   @override
   Future<SourceHttpResponse> send(SourceHttpRequest request) async {
     request.cancellation.throwIfCancelled();
     final stopwatch = Stopwatch()..start();
-    final gate = _capacityGates.putIfAbsent(
-      _capacityKey(request.policy.capacity),
-      () => _TransportCapacityGate(request.policy.capacity),
-    );
-    final permit = await gate.acquire(request, stopwatch);
+    final permit = await _capacityGate.acquire(request, stopwatch);
     try {
       return await _sendWithPermit(request, stopwatch);
     } finally {
@@ -278,6 +278,9 @@ final class DioSourceTransport implements SourceTransport {
     if (binding == null) return;
     final authority = _sessionAuthority;
     if (authority == null) throw SourceFailure.invalidRequest();
+    request.cancellation.throwIfCancelled();
+    _ensureCurrent(request);
+    request.cancellation.throwIfCancelled();
     if (!authority.commitResponseCookies(
       binding,
       response.finalUri,
@@ -612,8 +615,5 @@ SourceFailure _deadlineFailureForQueue(SourceHttpRequest request) =>
       retryable: false,
       diagnostics: SourceFailureDiagnostics(operation: request.operation),
     );
-
-String _capacityKey(SourceTransportCapacityPolicy policy) =>
-    '${policy.maxConcurrentRequests}:${policy.maxQueuedRequests}';
 
 const _deadlineMarker = #deadline;

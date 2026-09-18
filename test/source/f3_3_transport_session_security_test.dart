@@ -544,14 +544,17 @@ void main() {
       expect(adapter.calls, 1);
     });
 
-    test('redirect history strips query secrets from safe metadata', () async {
+    test('redirect history strips all secret-bearing URI material', () async {
       final adapter = ScriptedAdapter((options, _, _) async {
         if (options.uri.path == '/start') {
           return ResponseBody.fromBytes(
             [],
             302,
             headers: {
-              'location': ['/next?token=$secretSentinel#fragment'],
+              'location': [
+                'https://alpha.invalid/reset/$secretSentinel?'
+                    'token=$secretSentinel#$secretSentinel',
+              ],
             },
           );
         }
@@ -565,13 +568,26 @@ void main() {
           ),
         ),
       );
-      expect(response.redirectHistory.single.uri.query, isEmpty);
-      expect(response.redirectHistory.single.uri.fragment, isEmpty);
+      final hop = response.redirectHistory.single;
+      expect(hop.uri.scheme, 'https');
+      expect(hop.uri.host, 'alpha.invalid');
+      expect(hop.uri.port, 443);
+      expect(hop.uri.path, isEmpty);
+      expect(hop.uri.query, isEmpty);
+      expect(hop.uri.fragment, isEmpty);
+      expect(hop.toString(), isNot(contains(secretSentinel)));
+      expect(response.toString(), isNot(contains(secretSentinel)));
+      final failure = SourceFailure(
+        code: SourceFailureCode.securityPolicy,
+        diagnostics: SourceFailureDiagnostics(
+          operation: SourceOperation.search,
+        ),
+      );
+      expect(failure.toString(), isNot(contains(secretSentinel)));
       expect(
-        response.redirectHistory.single.toString(),
+        failure.diagnostics.asMap.toString(),
         isNot(contains(secretSentinel)),
       );
-      expect(response.toString(), isNot(contains(secretSentinel)));
     });
 
     test(
@@ -701,6 +717,43 @@ void main() {
         expect(manager.cookieHeader(current, origin), isNull);
       },
     );
+
+    test(
+      'cancellation immediately before cookie commit prevents mutation',
+      () async {
+        final manager = SourceSessionManager();
+        final cancellation = SourceCancellation();
+        final binding = manager.capture(sourceA);
+        final authority = CancelBeforeCommitAuthority(
+          manager: manager,
+          cancellation: cancellation,
+        );
+        final adapter = ScriptedAdapter((_, _, _) async {
+          return ResponseBody.fromBytes(
+            [],
+            200,
+            headers: {
+              'set-cookie': ['late=secret; Path=/'],
+            },
+          );
+        });
+        await expectLater(
+          DioSourceTransport(
+            adapter: adapter,
+            sessionAuthority: authority,
+          ).send(request(binding: binding, cancellation: cancellation)),
+          throwsA(
+            isA<SourceFailure>().having(
+              (failure) => failure.code,
+              'code',
+              SourceFailureCode.cancelled,
+            ),
+          ),
+        );
+        final current = manager.capture(sourceA);
+        expect(manager.cookieHeader(current, origin), isNull);
+      },
+    );
   });
 
   group('transport capacity', () {
@@ -719,13 +772,14 @@ void main() {
         active--;
         return ResponseBody.fromBytes([], 200);
       });
-      final policy = SourceTransportPolicy(
+      final policy = SourceTransportPolicy();
+      final transport = DioSourceTransport(
+        adapter: adapter,
         capacity: SourceTransportCapacityPolicy(
           maxConcurrentRequests: 2,
           maxQueuedRequests: 2,
         ),
       );
-      final transport = DioSourceTransport(adapter: adapter);
       final futures = [
         transport.send(request(policy: policy)),
         transport.send(request(policy: policy)),
@@ -751,13 +805,14 @@ void main() {
         }
         return ResponseBody.fromBytes([], 200);
       });
-      final policy = SourceTransportPolicy(
+      final policy = SourceTransportPolicy();
+      final transport = DioSourceTransport(
+        adapter: adapter,
         capacity: SourceTransportCapacityPolicy(
           maxConcurrentRequests: 1,
           maxQueuedRequests: 1,
         ),
       );
-      final transport = DioSourceTransport(adapter: adapter);
       final first = transport.send(request(policy: policy));
       await firstEntered.future;
       final cancelled = SourceCancellation()..cancel();
@@ -784,12 +839,14 @@ void main() {
         timeout: SourceTimeoutPolicy(
           operation: const Duration(milliseconds: 500),
         ),
+      );
+      final transport = DioSourceTransport(
+        adapter: adapter,
         capacity: SourceTransportCapacityPolicy(
           maxConcurrentRequests: 1,
           maxQueuedRequests: 1,
         ),
       );
-      final transport = DioSourceTransport(adapter: adapter);
       final first = transport.send(request(policy: policy));
       await firstStarted.future;
       final second = transport.send(request(policy: policy));
@@ -810,6 +867,38 @@ void main() {
       expect(calls, 2);
     });
 
+    test('permit releases after an adapter failure', () async {
+      final firstStarted = Completer<void>();
+      final failFirst = Completer<void>();
+      var calls = 0;
+      final adapter = ScriptedAdapter((options, _, _) async {
+        calls++;
+        if (calls == 1) {
+          firstStarted.complete();
+          await failFirst.future;
+          throw DioException.connectionError(
+            requestOptions: options,
+            reason: 'synthetic failure',
+          );
+        }
+        return ResponseBody.fromBytes([], 200);
+      });
+      final transport = DioSourceTransport(
+        adapter: adapter,
+        capacity: SourceTransportCapacityPolicy(
+          maxConcurrentRequests: 1,
+          maxQueuedRequests: 1,
+        ),
+      );
+      final first = transport.send(request());
+      await firstStarted.future;
+      final second = transport.send(request());
+      failFirst.complete();
+      await expectLater(first, throwsA(isA<SourceFailure>()));
+      await second;
+      expect(calls, 2);
+    });
+
     test('operation deadline can expire while waiting for a permit', () async {
       final release = Completer<void>();
       final started = Completer<void>();
@@ -820,16 +909,19 @@ void main() {
         await release.future;
         return ResponseBody.fromBytes([], 200);
       });
-      final capacity = SourceTransportCapacityPolicy(
-        maxConcurrentRequests: 1,
-        maxQueuedRequests: 1,
-      );
-      final longPolicy = SourceTransportPolicy(capacity: capacity);
+      final longPolicy = SourceTransportPolicy();
       final shortPolicy = SourceTransportPolicy(
         timeout: SourceTimeoutPolicy(operation: Duration(milliseconds: 30)),
-        capacity: capacity,
+        retry: SourceRetryPolicy(maxAttempts: 2),
+        redirects: SourceRedirectPolicy.follow(maxRedirects: 1),
       );
-      final transport = DioSourceTransport(adapter: adapter);
+      final transport = DioSourceTransport(
+        adapter: adapter,
+        capacity: SourceTransportCapacityPolicy(
+          maxConcurrentRequests: 1,
+          maxQueuedRequests: 1,
+        ),
+      );
       final first = transport.send(request(policy: longPolicy));
       await started.future;
       final queued = transport.send(request(policy: shortPolicy));
@@ -847,6 +939,50 @@ void main() {
       await first;
       expect(calls, 1);
     });
+
+    test(
+      'request policy variation cannot create a second capacity pool',
+      () async {
+        final firstStarted = Completer<void>();
+        final releaseFirst = Completer<void>();
+        var active = 0;
+        var maximum = 0;
+        var calls = 0;
+        final adapter = ScriptedAdapter((_, _, _) async {
+          calls++;
+          active++;
+          maximum = maximum < active ? active : maximum;
+          if (calls == 1) firstStarted.complete();
+          if (calls == 1) await releaseFirst.future;
+          active--;
+          return ResponseBody.fromBytes([], 200);
+        });
+        final transport = DioSourceTransport(
+          adapter: adapter,
+          capacity: SourceTransportCapacityPolicy(
+            maxConcurrentRequests: 1,
+            maxQueuedRequests: 1,
+          ),
+        );
+        final first = transport.send(request(policy: SourceTransportPolicy()));
+        await firstStarted.future;
+        final second = transport.send(
+          request(
+            policy: SourceTransportPolicy(
+              timeout: SourceTimeoutPolicy(receive: Duration(seconds: 2)),
+              retry: SourceRetryPolicy(maxAttempts: 2),
+              redirects: SourceRedirectPolicy.follow(maxRedirects: 1),
+            ),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(calls, 1);
+        releaseFirst.complete();
+        await Future.wait([first, second]);
+        expect(maximum, 1);
+        expect(calls, 2);
+      },
+    );
   });
 
   group('authentication coordination', () {
@@ -1311,4 +1447,33 @@ final class ScriptedAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+final class CancelBeforeCommitAuthority implements SourceSessionAuthority {
+  CancelBeforeCommitAuthority({
+    required this.manager,
+    required this.cancellation,
+  });
+
+  final SourceSessionManager manager;
+  final SourceCancellation cancellation;
+  var currentChecks = 0;
+
+  @override
+  bool isCurrent(SourceSessionBinding binding) {
+    currentChecks++;
+    if (currentChecks == 2) cancellation.cancel();
+    return manager.isCurrent(binding);
+  }
+
+  @override
+  String? cookieHeader(SourceSessionBinding binding, Uri requestUri) =>
+      manager.cookieHeader(binding, requestUri);
+
+  @override
+  bool commitResponseCookies(
+    SourceSessionBinding binding,
+    Uri responseUri,
+    SourceHttpHeaders headers,
+  ) => manager.commitResponseCookies(binding, responseUri, headers);
 }

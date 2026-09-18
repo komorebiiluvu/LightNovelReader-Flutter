@@ -115,12 +115,10 @@ final class SourceTransportPolicy {
     SourceTimeoutPolicy? timeout,
     SourceRetryPolicy? retry,
     SourceRedirectPolicy? redirects,
-    SourceTransportCapacityPolicy? capacity,
     this.maxResponseBytes = 4 * 1024 * 1024,
   }) : timeout = timeout ?? SourceTimeoutPolicy(),
        retry = retry ?? SourceRetryPolicy(),
-       redirects = redirects ?? const SourceRedirectPolicy.noFollow(),
-       capacity = capacity ?? SourceTransportCapacityPolicy() {
+       redirects = redirects ?? const SourceRedirectPolicy.noFollow() {
     if (maxResponseBytes < 1) {
       throw ArgumentError.value(maxResponseBytes, 'maxResponseBytes');
     }
@@ -129,12 +127,12 @@ final class SourceTransportPolicy {
   final SourceTimeoutPolicy timeout;
   final SourceRetryPolicy retry;
   final SourceRedirectPolicy redirects;
-  final SourceTransportCapacityPolicy capacity;
   final int maxResponseBytes;
 }
 
-/// Finite application-owned transport capacity. Queueing is per transport
-/// adapter and is FIFO; values are deliberately injectable for tests.
+/// Finite application-owned transport capacity. Queueing is per
+/// transport authority and is FIFO; values are deliberately injectable at
+/// transport construction time.
 final class SourceTransportCapacityPolicy {
   SourceTransportCapacityPolicy({
     this.maxConcurrentRequests = 4,
