@@ -1,17 +1,21 @@
 # F3.3 — Transport, Session and Security Foundation
 
-Status: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
+Status: **IMPLEMENTED / ACCEPTED**
 
 Slice: **F3.3 — Transport + Session + Security Foundation**
 
 Starting SHA: `961e19e3387c0f66aad0ac519efc7061c383b6b2`
 
+Accepted baseline SHA: `8822cfed27e87ec33d3bf923a1ce6384007cc50d`
+Human approval: **APPROVED** by the **Human project owner** on **2026-09-18**.
+
 Review-fix starting SHA: `1455bb3c13147b4fd1819297689c656de79564dd`
 
 ADR 0005 is **ACCEPTED / APPROVED** by the Human project owner on
-2026-09-18. F3.3 is **AUTHORIZED**. F3.4–F3.7 remain **NOT AUTHORIZED** and
-F3 Exit remains **NOT APPROVED**. This record does not approve a provider
-adapter, parser, live-provider request or the next slice.
+2026-09-18. F3.3 is **IMPLEMENTED / ACCEPTED**. F3.4 is **AUTHORIZED**;
+F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. This
+record does not approve a provider adapter, parser, live-provider request or
+the later slices.
 
 ## Implementation boundary
 
@@ -178,6 +182,8 @@ The final implementation run records:
 * `flutter test --no-pub`: **462 passed**
 * `git diff --check`: **PASS**
 
-The status is intentionally not F3.3 accepted. Human review must assess the
-contract implementation, dependency use, deterministic tests and the iOS CI
-runtime evidence before any F3.3 closure or F3.4 authorization.
+F3.3 is **IMPLEMENTED / ACCEPTED** at the baseline recorded above. F3.4 is
+**AUTHORIZED**; F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
+APPROVED**. The remembered-session crash-safe revocation limitation remains
+explicit and review-gated: no real Source may enable remembered-session
+restoration without later provider policy review.

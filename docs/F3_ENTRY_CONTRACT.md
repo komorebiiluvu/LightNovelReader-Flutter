@@ -6,8 +6,8 @@ Approval date: **2026-09-17**. Approved by: **Human project owner**.
 F3 Entry: **APPROVED**.
 F3.1: **IMPLEMENTED / ACCEPTED**.
 F3.2: **IMPLEMENTED / ACCEPTED**.
-F3.3: **AUTHORIZED**.
-F3.4–F3.7: **NOT AUTHORIZED**.
+F3.3: **IMPLEMENTED / ACCEPTED**.
+F3.4: **AUTHORIZED**. F3.5–F3.7: **NOT AUTHORIZED**.
 F3 Exit: **NOT APPROVED**.
 
 This accepted contract and [ADR 0004](adr/0004-f3-source-foundation.md) record
@@ -242,9 +242,10 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 
 ## 6. Slices, deliverables and local gates
 
-F3.1 and F3.2 are **IMPLEMENTED / ACCEPTED**; F3.3 is **AUTHORIZED**;
-F3.4–F3.7 remain **NOT AUTHORIZED** and have not started. ADR 0005 authorizes
-only its exact F3.3 dependencies; F3.1 acceptance does not approve F3 exit.
+F3.1, F3.2 and F3.3 are **IMPLEMENTED / ACCEPTED**; F3.4 is
+**AUTHORIZED**; F3.5–F3.7 remain **NOT AUTHORIZED** and have not started.
+ADR 0005 authorizes only its exact F3.3 dependencies; F3.3 acceptance does not
+approve F3 exit.
 Default review sequence is the following, with evidence before advancing.
 
 | Slice | Deliverables / scope | Tests and gate to next slice |
@@ -390,8 +391,8 @@ approval record.
 
 Approval record: **APPROVED**. Approver: **Human project owner**. Approval date:
 **2026-09-17**. F3 Entry: **APPROVED**. F3.1: **IMPLEMENTED / ACCEPTED**.
-F3.2: **IMPLEMENTED / ACCEPTED**. F3.3: **AUTHORIZED**. F3.4–F3.7: **NOT AUTHORIZED**. F3 Exit:
-**NOT APPROVED**.
+F3.2: **IMPLEMENTED / ACCEPTED**. F3.3: **IMPLEMENTED / ACCEPTED**.
+F3.4: **AUTHORIZED**. F3.5–F3.7: **NOT AUTHORIZED**. F3 Exit: **NOT APPROVED**.
 
 ## 12. F3.1 implementation acceptance — 2026-09-18
 
@@ -461,3 +462,22 @@ F3.3 remains **AUTHORIZED**, and dependency-using implementation is permitted
 within that slice. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
 APPROVED**. No other HTTP, cookie-management or secure-storage dependency is
 approved without a new or amended Human-approved dependency decision.
+
+## 16. F3.3 implementation acceptance and F3.4 authorization — 2026-09-18
+
+The Human project owner accepted F3.3 at baseline SHA
+`8822cfed27e87ec33d3bf923a1ce6384007cc50d` on **2026-09-18**. The accepted
+evidence includes 44 focused F3.3 tests, 462 full-suite tests, and CI run
+[35310986634](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35310986634)
+with Quality, Android, Windows and iOS packaged/runtime checks passing.
+
+The remembered-session crash-safe revocation limitation remains explicit and
+review-gated: the approved three-method secure-store abstraction cannot
+guarantee a durable tombstone if the underlying store cannot persist or delete
+state during failure. No real Source may enable remembered-session restoration
+without later review and explicit provider policy.
+
+F3.4 Wenku8 Pure Parser + Request Builder is **AUTHORIZED**. F3.5–F3.7 remain
+**NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. This authorization does
+not approve a decoder, charset, HTML or DOM dependency; any critical dependency
+requires its own dependency review, ADR and Human approval.

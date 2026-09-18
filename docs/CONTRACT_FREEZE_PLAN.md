@@ -148,3 +148,21 @@ permitted within F3.3 only. F3.4–F3.7 remain **NOT AUTHORIZED** and F3 Exit
 remains **NOT APPROVED**. No other HTTP, cookie-management or secure-storage
 dependency is approved without a new or amended Human-approved dependency
 decision.
+
+## F3.3 implementation acceptance and F3.4 authorization checkpoint — 2026-09-18
+
+F3.3 is **IMPLEMENTED / ACCEPTED** at baseline SHA
+`8822cfed27e87ec33d3bf923a1ce6384007cc50d`, approved by the **Human project
+owner** on **2026-09-18**. Accepted evidence is 44 focused F3.3 tests, 462 full
+tests, and CI run
+[35310986634](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35310986634)
+with Quality, Android, Windows and iOS packaged/runtime checks passing.
+
+The remembered-session crash-safe revocation limitation remains explicitly
+deferred and review-gated. No real Source may enable remembered-session
+restoration without later provider policy review and explicit approval.
+
+F3.4 Wenku8 Pure Parser + Request Builder is **AUTHORIZED**. F3.5–F3.7 remain
+**NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. F3.4 does not approve
+any new decoder, charset, HTML or DOM dependency; critical dependencies still
+require a separate dependency ADR and Human approval.
