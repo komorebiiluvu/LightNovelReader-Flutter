@@ -8,11 +8,13 @@ import '../../../domain/legacy/legacy_chapter_locator.dart';
 import '../../../domain/legacy/legacy_source_mapping.dart';
 import '../../../domain/progress/reading_progress.dart';
 import '../../../domain/progress/repositories.dart';
+import '../../../domain/reconciliation/legacy_reconciliation.dart';
 import '../../../domain/library/repository_failure.dart';
 import '../database.dart' show AppDatabase;
 import 'repository_access.dart';
 
-final class DriftProgressRepository implements ProgressRepository {
+final class DriftProgressRepository
+    implements ProgressRepository, LegacyProgressReconciliationRepository {
   DriftProgressRepository(AppDatabase db) : _access = RepositoryAccess(db);
   final RepositoryAccess _access;
 
@@ -36,7 +38,31 @@ final class DriftProgressRepository implements ProgressRepository {
   });
 
   @override
-  Future<void> save(ReadingProgressV1 progress) => _access.run(() async {
+  Future<void> save(ReadingProgressV1 progress) =>
+      _access.run(() => _saveWithinTransaction(progress));
+
+  @override
+  Future<LegacyReconciliationApplyDisposition> compareAndApply({
+    required SourceBookRef bookRef,
+    required ReadingProgressV1 expected,
+    required ReadingProgressV1 replacement,
+  }) => _access.run(() async {
+    if (expected.bookRef != bookRef || replacement.bookRef != bookRef) {
+      throw RepositoryFailure(RepositoryFailureReason.invalidInput);
+    }
+    final current = await _getWithinTransaction(bookRef);
+    if (current == null) return LegacyReconciliationApplyDisposition.notFound;
+    if (current == replacement) {
+      return LegacyReconciliationApplyDisposition.unchanged;
+    }
+    if (current != expected) {
+      return LegacyReconciliationApplyDisposition.conflict;
+    }
+    await _saveWithinTransaction(replacement);
+    return LegacyReconciliationApplyDisposition.applied;
+  });
+
+  Future<void> _saveWithinTransaction(ReadingProgressV1 progress) async {
     await _access.requireBook(progress.bookRef);
     final locator = progress.legacyLocator;
     String? locatorId;
@@ -89,7 +115,17 @@ final class DriftProgressRepository implements ProgressRepository {
             : encodeCanonicalUtc(progress.lastReadAt!),
       ],
     );
-  });
+  }
+
+  Future<ReadingProgressV1?> _getWithinTransaction(
+    SourceBookRef bookRef,
+  ) async {
+    final rows = await _access.rows(
+      'SELECT * FROM reading_progress WHERE source_id=? AND book_id=?',
+      RepositoryAccess.keys(bookRef),
+    );
+    return rows.isEmpty ? null : await _decode(rows.single);
+  }
 
   Future<ReadingProgressV1> _decode(QueryRow row) async {
     if (row.read<int>('version') != 1) {
