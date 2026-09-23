@@ -243,3 +243,21 @@ F3.4.1–F3.4.3 foundations remain **IMPLEMENTED / ACCEPTED**. F3.4 as a whole
 is not yet accepted; F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
 **NOT APPROVED**. Android and iOS charset runtime evidence remain **UNPROVEN**
 and require fresh deterministic validation at F3.7.
+
+## F3.4 acceptance and F3.5 authorization checkpoint — 2026-09-23
+
+The Human project owner accepted F3.4.4 and F3.4 as a whole at baseline
+`c72842e7c3151b6ba5693fdcf2e255ef2e3b689f` on **2026-09-23**.
+F3.4.1–F3.4.4 are **IMPLEMENTED / ACCEPTED**. Local format and analysis passed,
+69 focused and 514 full tests passed, and
+[CI run 35841427042](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35841427042)
+completed successfully with 5/5 jobs.
+
+**F3.5 Wenku8 Runtime Adapter is AUTHORIZED** for deterministic service
+orchestration, explicit authentication and pagination using the accepted Source,
+request, parser, transport and single-session boundaries. F3.6–F3.7 remain
+**NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. No new dependency,
+schema, Reader/UI, image/offline, second real Source or plugin work is approved.
+Windows charset runtime evidence remains PASS; Android and iOS charset-vector
+runtime evidence remain **UNPROVEN** and require fresh deterministic F3.7
+validation. The successful CI build/storage jobs are not that vector evidence.

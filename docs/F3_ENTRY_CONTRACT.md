@@ -7,7 +7,8 @@ F3 Entry: **APPROVED**.
 F3.1: **IMPLEMENTED / ACCEPTED**.
 F3.2: **IMPLEMENTED / ACCEPTED**.
 F3.3: **IMPLEMENTED / ACCEPTED**.
-F3.4: **AUTHORIZED**. F3.5–F3.7: **NOT AUTHORIZED**.
+F3.4: **IMPLEMENTED / ACCEPTED**. F3.5: **AUTHORIZED**.
+F3.6–F3.7: **NOT AUTHORIZED**.
 F3 Exit: **NOT APPROVED**.
 
 This accepted contract and [ADR 0004](adr/0004-f3-source-foundation.md) record
@@ -242,10 +243,9 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 
 ## 6. Slices, deliverables and local gates
 
-F3.1, F3.2 and F3.3 are **IMPLEMENTED / ACCEPTED**. F3.4 remains
-**AUTHORIZED**. F3.4.1–F3.4.3 are **IMPLEMENTED / ACCEPTED**; F3.4.4 is
-**IMPLEMENTED / HUMAN REVIEW REQUIRED**. F3.5–F3.7 remain **NOT AUTHORIZED** and
-F3 Exit remains **NOT APPROVED**. ADR 0005 authorizes only its exact F3.3
+F3.1–F3.4 are **IMPLEMENTED / ACCEPTED**. F3.5 is **AUTHORIZED**;
+F3.6–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+ADR 0005 authorizes only its exact F3.3
 dependencies; F3.3 acceptance does not approve F3 exit.
 Default review sequence is the following, with evidence before advancing.
 
@@ -578,3 +578,21 @@ F3.4.2 and F3.4.3 remain **IMPLEMENTED / ACCEPTED**. F3.4 as a whole remains
 unaccepted. F3.5–F3.7 are **NOT AUTHORIZED** and F3 Exit is **NOT APPROVED**.
 Android and iOS charset runtime evidence are **UNPROVEN** and remain a fresh
 deterministic F3.7/F3 Exit gate.
+
+## 22. F3.4 acceptance and F3.5 authorization — 2026-09-23
+
+The Human project owner accepted F3.4.4 and the complete F3.4 implementation
+at baseline `c72842e7c3151b6ba5693fdcf2e255ef2e3b689f` on
+**2026-09-23**. F3.4.1–F3.4.4 are **IMPLEMENTED / ACCEPTED**. Local format and
+analysis passed, 69 focused and 514 full tests passed, and
+[CI run 35841427042](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35841427042)
+completed successfully with 5/5 jobs.
+
+The Human project owner authorized **F3.5 Wenku8 Runtime Adapter** under the
+accepted slice scope in section 6: compose the Source contract, request builder,
+parser, transport and single session authority; provide explicit authentication
+and paginated service flows; prove behavior with deterministic scripted tests.
+This approval does not authorize F3.6–F3.7, F3 Exit, Reader/UI work, image
+download/cache/offline work, a second real Source, plugins, or new dependencies.
+Android and iOS charset-vector runtime evidence remain **UNPROVEN**; the CI
+result does not waive the fresh deterministic F3.7 platform gate.
