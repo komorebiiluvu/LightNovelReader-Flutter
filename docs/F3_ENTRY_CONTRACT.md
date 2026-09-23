@@ -548,3 +548,23 @@ runtime evidence remain **UNPROVEN**. Fresh deterministic evidence on both
 platforms is required at the F3.7 gate; the gap is not a PASS or reusable
 waiver. Implementing F3.4.2 or F3.4.3 does not constitute F3.4 acceptance or
 F3 Exit approval.
+
+## 20. F3.4 foundation review and F3.4.4 authorization — 2026-09-23
+
+The Human project owner approved F3.4.1 charset, F3.4.2 HTML parser, and
+F3.4.3 request builder foundations on **2026-09-23** at baseline
+`1251235750b13606b77a4a4a509da9e3f3aef948`. Their status is
+**IMPLEMENTED / ACCEPTED**. **F3.4.4 Wenku8 Pure Parser is AUTHORIZED** within
+the accepted F3.4 architecture and independently authored F3.2 fixture corpus.
+This checkpoint does not accept F3.4 as a whole.
+
+F3.4.4 may implement only pure deterministic parsing, source-neutral parsed
+structures, isolated Wenku8 selector/normalization logic, typed redacted
+failures, ordered content, fixture tests, and evidence. It does not authorize
+network execution, a Source runtime, authentication/session orchestration,
+persistence/schema changes, Reader/UI, or new dependencies. F3.5–F3.7 remain
+**NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+
+Windows charset runtime evidence remains PASS. Android and iOS charset runtime
+evidence remain **UNPROVEN** and are not waived; fresh deterministic evidence
+is required at F3.7 before F3 Exit.
