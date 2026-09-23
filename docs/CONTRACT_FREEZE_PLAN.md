@@ -297,3 +297,16 @@ incomplete CI disposition, not a PASS and not a reusable F3.7 waiver.
 remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. Android and
 iOS charset runtime evidence remain **UNPROVEN** and must be resolved at the
 appropriate F3.7 platform gate.
+
+## 25. F3.6 implementation checkpoint — 2026-09-23
+
+F3.6 Legacy Reconciliation + Source Neutrality Proof is **IMPLEMENTED / HUMAN
+REVIEW REQUIRED** at baseline `5e784dc971afcc8b5b1a4499ecaeeb2a47080d4d`.
+The slice adds a source-neutral, digest- and mapping-version-bound planner,
+retains candidate evidence, and applies verified progress replacements through
+an atomic expected-current-state Drift transaction. It does not add a second
+real Source, change schema, add dependencies, or start F3.7.
+
+Seven focused reconciliation tests and the full local suite of **546 tests**
+pass. Android and iOS charset runtime evidence remain **UNPROVEN** and are not
+waived. F3.7 remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.

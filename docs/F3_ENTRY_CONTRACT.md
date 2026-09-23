@@ -640,3 +640,19 @@ platform waiver.
 remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. Android and
 iOS charset runtime evidence remain **UNPROVEN** and must be resolved at the
 appropriate F3.7 platform gate.
+
+## 25. F3.6 implementation checkpoint — 2026-09-23
+
+F3.6 Legacy Reconciliation + Source Neutrality Proof is **IMPLEMENTED / HUMAN
+REVIEW REQUIRED** at baseline `5e784dc971afcc8b5b1a4499ecaeeb2a47080d4d`.
+The implementation resolves legacy chapter ordinals only from source/book-bound,
+contemporaneous catalog evidence with a single mapping version and applies the
+replacement through an atomic expected-current-state repository boundary. The
+original locator evidence and alternatives remain available for review. No
+second real Source, schema change, new dependency, F3.7 implementation, or F3
+Exit approval is included.
+
+Seven focused reconciliation tests and the full local suite of **546 tests**
+pass. Android and iOS charset runtime evidence remain **UNPROVEN**, not waived;
+fresh deterministic evidence is still required at the F3.7 platform gate. F3.7
+remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
