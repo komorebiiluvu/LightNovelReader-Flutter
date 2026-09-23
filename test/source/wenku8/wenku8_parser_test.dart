@@ -273,6 +273,16 @@ void main() {
       parser.parseDescription(document('detail-description-page-chrome')),
       expected('detail-description-page-chrome')['description'],
     );
+    final withFooter = html.parseFragment(
+      decoder.decode(
+        RawBytes(
+          utf8.encode('<h1>书名</h1><footer class="copyright">站点版权</footer>'),
+        ),
+        encoding: SourceEncoding.utf8,
+        evidence: CharsetEvidence('synthetic footer collision'),
+      ),
+    );
+    expect(parser.parseDetail(withFooter), isA<SourceParsedDetail>());
   });
 
   test('table cells remain separate even in title-less detail fragment', () {

@@ -218,11 +218,11 @@ final class Wenku8PureParser {
   }
 
   SourceParsedDetailResult parseDetail(ParsedHtmlDocument document) {
-    if (document.elements.any((element) => element.hasClass('copyright'))) {
-      return const SourceParsedDetailUnavailable('copyright');
-    }
     final title = _firstTextOfTag(document, 'h1');
     if (title == null) {
+      if (document.elements.any((element) => element.hasClass('copyright'))) {
+        return const SourceParsedDetailUnavailable('copyright');
+      }
       _fail(
         SourceOperation.bookDetail,
         Wenku8ParseFailureKind.parse,
