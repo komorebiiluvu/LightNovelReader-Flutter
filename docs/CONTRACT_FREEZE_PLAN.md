@@ -194,12 +194,12 @@ requires `hooks ^2.2.0`, while `charset_codec: 0.1.1` requires
 The amendment is no longer the current decoder path; it does not alter the
 accepted HTML parser decision.
 
-## F3.4 current implementation checkpoint — 2026-09-19
+## F3.4 historical implementation checkpoint — 2026-09-19
 
 [ADR 0007](adr/0007-f3-controlled-charset-decoder.md) is **ACCEPTED** at
 baseline `d4c74a6874779ea2558a97fdcf25ec9da976fa58`, approved by the Human
 project owner on **2026-09-18**. It supersedes the decoder portion of ADR 0006
-and adds no dependency. The current F3.4 slice state is:
+and adds no dependency. The F3.4 slice state at this historical checkpoint was:
 
 - F3.4.1 charset foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
 - F3.4.2 HTML parser foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**

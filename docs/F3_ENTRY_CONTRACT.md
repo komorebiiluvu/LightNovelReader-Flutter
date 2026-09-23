@@ -243,8 +243,8 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 ## 6. Slices, deliverables and local gates
 
 F3.1, F3.2 and F3.3 are **IMPLEMENTED / ACCEPTED**. F3.4 remains
-**AUTHORIZED** but its current implemented foundations are **HUMAN REVIEW
-REQUIRED**; F3.4.4 has not started. F3.5–F3.7 remain **NOT AUTHORIZED** and
+**AUTHORIZED**. F3.4.1–F3.4.3 are **IMPLEMENTED / ACCEPTED**; F3.4.4 is
+**IMPLEMENTED / HUMAN REVIEW REQUIRED**. F3.5–F3.7 remain **NOT AUTHORIZED** and
 F3 Exit remains **NOT APPROVED**. ADR 0005 authorizes only its exact F3.3
 dependencies; F3.3 acceptance does not approve F3 exit.
 Default review sequence is the following, with evidence before advancing.
@@ -310,11 +310,11 @@ currently authorized slice starts merely because this document is committed.
 | Second real Source, F8; plugin ownership/runtime, F9 | Fake neutrality tests do not claim these phases complete |
 | Real installed-app migration, performance/release matrix, F11 | F3 runtime validation does not claim release readiness |
 
-## 8.1 F3.4 current implementation checkpoint — 2026-09-19
+## 8.1 F3.4 historical implementation checkpoint — 2026-09-19
 
 ADR 0007 is **ACCEPTED** at baseline
 `d4c74a6874779ea2558a97fdcf25ec9da976fa58` and supersedes the decoder portion
-of ADR 0006. The current F3.4 status is:
+of ADR 0006. The F3.4 status at this historical checkpoint was:
 
 - F3.4.1 charset foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
 - F3.4.2 HTML parser foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
@@ -324,7 +324,7 @@ of ADR 0006. The current F3.4 status is:
 - F3 Exit: **NOT APPROVED**
 
 The accepted HTML parser dependency remains `html: 0.15.7`; `charset_codec:
-0.1.1` is not used by the current implementation. Windows charset runtime
+0.1.1` is not used by the implementation. Windows charset runtime
 evidence is PASS, while Android and iOS runtime evidence remain **UNPROVEN**.
 Fresh deterministic Android and iOS evidence is still required by F3.7. The
 gap is not a PASS or reusable waiver. Implementing F3.4.2 or F3.4.3 does not
@@ -529,11 +529,11 @@ requires `hooks ^2.2.0`, while `charset_codec: 0.1.1` requires
 It is no longer the current decoder path and does not alter the accepted HTML
 parser decision.
 
-## 19. F3.4 current implementation checkpoint — 2026-09-19
+## 19. F3.4 historical implementation checkpoint — 2026-09-19
 
 ADR 0007 is **ACCEPTED** at baseline
 `d4c74a6874779ea2558a97fdcf25ec9da976fa58`, approved by the Human project
-owner on **2026-09-18**. The current F3.4 status is:
+owner on **2026-09-18**. The F3.4 status at this historical checkpoint was:
 
 - F3.4.1 charset foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
 - F3.4.2 HTML parser foundation: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
