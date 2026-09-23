@@ -265,9 +265,9 @@ validation. The successful CI build/storage jobs are not that vector evidence.
 ## F3.5 Wenku8 Runtime Adapter implementation checkpoint — 2026-09-23
 
 F3.5 Wenku8 Runtime Adapter is **IMPLEMENTED / HUMAN REVIEW REQUIRED** at
-baseline `ee3de2e` (full commit
-`ee3de2eda1b097d04c400d74fe9ec614fdc240b5`, recorded here after the code
-commit). The adapter composes the accepted Source, request-builder, parser,
+baseline `adf995b` (full commit
+`adf995b7ee3073ded4ee0b91843d3a429ad23146`, recorded here after the code and
+format commits). The adapter composes the accepted Source, request-builder, parser,
 transport and single-session contracts and provides deterministic search,
 Explore, detail, catalog, ordered content and explicit memory-only
 authentication flows.
