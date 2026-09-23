@@ -614,9 +614,29 @@ tests**. No public-provider request is required. F3.5 does not include
 reconciliation, a second real Source, plugin runtime, Reader/UI, image
 download/cache/offline behavior, schema changes or new dependencies.
 
-F3.5 remains pending Human review. F3.6–F3.7 remain **NOT AUTHORIZED** and F3
-Exit remains **NOT APPROVED**. Windows charset runtime evidence remains PASS;
+At the time of this implementation checkpoint, F3.5 was pending Human review;
+section 24 records the later acceptance. Windows charset runtime evidence remains PASS;
 Android and iOS charset-vector runtime evidence remain **UNPROVEN** and are not
 waived by these deterministic tests or by CI build/storage jobs. Fresh
 deterministic Android and iOS evidence remains required at the F3.7/F3 Exit
 gate.
+
+## 24. F3.5 acceptance and F3.6 authorization — 2026-09-23
+
+The Human project owner accepted F3.5 Wenku8 Runtime Adapter at implementation
+baseline `adf995b7ee3073ded4ee0b91843d3a429ad23146` on **2026-09-23**. The
+accepted slice includes the deterministic runtime composition, explicit
+memory-only authentication, source-scoped session generation, pagination,
+typed failures and F2 identity/content mapping described in section 23.
+
+CI run [35847141315](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/35847141315)
+was not green at approval time: four of five jobs had completed at the last
+observed state and the remaining job was not recorded as PASS. The Human owner
+explicitly authorized F3.6 without waiting for that job. This records the
+incomplete CI state and does not convert it to PASS or create a reusable F3.7
+platform waiver.
+
+**F3.6 Legacy Reconciliation + Source Neutrality Proof is AUTHORIZED.** F3.7
+remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**. Android and
+iOS charset runtime evidence remain **UNPROVEN** and must be resolved at the
+appropriate F3.7 platform gate.

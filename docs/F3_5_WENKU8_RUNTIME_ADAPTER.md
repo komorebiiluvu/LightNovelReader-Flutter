@@ -1,10 +1,10 @@
 # F3.5 Wenku8 Runtime Adapter
 
-Status: **IMPLEMENTED / HUMAN REVIEW REQUIRED**.
+Status: **IMPLEMENTED / ACCEPTED**.
 
-F3.5 is authorized by the Human project owner's F3.4 acceptance checkpoint on
-**2026-09-23**. This document records the implementation boundary and evidence
-for review; it does not accept F3.5 or authorize F3.6, F3.7 or F3 Exit.
+F3.5 was accepted by the Human project owner on **2026-09-23** at implementation
+baseline `adf995b7ee3073ded4ee0b91843d3a429ad23146`. This acceptance authorizes
+F3.6 only; F3.7 and F3 Exit remain pending.
 
 ## Boundary
 
@@ -48,11 +48,15 @@ passes **539 tests**. Format, analysis and `git diff --check` pass.
 
 These are deterministic scripted tests. No public-provider request is
 required, and they do not claim Android or iOS charset-vector runtime proof.
-The accepted F3.4 platform evidence gap remains a fresh F3.7 gate.
+The accepted F3.4 platform evidence gap remains a fresh F3.7 gate. CI run
+`35847141315` was not green at approval time: four of five jobs had completed
+at the last observed state and the remaining job was not recorded as PASS.
+This explicit Human disposition permits F3.6 to start without treating the
+incomplete job as a PASS or as a reusable F3.7 waiver.
 
 ## Excluded work
 
 F3.5 does not implement reconciliation, a second real Source, plugin runtime,
 Reader/UI changes, image download/cache/offline behavior, schema changes or new
-dependencies. F3.6 and F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
-**NOT APPROVED**.
+dependencies. F3.6 is now **AUTHORIZED**. F3.7 remains **NOT AUTHORIZED** and
+F3 Exit remains **NOT APPROVED**.
