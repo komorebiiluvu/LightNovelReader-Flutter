@@ -230,14 +230,19 @@ void main() {
   test('frozen Legacy home block structure preserves two distinct groups', () {
     final raw = File('test/source/wenku8/fixtures/legacy_home_blocks.html')
         .readAsBytesSync();
-    expect(normalizedFixtureSha256(raw),
-        '23457501074ca05109f35750b0de62e8764a0723286be203a472ce2de20eb23b');
+    expect(
+      normalizedFixtureSha256(raw),
+      '23457501074ca05109f35750b0de62e8764a0723286be203a472ce2de20eb23b',
+    );
     final expectedBytes = File(
       'test/source/wenku8/fixtures/legacy_home_blocks.expected.json',
     ).readAsBytesSync();
-    expect(normalizedFixtureSha256(expectedBytes),
-        '8015658ded2a0034e92478078d7f2eca5bf4c4a3bfa2fbb0bfcc4bd5d439047f');
-    final sidecar = jsonDecode(utf8.decode(expectedBytes)) as Map<String, dynamic>;
+    expect(
+      normalizedFixtureSha256(expectedBytes),
+      '8015658ded2a0034e92478078d7f2eca5bf4c4a3bfa2fbb0bfcc4bd5d439047f',
+    );
+    final sidecar =
+        jsonDecode(utf8.decode(expectedBytes)) as Map<String, dynamic>;
     expect(sidecar['provenance'], 'reconstructed_from_frozen_evidence');
     final result = parser.parseExplore(
       html.parseFragment(

@@ -59,8 +59,8 @@ void main() {
             },
           );
         }
-      if (options.path.contains('/modules/article/search.php')) {
-        expect(options.uri.query, contains('searchkey='));
+        if (options.path.contains('/modules/article/search.php')) {
+          expect(options.uri.query, contains('searchkey='));
           if (requests.length == 2) {
             expect(cookie, contains('jieqiUserInfo=SYNTHETIC_USER_INFO'));
           } else {

@@ -274,16 +274,17 @@ void main() {
 
   test('runtime accepts frozen Legacy detail table structure', () async {
     final sessions = SourceSessionManager();
-    final transport = _ScriptedTransport((request) async => SourceHttpResponse(
-          statusCode: 200,
-          headers: SourceHttpHeaders.fromSingleValue({
-            'content-type': 'text/html; charset=utf-8',
-          }),
-          bodyBytes: File(
-            'test/source/wenku8/fixtures/legacy_detail_table.html',
-          ).readAsBytesSync(),
-          finalUri: request.uri,
-        ));
+    final transport = _ScriptedTransport(
+      (request) async => SourceHttpResponse(
+        statusCode: 200,
+        headers: SourceHttpHeaders.fromSingleValue({
+          'content-type': 'text/html; charset=utf-8',
+        }),
+        bodyBytes: File('test/source/wenku8/fixtures/legacy_detail_table.html')
+            .readAsBytesSync(),
+        finalUri: request.uri,
+      ),
+    );
     final source = Wenku8Source(transport: transport, sessions: sessions);
     final detail = await source.getBook(
       SourceBookRef(sourceId: sourceId, bookId: BookId('wk8-201')),
@@ -292,22 +293,22 @@ void main() {
     expect(detail.title, '书名');
     expect(detail.author, '作者甲');
     expect(detail.description, '简介正文');
-    expect(source.assets.locatorFor(detail.coverAssetRef!),
-        '/image/cover.jpg');
+    expect(source.assets.locatorFor(detail.coverAssetRef!), '/image/cover.jpg');
   });
 
   test('runtime preserves frozen Legacy home block ordering', () async {
     final sessions = SourceSessionManager();
-    final transport = _ScriptedTransport((request) async => SourceHttpResponse(
-          statusCode: 200,
-          headers: SourceHttpHeaders.fromSingleValue({
-            'content-type': 'text/html; charset=utf-8',
-          }),
-          bodyBytes: File(
-            'test/source/wenku8/fixtures/legacy_home_blocks.html',
-          ).readAsBytesSync(),
-          finalUri: request.uri,
-        ));
+    final transport = _ScriptedTransport(
+      (request) async => SourceHttpResponse(
+        statusCode: 200,
+        headers: SourceHttpHeaders.fromSingleValue({
+          'content-type': 'text/html; charset=utf-8',
+        }),
+        bodyBytes: File('test/source/wenku8/fixtures/legacy_home_blocks.html')
+            .readAsBytesSync(),
+        finalUri: request.uri,
+      ),
+    );
     final source = Wenku8Source(transport: transport, sessions: sessions);
     final page = await source.explore(
       ExploreRequest(descriptorId: 'home'),
@@ -436,25 +437,25 @@ void main() {
     final cancellation = SourceCancellation();
     final pending = source.search(
       SearchQuery(text: '甲'),
-      context(
-        sessions,
-        SourceOperation.search,
-        cancellation: cancellation,
-      ),
+      context(sessions, SourceOperation.search, cancellation: cancellation),
     );
     cancellation.cancel();
-    response.complete(fixture(
-      'search-normal-multi',
-      transport.requests.single,
-      pageMetadata: '1 / 1',
-    ));
+    response.complete(
+      fixture(
+        'search-normal-multi',
+        transport.requests.single,
+        pageMetadata: '1 / 1',
+      ),
+    );
     await expectLater(
       pending,
-      throwsA(isA<SourceFailure>().having(
-        (failure) => failure.code,
-        'code',
-        SourceFailureCode.cancelled,
-      )),
+      throwsA(
+        isA<SourceFailure>().having(
+          (failure) => failure.code,
+          'code',
+          SourceFailureCode.cancelled,
+        ),
+      ),
     );
   });
 

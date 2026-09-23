@@ -371,9 +371,7 @@ final class Wenku8Source extends GuardedBookSource {
       final login = document.elements.any(
         (element) =>
             element.tag == 'form' &&
-            (element.attribute('action') ?? '')
-                .toLowerCase()
-                .contains('login'),
+            (element.attribute('action') ?? '').toLowerCase().contains('login'),
       );
       if (login) {
         _sessions.expire(_wenku8Id);
