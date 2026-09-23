@@ -568,3 +568,13 @@ persistence/schema changes, Reader/UI, or new dependencies. F3.5–F3.7 remain
 Windows charset runtime evidence remains PASS. Android and iOS charset runtime
 evidence remain **UNPROVEN** and are not waived; fresh deterministic evidence
 is required at F3.7 before F3 Exit.
+
+## 21. F3.4.4 implementation checkpoint — 2026-09-23
+
+F3.4.4 Wenku8 Pure Parser is **IMPLEMENTED / HUMAN REVIEW REQUIRED**. It uses
+the generic decoded/HTML boundary, keeps provider selectors in the Wenku8
+adapter and checks independently authored F3.2 expected sidecars. F3.4.1,
+F3.4.2 and F3.4.3 remain **IMPLEMENTED / ACCEPTED**. F3.4 as a whole remains
+unaccepted. F3.5–F3.7 are **NOT AUTHORIZED** and F3 Exit is **NOT APPROVED**.
+Android and iOS charset runtime evidence are **UNPROVEN** and remain a fresh
+deterministic F3.7/F3 Exit gate.

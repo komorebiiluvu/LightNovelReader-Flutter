@@ -233,3 +233,13 @@ F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
 Windows charset runtime evidence remains PASS. Android and iOS charset runtime
 evidence remain **UNPROVEN**, not waived; fresh deterministic evidence remains
 required at F3.7 before F3 Exit.
+
+## F3.4.4 implementation checkpoint — 2026-09-23
+
+The Wenku8 pure parser is **IMPLEMENTED / HUMAN REVIEW REQUIRED**. It consumes
+the generic decoded/HTML evidence, returns immutable parsed structures and
+uses independently authored F3.2 sidecars for deterministic coverage. The
+F3.4.1–F3.4.3 foundations remain **IMPLEMENTED / ACCEPTED**. F3.4 as a whole
+is not yet accepted; F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
+**NOT APPROVED**. Android and iOS charset runtime evidence remain **UNPROVEN**
+and require fresh deterministic validation at F3.7.

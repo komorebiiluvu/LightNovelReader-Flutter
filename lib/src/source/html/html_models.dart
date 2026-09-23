@@ -87,7 +87,15 @@ final class ParsedHtmlDocument {
     required this.traversedNodeCount,
     required this.parseErrorCount,
   }) : nodes = List<ParsedHtmlNode>.unmodifiable(nodes),
-       elements = List<ParsedHtmlElement>.unmodifiable(elements);
+       elements = List<ParsedHtmlElement>.unmodifiable(elements) {
+    if (parseErrorCount < 0 ||
+        traversedNodeCount < 0 ||
+        this.elements.any(
+          (element) => element.endNodeIndex > this.nodes.length,
+        )) {
+      throw ArgumentError('Invalid parsed HTML evidence');
+    }
+  }
 
   final String? titleEvidence;
   final List<ParsedHtmlNode> nodes;
