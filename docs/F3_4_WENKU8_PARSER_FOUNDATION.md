@@ -66,3 +66,17 @@ F3.4 requires Human review. Windows charset runtime evidence is PASS; Android
 and iOS charset runtime evidence remain **UNPROVEN**, not waived. Fresh
 deterministic Android and iOS evidence remains an F3.7/F3 Exit requirement.
 F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+
+## Post-acceptance frozen-Legacy structure correction — 2026-09-23
+
+F3.5 preparation compared the accepted parser to frozen Legacy commit
+`d90d4d090c85a0a9c374684696c34befe12636d1`, specifically
+`Wenku8DataSource.kt` `getBookVolumes`. The original F3.2 catalog fragments
+used simplified `/novel/<book>/<chapter>` links. Frozen Legacy also consumes
+table rows with `td.vcss[vid]` volume markers and relative `<chapter>.htm`
+links. A separate, explicitly reconstructed fixture and independently authored
+expected sidecar now prove that structure, including stable volume IDs, labels
+and three distinct chapter IDs. The test pins both fixture hashes. It is not
+presented as a live capture. The pure parser now supports both shapes without
+using an ordinal as identity. This corrective regression does not authorize
+F3.5 acceptance, F3.6, image retrieval or F3 Exit.

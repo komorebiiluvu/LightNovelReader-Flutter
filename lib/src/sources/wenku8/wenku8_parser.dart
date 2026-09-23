@@ -268,13 +268,25 @@ final class Wenku8PureParser {
 
   SourceParsedCatalog parseCatalog(ParsedHtmlDocument document) {
     final volumeElements = document.elements
-        .where((element) => element.attribute('data-vid') != null)
+        .where(
+          (element) =>
+              element.attribute('data-vid') != null ||
+              (element.tag == 'td' &&
+                  element.hasClass('vcss') &&
+                  element.attribute('vid') != null),
+        )
         .toList();
     final volumes = [
       for (final element in volumeElements)
         SourceParsedVolume(
-          providerKey: element.attribute('data-vid')!,
-          label: _directTextIn(document, element).trim().nullIfEmpty,
+          providerKey:
+              element.attribute('data-vid') ?? element.attribute('vid')!,
+          label:
+              (element.tag == 'td'
+                      ? _textIn(document, element)
+                      : _directTextIn(document, element))
+                  .trim()
+                  .nullIfEmpty,
         ),
     ];
     final headings = document.elements
@@ -286,9 +298,21 @@ final class Wenku8PureParser {
       (element) => element.tag == 'a',
     )) {
       final href = anchor.attribute('href');
-      if (href == null || !href.startsWith('/novel/')) continue;
-      final match = RegExp(r'^/novel/[^/]+/([^/?#]+)').firstMatch(href);
-      final key = match?.group(1);
+      if (href == null) continue;
+      final absolute = RegExp(r'^/novel/[^/]+/([^/?#]+)').firstMatch(href);
+      final inTableCell = document.elements.any(
+        (element) =>
+            element.tag == 'td' &&
+            element.startNodeIndex <= anchor.startNodeIndex &&
+            anchor.endNodeIndex <= element.endNodeIndex,
+      );
+      final relative = inTableCell
+          ? RegExp(r'^([^/?#]+)\.htm$').firstMatch(href)
+          : null;
+      final key = absolute?.group(1) ?? relative?.group(1);
+      if (key == 'index' || (!href.startsWith('/novel/') && relative == null)) {
+        continue;
+      }
       if (key != null && !seen.add(key)) {
         _fail(
           SourceOperation.catalog,
@@ -312,6 +336,17 @@ final class Wenku8PureParser {
                 anchor.endNodeIndex <= element.endNodeIndex,
           )
           .lastOrNull;
+      final precedingTableVolume = volume == null && relative != null
+          ? volumeElements
+                .where(
+                  (element) =>
+                      element.tag == 'td' &&
+                      element.hasClass('vcss') &&
+                      document.elements.indexOf(element) <
+                          document.elements.indexOf(anchor),
+                )
+                .lastOrNull
+          : null;
       final heading = headings
           .where((element) => element.endNodeIndex <= anchor.startNodeIndex)
           .lastOrNull;
@@ -320,8 +355,11 @@ final class Wenku8PureParser {
           providerKey: key,
           title: title,
           ordinal: chapters.length,
-          providerVolumeKey: volume?.attribute('data-vid'),
-          groupLabel: volume == null && heading != null
+          providerVolumeKey:
+              volume?.attribute('data-vid') ??
+              precedingTableVolume?.attribute('vid'),
+          groupLabel:
+              volume == null && precedingTableVolume == null && heading != null
               ? _textIn(document, heading).trim()
               : null,
         ),

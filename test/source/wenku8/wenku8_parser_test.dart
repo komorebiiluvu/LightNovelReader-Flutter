@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:light_novel_reader/src/source/charset/charset_codec.dart';
 import 'package:light_novel_reader/src/source/charset/charset_models.dart';
@@ -363,6 +364,58 @@ void main() {
       );
     },
   );
+
+  test('frozen Legacy table catalog keeps relative chapter and volume IDs', () {
+    final raw = File('test/source/wenku8/fixtures/legacy_catalog_table.html')
+        .readAsBytesSync();
+    expect(
+      sha256.convert(raw).toString(),
+      'fa58842725e030ab925387656e3a3ee87bfa59a63ed1c54289beef377e022ce3',
+    );
+    final expectedBytes = File(
+      'test/source/wenku8/fixtures/legacy_catalog_table.expected.json',
+    ).readAsBytesSync();
+    expect(
+      sha256.convert(expectedBytes).toString(),
+      '5239bb63853e909917599719e61a8eb6af773cef0b5b22014290b0247110f774',
+    );
+    final sidecar =
+        jsonDecode(utf8.decode(expectedBytes)) as Map<String, dynamic>;
+    expect(sidecar['provenance'], 'reconstructed_from_frozen_evidence');
+    expect(
+      sidecar['frozenLegacyCommit'],
+      'd90d4d090c85a0a9c374684696c34befe12636d1',
+    );
+    final parsed = parser.parseCatalog(
+      html.parseFragment(
+        decoder.decode(
+          RawBytes(raw),
+          encoding: SourceEncoding.utf8,
+          evidence: CharsetEvidence('frozen Legacy table reconstruction'),
+        ),
+      ),
+    );
+    expect(
+      parsed.volumes.map((volume) => volume.providerKey).toList(),
+      sidecar['volumeIds'],
+    );
+    expect(
+      parsed.volumes.map((volume) => volume.label).toList(),
+      sidecar['volumeLabels'],
+    );
+    expect(
+      parsed.chapters.map((chapter) => chapter.providerKey).toList(),
+      sidecar['chapterIds'],
+    );
+    expect(
+      parsed.chapters.map((chapter) => chapter.title).toList(),
+      sidecar['chapterTitles'],
+    );
+    expect(
+      parsed.chapters.map((chapter) => chapter.providerVolumeKey).toList(),
+      sidecar['chapterVolumeIds'],
+    );
+  });
 
   test(
     'content matches every ordered node sidecar including six-node case',

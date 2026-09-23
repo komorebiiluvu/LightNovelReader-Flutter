@@ -1,0 +1,11 @@
+{
+  "provenance": "reconstructed_from_frozen_evidence",
+  "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+  "frozenPath": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+  "frozenSection": "getBookVolumes table/vcss/relative .htm parsing",
+  "volumeIds": ["v1", "v2"],
+  "volumeLabels": ["第一卷", "第二卷"],
+  "chapterIds": ["1", "2", "3"],
+  "chapterTitles": ["第一章", "第二章", "第三章"],
+  "chapterVolumeIds": ["v1", "v1", "v2"]
+}
