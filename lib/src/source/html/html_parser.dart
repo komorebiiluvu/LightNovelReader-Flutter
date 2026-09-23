@@ -12,12 +12,29 @@ final class HtmlDocumentParser {
 
   final HtmlParserLimits limits;
 
-  ParsedHtmlDocument parse(DecodedDocument input) {
+  ParsedHtmlDocument parse(DecodedDocument input) => _parse(input);
+
+  /// HTML fragment parsing preserves context-sensitive elements such as `td`.
+  /// The caller chooses a standard HTML container; no provider selector or
+  /// package DOM escapes this boundary.
+  ParsedHtmlDocument parseFragment(
+    DecodedDocument input, {
+    String container = 'div',
+  }) => _parse(input, fragmentContainer: container);
+
+  ParsedHtmlDocument _parse(
+    DecodedDocument input, {
+    String? fragmentContainer,
+  }) {
     _validateDecodedText(input.text);
 
-    final html_dom.Document document;
+    final html_dom.Node document;
+    final html_parser.HtmlParser parser;
     try {
-      document = html_parser.parse(input.text);
+      parser = html_parser.HtmlParser(input.text);
+      document = fragmentContainer == null
+          ? parser.parse()
+          : parser.parseFragment(fragmentContainer);
     } catch (_) {
       throw const HtmlParserException(
         HtmlParserFailureInfo(kind: HtmlParserFailureKind.malformedStructure),
@@ -41,7 +58,9 @@ final class HtmlDocumentParser {
     return ParsedHtmlDocument(
       titleEvidence: title.isEmpty ? null : title,
       nodes: context.nodes,
+      elements: context.elements,
       traversedNodeCount: context.traversedNodes,
+      parseErrorCount: parser.errors.length,
     );
   }
 }
@@ -104,8 +123,16 @@ void _visit(
   }
 
   var childInTitle = inTitle;
+  int? elementIndex;
   if (node is html_dom.Element) {
     final tag = (node.localName ?? '').toLowerCase();
+    elementIndex = context.beginElement(
+      tag: tag,
+      attributes: node.attributes.map(
+        (name, value) => MapEntry(name.toString().toLowerCase(), value),
+      ),
+      depth: actualDepth,
+    );
     childInTitle = inTitle || tag == 'title';
     if (tag == 'img') {
       final locator = node.attributes['src'];
@@ -140,6 +167,7 @@ void _visit(
   for (final child in node.nodes) {
     _visit(context, child, actualDepth, inTitle: childInTitle);
   }
+  if (elementIndex != null) context.endElement(elementIndex);
 }
 
 String _normalizeText(String value) =>
@@ -150,8 +178,39 @@ final class _TraversalContext {
 
   final HtmlParserLimits limits;
   final nodes = <ParsedHtmlNode>[];
+  final _elements = <_MutableElement>[];
   final title = StringBuffer();
   var traversedNodes = 0;
+
+  List<ParsedHtmlElement> get elements => List.unmodifiable(
+    _elements.map(
+      (element) => ParsedHtmlElement(
+        tag: element.tag,
+        attributes: element.attributes,
+        depth: element.depth,
+        startNodeIndex: element.startNodeIndex,
+        endNodeIndex: element.endNodeIndex ?? nodes.length,
+      ),
+    ),
+  );
+
+  int beginElement({
+    required String tag,
+    required Map<String, String> attributes,
+    required int depth,
+  }) {
+    _elements.add(
+      _MutableElement(
+        tag: tag,
+        attributes: attributes,
+        depth: depth,
+        startNodeIndex: nodes.length,
+      ),
+    );
+    return _elements.length - 1;
+  }
+
+  void endElement(int index) => _elements[index].endNodeIndex = nodes.length;
 
   void add(ParsedHtmlNode node) {
     nodes.add(node);
@@ -166,4 +225,19 @@ final class _TraversalContext {
       );
     }
   }
+}
+
+final class _MutableElement {
+  _MutableElement({
+    required this.tag,
+    required this.attributes,
+    required this.depth,
+    required this.startNodeIndex,
+  });
+
+  final String tag;
+  final Map<String, String> attributes;
+  final int depth;
+  final int startNodeIndex;
+  int? endNodeIndex;
 }

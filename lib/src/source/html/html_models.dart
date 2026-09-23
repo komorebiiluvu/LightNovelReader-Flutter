@@ -83,17 +83,55 @@ final class ParsedHtmlDocument {
   ParsedHtmlDocument({
     required this.titleEvidence,
     required List<ParsedHtmlNode> nodes,
+    required List<ParsedHtmlElement> elements,
     required this.traversedNodeCount,
-  }) : nodes = List<ParsedHtmlNode>.unmodifiable(nodes);
+    required this.parseErrorCount,
+  }) : nodes = List<ParsedHtmlNode>.unmodifiable(nodes),
+       elements = List<ParsedHtmlElement>.unmodifiable(elements);
 
   final String? titleEvidence;
   final List<ParsedHtmlNode> nodes;
+  final List<ParsedHtmlElement> elements;
   final int traversedNodeCount;
+  final int parseErrorCount;
 
   @override
   String toString() =>
       'ParsedHtmlDocument(title: ${titleEvidence == null ? 'absent' : 'present'}, '
       'nodes: ${nodes.length}, traversed: $traversedNodeCount)';
+}
+
+/// Source-neutral element structure. [startNodeIndex] and [endNodeIndex]
+/// delimit a half-open range in [ParsedHtmlDocument.nodes]. Attribute values
+/// are available for parsing but omitted from diagnostics.
+final class ParsedHtmlElement {
+  ParsedHtmlElement({
+    required this.tag,
+    required Map<String, String> attributes,
+    required this.depth,
+    required this.startNodeIndex,
+    required this.endNodeIndex,
+  }) : attributes = Map<String, String>.unmodifiable(attributes) {
+    if (startNodeIndex < 0 || endNodeIndex < startNodeIndex) {
+      throw ArgumentError('Invalid element range');
+    }
+  }
+
+  final String tag;
+  final Map<String, String> attributes;
+  final int depth;
+  final int startNodeIndex;
+  final int endNodeIndex;
+
+  String? attribute(String name) => attributes[name.toLowerCase()];
+
+  bool hasClass(String name) =>
+      (attribute('class') ?? '').split(RegExp(r'\s+')).contains(name);
+
+  @override
+  String toString() =>
+      'ParsedHtmlElement(tag: $tag, depth: $depth, '
+      'attributeCount: ${attributes.length}, range: $startNodeIndex..$endNodeIndex)';
 }
 
 sealed class ParsedHtmlNode {

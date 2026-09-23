@@ -39,6 +39,8 @@ domain models, source contracts, features, or UI.
 
 * optional title evidence;
 * one immutable ordered pre-order sequence of project-owned nodes;
+* immutable element evidence containing tag, attributes and half-open ranges
+  into that node sequence;
 * the traversed DOM node count.
 
 The normalized node variants are `ParsedHtmlText`, `ParsedHtmlImage`, and
@@ -51,6 +53,14 @@ domain identity.
 Each normalized node retains its DOM depth. Together with the ordered sequence,
 this preserves text order, image position, node type, and nesting information
 without leaking the package DOM.
+
+The generic parser also exposes a fragment mode with a standard HTML container
+(`div` by default, `tr` for table-cell fragments). This keeps fragment recovery
+and context-sensitive HTML5 tree building in the approved `html` package. The
+output records a parse-error count so a provider parser can distinguish a
+malformed fragment from a valid empty result. Element attributes are held only
+in the intermediate document and are omitted from its and each element's
+`toString` diagnostics. Provider selectors remain outside this foundation.
 
 ## Limits and memory boundary
 

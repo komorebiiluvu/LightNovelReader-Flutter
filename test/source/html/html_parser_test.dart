@@ -78,6 +78,24 @@ void main() {
     );
   });
 
+  test('exposes immutable, redacted element ranges for pure adapters', () {
+    final document = parser.parse(
+      decoded(
+        '<div id="content" class="chapter" data-secret="sentinel"><p>A</p></div>',
+      ),
+    );
+    final content = document.elements.singleWhere(
+      (element) => element.attribute('id') == 'content',
+    );
+    expect(content.tag, 'div');
+    expect(content.hasClass('chapter'), isTrue);
+    expect(content.startNodeIndex, 0);
+    expect(content.endNodeIndex, 1);
+    expect(document.nodes[0], isA<ParsedHtmlText>());
+    expect(content.toString(), isNot(contains('sentinel')));
+    expect(() => content.attributes['id'] = 'other', throwsUnsupportedError);
+  });
+
   test('empty and whitespace-only documents remain valid', () {
     expect(parser.parse(decoded('')).nodes, isEmpty);
     expect(parser.parse(decoded(' \n\t ')).nodes, isEmpty);
