@@ -1,0 +1,10 @@
+{
+  "provenance": "reconstructed_from_frozen_evidence",
+  "frozenLegacyCommit": "d90d4d090c85a0a9c374684696c34befe12636d1",
+  "frozenPath": "shared/src/commonMain/kotlin/io/nightfish/lightnovelreader/wenku8/Wenku8DataSource.kt",
+  "frozenSection": "getBookInformation and extractDescription",
+  "title": "书名",
+  "author": "作者甲",
+  "description": "简介正文",
+  "coverLocator": "/image/cover.jpg"
+}

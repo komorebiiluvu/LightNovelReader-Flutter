@@ -1,9 +1,9 @@
 # F3.4.4 Wenku8 Pure Parser Foundation
 
-Status: **IMPLEMENTED / HUMAN REVIEW REQUIRED**. F3.4 as a whole is not
-accepted. The Human project owner authorized this slice on **2026-09-23** at
-baseline `1251235750b13606b77a4a4a509da9e3f3aef948` after accepting the
-F3.4.1–F3.4.3 foundations.
+Status: **IMPLEMENTED / ACCEPTED**. The Human project owner accepted the
+complete F3.4 implementation at baseline
+`c72842e7c3151b6ba5693fdcf2e255ef2e3b689f` on **2026-09-23**, after accepting
+the F3.4.1–F3.4.3 foundations.
 
 ## Boundary
 
@@ -40,10 +40,11 @@ content, malformed/missing containers, page chrome exclusion, deduplication,
 stable IDs across reordering, flat catalog, stable volumes and label-only
 grouping.
 
-The focused F3.2 fixture, charset, HTML and Wenku8 foundation selection passes
-**69 tests**; the full suite passes **514 tests**. Dart format, Flutter
-analysis and `git diff --check` pass. These are deterministic local checks on
-Windows; they do not claim Android or iOS runtime proof.
+The focused F3.2 fixture, charset, HTML and Wenku8 foundation selection passed
+**69 tests** at the F3.4 acceptance checkpoint; the full suite passed
+**514 tests**. Dart format, Flutter analysis and `git diff --check` passed.
+These are deterministic local checks on Windows; they do not claim Android or
+iOS runtime proof.
 
 Some F3.2 sidecars include pagination or Explore descriptor values absent from
 their raw HTML. Tests pass that separately authored request/descriptor context
@@ -62,10 +63,12 @@ not claimed as pure HTML parser tests. No public-provider request is required.
 
 ## Remaining gates
 
-F3.4 requires Human review. Windows charset runtime evidence is PASS; Android
-and iOS charset runtime evidence remain **UNPROVEN**, not waived. Fresh
-deterministic Android and iOS evidence remains an F3.7/F3 Exit requirement.
-F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+F3.4 is accepted. Windows charset runtime evidence is PASS; Android and iOS
+charset runtime evidence remain **UNPROVEN**, not waived. Fresh deterministic
+Android and iOS evidence remains an F3.7/F3 Exit requirement. F3.5 is
+authorized and remains **IMPLEMENTED / HUMAN REVIEW REQUIRED** until its own
+human review. F3.6–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains
+**NOT APPROVED**.
 
 ## Post-acceptance frozen-Legacy structure correction — 2026-09-23
 
@@ -76,7 +79,10 @@ used simplified `/novel/<book>/<chapter>` links. Frozen Legacy also consumes
 table rows with `td.vcss[vid]` volume markers and relative `<chapter>.htm`
 links. A separate, explicitly reconstructed fixture and independently authored
 expected sidecar now prove that structure, including stable volume IDs, labels
-and three distinct chapter IDs. The test pins both fixture hashes. It is not
+and three distinct chapter IDs. The test pins both LF-normalized UTF-8 text
+hashes (these supplemental examples are structural, not byte-encoding vectors).
+It is not
 presented as a live capture. The pure parser now supports both shapes without
-using an ordinal as identity. This corrective regression does not authorize
-F3.5 acceptance, F3.6, image retrieval or F3 Exit.
+using an ordinal as identity. This corrective regression was included in the
+accepted F3.4 baseline; it does not authorize F3.6, image retrieval beyond the
+F3.5 ephemeral locator boundary, or F3 Exit.

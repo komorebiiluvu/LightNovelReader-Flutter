@@ -105,6 +105,41 @@ void main() {
     }
   });
 
+  test('frozen Legacy book card uses .htm ID and title evidence', () {
+    final raw = File('test/source/wenku8/fixtures/legacy_book_card.html')
+        .readAsBytesSync();
+    expect(
+      normalizedFixtureSha256(raw),
+      '168bded71fe25beb78e4fdd12d95b800416f9f5b5e2e865ac866023c0c7d6c32',
+    );
+    final expectedBytes = File(
+      'test/source/wenku8/fixtures/legacy_book_card.expected.json',
+    ).readAsBytesSync();
+    expect(
+      normalizedFixtureSha256(expectedBytes),
+      '03c66eb941999fa332830085ddcbf3e2392889f291a127732d96be827e9e397a',
+    );
+    final sidecar =
+        jsonDecode(utf8.decode(expectedBytes)) as Map<String, dynamic>;
+    expect(sidecar['provenance'], 'reconstructed_from_frozen_evidence');
+    expect(
+      sidecar['frozenLegacyCommit'],
+      'd90d4d090c85a0a9c374684696c34befe12636d1',
+    );
+    final result = parser.parseSearch(
+      html.parseFragment(
+        decoder.decode(
+          RawBytes(raw),
+          encoding: SourceEncoding.utf8,
+          evidence: CharsetEvidence('frozen Legacy card reconstruction'),
+        ),
+      ),
+    );
+    expect(result.items.length, sidecar['count']);
+    expect('wk8-${result.items.single.providerKey}', sidecar['bookId']);
+    expect(result.items.single.title, sidecar['title']);
+  });
+
   test(
     'explore blocks, flat results, grouping and selections match sidecars',
     () {
@@ -192,11 +227,57 @@ void main() {
     },
   );
 
+  test('frozen Legacy home block structure preserves two distinct groups', () {
+    final raw = File('test/source/wenku8/fixtures/legacy_home_blocks.html')
+        .readAsBytesSync();
+    expect(normalizedFixtureSha256(raw),
+        '23457501074ca05109f35750b0de62e8764a0723286be203a472ce2de20eb23b');
+    final expectedBytes = File(
+      'test/source/wenku8/fixtures/legacy_home_blocks.expected.json',
+    ).readAsBytesSync();
+    expect(normalizedFixtureSha256(expectedBytes),
+        '8015658ded2a0034e92478078d7f2eca5bf4c4a3bfa2fbb0bfcc4bd5d439047f');
+    final sidecar = jsonDecode(utf8.decode(expectedBytes)) as Map<String, dynamic>;
+    expect(sidecar['provenance'], 'reconstructed_from_frozen_evidence');
+    final result = parser.parseExplore(
+      html.parseFragment(
+        decoder.decode(
+          RawBytes(raw),
+          encoding: SourceEncoding.utf8,
+          evidence: CharsetEvidence('frozen Legacy home reconstruction'),
+        ),
+      ),
+      context: Wenku8ExploreContext(descriptor: 'home', blockId: 'home'),
+    );
+    final wanted = sidecar['blocks'] as List<dynamic>;
+    expect(result.blocks.length, wanted.length);
+    for (var index = 0; index < wanted.length; index++) {
+      final expectedBlock = wanted[index] as Map<String, dynamic>;
+      final block = result.blocks[index];
+      expect(block.id, expectedBlock['id']);
+      expect(block.title, expectedBlock['title']);
+      expect('wk8-${block.books.single.providerKey}', expectedBlock['bookId']);
+      expect(block.books.single.title, expectedBlock['bookTitle']);
+    }
+  });
+
   test('pagination metadata and malformed page are distinct', () {
     final stats = parser.parsePagination(document('pagination-pagestats'));
     expect(stats.currentPage, expected('pagination-pagestats')['current']);
     expect(stats.totalPages, expected('pagination-pagestats')['total']);
     expect(stats.nextPage, 2);
+    final legacyPageLink = html.parseFragment(
+      decoder.decode(
+        RawBytes(utf8.encode('<div id="pagelink"><em>2 / 4</em></div>')),
+        encoding: SourceEncoding.utf8,
+        evidence: CharsetEvidence('frozen Legacy pagelink reconstruction'),
+      ),
+    );
+    final legacy = parser.parsePagination(legacyPageLink);
+    expect(legacy.currentPage, 2);
+    expect(legacy.totalPages, 4);
+    expect(legacy.nextPage, 3);
+    expect(legacy.source, 'pagelink-em');
     final exhausted = parser.parsePagination(document('pagination-exhausted'));
     expect(exhausted.exhausted, true);
     expect(exhausted.nextPage, isNull);
@@ -286,6 +367,38 @@ void main() {
     expect(parser.parseDetail(withFooter), isA<SourceParsedDetail>());
   });
 
+  test('frozen Legacy detail table yields title, author and description', () {
+    final raw = File('test/source/wenku8/fixtures/legacy_detail_table.html')
+        .readAsBytesSync();
+    expect(
+      normalizedFixtureSha256(raw),
+      '4f87e264f623fb3b7efbe76453cbde93bfa8097c4881a3ece5e9ef94655cf049',
+    );
+    final expectedBytes = File(
+      'test/source/wenku8/fixtures/legacy_detail_table.expected.json',
+    ).readAsBytesSync();
+    expect(
+      normalizedFixtureSha256(expectedBytes),
+      'e425e2300b1a5e1f7acddd67a59e0f5b3c10535abc4070585fcd878fe49bf1fa',
+    );
+    final sidecar =
+        jsonDecode(utf8.decode(expectedBytes)) as Map<String, dynamic>;
+    expect(sidecar['provenance'], 'reconstructed_from_frozen_evidence');
+    final result = parser.parseDetail(
+      html.parseFragment(
+        decoder.decode(
+          RawBytes(raw),
+          encoding: SourceEncoding.utf8,
+          evidence: CharsetEvidence('frozen Legacy detail reconstruction'),
+        ),
+      ),
+    ) as SourceParsedDetail;
+    expect(result.title, sidecar['title']);
+    expect(result.author, sidecar['author']);
+    expect(result.description, sidecar['description']);
+    expect(result.coverLocator, sidecar['coverLocator']);
+  });
+
   test('table cells remain separate even in title-less detail fragment', () {
     expect(
       parser.parseDetailTableFields(document('detail-table-concatenation')),
@@ -369,14 +482,14 @@ void main() {
     final raw = File('test/source/wenku8/fixtures/legacy_catalog_table.html')
         .readAsBytesSync();
     expect(
-      sha256.convert(raw).toString(),
+      normalizedFixtureSha256(raw),
       'fa58842725e030ab925387656e3a3ee87bfa59a63ed1c54289beef377e022ce3',
     );
     final expectedBytes = File(
       'test/source/wenku8/fixtures/legacy_catalog_table.expected.json',
     ).readAsBytesSync();
     expect(
-      sha256.convert(expectedBytes).toString(),
+      normalizedFixtureSha256(expectedBytes),
       '5239bb63853e909917599719e61a8eb6af773cef0b5b22014290b0247110f774',
     );
     final sidecar =
@@ -485,3 +598,9 @@ Wenku8ParseException expectFailure(void Function() action) {
   }
   throw TestFailure('Expected Wenku8ParseException');
 }
+
+/// These supplemental fixtures are UTF-8 text, unlike F3.2 byte vectors.
+/// Normalize checkout line endings before hashing so Windows and Unix agree.
+String normalizedFixtureSha256(List<int> bytes) => sha256
+    .convert(utf8.encode(utf8.decode(bytes).replaceAll('\r\n', '\n')))
+    .toString();

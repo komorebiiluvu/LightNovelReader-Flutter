@@ -63,6 +63,77 @@ final class Wenku8PureParser {
     ParsedHtmlDocument document, {
     required Wenku8ExploreContext context,
   }) {
+    final centers = document.elements
+        .where((element) => element.attribute('id') == 'centers')
+        .firstOrNull;
+    if (centers != null) {
+      final contents = document.elements
+          .where(
+            (element) =>
+                element.hasClass('blockcontent') &&
+                centers.startNodeIndex <= element.startNodeIndex &&
+                element.endNodeIndex <= centers.endNodeIndex,
+          )
+          .toList();
+      if (contents.isNotEmpty) {
+        if (context.blockId == null || context.blockId!.isEmpty) {
+          _fail(
+            SourceOperation.explore,
+            Wenku8ParseFailureKind.parse,
+            reason: Wenku8ParseReason.blockId,
+          );
+        }
+        final titles = document.elements
+            .where(
+              (element) =>
+                  element.hasClass('blocktitle') &&
+                  centers.startNodeIndex <= element.startNodeIndex &&
+                  element.endNodeIndex <= centers.endNodeIndex,
+            )
+            .toList();
+        final blocks = <SourceParsedExploreBlock>[];
+        for (final content in contents) {
+          final heading = titles
+              .where(
+                (element) =>
+                    element.depth == content.depth &&
+                    element.endNodeIndex <= content.startNodeIndex,
+              )
+              .lastOrNull;
+          final title = heading == null
+              ? null
+              : _textIn(document, heading).split(RegExp(r'[（(]')).first.trim();
+          final books = _books(
+            document,
+            SourceOperation.explore,
+            within: content,
+          );
+          if (title == null || title.isEmpty || books.isEmpty) continue;
+          blocks.add(
+            SourceParsedExploreBlock(
+              id: '${context.blockId}-${blocks.length}',
+              title: title,
+              books: books,
+            ),
+          );
+        }
+        if (blocks.isEmpty) {
+          _fail(
+            SourceOperation.explore,
+            Wenku8ParseFailureKind.parse,
+            reason: Wenku8ParseReason.blockContent,
+          );
+        }
+        return SourceParsedExplore(
+          descriptor: context.descriptor,
+          blocks: blocks,
+          items: const [],
+          validEmpty: false,
+          selections: context.selections,
+          pagination: context.pagination,
+        );
+      }
+    }
     final candidates = document.elements
         .where(
           (element) =>
@@ -73,6 +144,7 @@ final class Wenku8PureParser {
                         'content',
                         'intro',
                         'pagestats',
+                        'pagelink',
                       }.contains(element.attribute('id')))),
         )
         .toList(growable: false);
@@ -155,8 +227,18 @@ final class Wenku8PureParser {
   }
 
   SourceParsedPagination parsePagination(ParsedHtmlDocument document) {
+    final pageLink = document.elements
+        .where((element) => element.attribute('id') == 'pagelink')
+        .firstOrNull;
     final stats = document.elements
-        .where((element) => element.attribute('id') == 'pagestats')
+        .where(
+          (element) =>
+              element.attribute('id') == 'pagestats' ||
+              (element.tag == 'em' &&
+                  pageLink != null &&
+                  pageLink.startNodeIndex <= element.startNodeIndex &&
+                  element.endNodeIndex <= pageLink.endNodeIndex),
+        )
         .firstOrNull;
     if (stats != null) {
       final value = _textIn(document, stats).trim();
@@ -183,7 +265,9 @@ final class Wenku8PureParser {
         nextPage: current < total ? current + 1 : null,
         exhausted: current == total,
         validPage: true,
-        source: 'pagestats',
+        source: stats.attribute('id') == 'pagestats'
+            ? 'pagestats'
+            : 'pagelink-em',
       );
     }
     final linked = <int>{};
@@ -218,7 +302,29 @@ final class Wenku8PureParser {
   }
 
   SourceParsedDetailResult parseDetail(ParsedHtmlDocument document) {
-    final title = _firstTextOfTag(document, 'h1');
+    final content = document.elements
+        .where((element) => element.attribute('id') == 'content')
+        .firstOrNull;
+    final boldTitle = content == null
+        ? null
+        : document.elements
+              .where(
+                (element) =>
+                    element.tag == 'b' &&
+                    content.startNodeIndex <= element.startNodeIndex &&
+                    element.endNodeIndex <= content.endNodeIndex,
+              )
+              .map((element) => _textIn(document, element).trim())
+              .where((value) => value.isNotEmpty)
+              .firstOrNull;
+    final rawTitle = _firstTextOfTag(document, 'h1') ?? boldTitle;
+    final title = rawTitle == null
+        ? null
+        : RegExp(r'^(.+?)\s*[（(].*[）)]\s*$')
+                  .firstMatch(rawTitle)
+                  ?.group(1)
+                  ?.trim() ??
+              rawTitle;
     if (title == null) {
       if (document.elements.any((element) => element.hasClass('copyright'))) {
         return const SourceParsedDetailUnavailable('copyright');
@@ -229,15 +335,27 @@ final class Wenku8PureParser {
         field: Wenku8ParseField.title,
       );
     }
+    if (content != null && _hasTextIn(document, content, '因版权问题')) {
+      return const SourceParsedDetailUnavailable('copyright');
+    }
     final author = document.elements
         .where((element) => element.hasClass('author'))
         .firstOrNull;
-    final cover = document.nodes.whereType<ParsedHtmlImage>().firstOrNull;
+    final images = document.nodes.whereType<ParsedHtmlImage>();
+    final cover =
+        images
+            .where(
+              (image) =>
+                  image.rawLocator.contains('img.wenku8.com') ||
+                  image.rawLocator.contains('/image/'),
+            )
+            .firstOrNull ??
+        images.firstOrNull;
     final fields = parseDetailTableFields(document);
     return SourceParsedDetail(
       title: title,
       author: author == null
-          ? fields['author']
+          ? _labeledField(document, '小说作者') ?? fields['author']
           : _textIn(document, author).trim(),
       description: parseDescription(document),
       coverLocator: cover?.rawLocator,
@@ -249,7 +367,30 @@ final class Wenku8PureParser {
     final intro = document.elements
         .where((element) => element.attribute('id') == 'intro')
         .firstOrNull;
-    return intro == null ? null : _textIn(document, intro).trim();
+    if (intro != null) return _textIn(document, intro).trim();
+    final spans = document.elements
+        .where((element) => element.tag == 'span')
+        .toList();
+    final marker = spans
+        .where((element) => _textIn(document, element).contains('内容简介'))
+        .firstOrNull;
+    if (marker == null) return null;
+    for (final candidate in spans) {
+      if (candidate.depth != marker.depth ||
+          candidate.startNodeIndex < marker.endNodeIndex) {
+        continue;
+      }
+      final hasLink = document.elements.any(
+        (element) =>
+            element.tag == 'a' &&
+            candidate.startNodeIndex <= element.startNodeIndex &&
+            element.endNodeIndex <= candidate.endNodeIndex,
+      );
+      if (hasLink) continue;
+      final text = _textIn(document, candidate).trim();
+      if (text.isNotEmpty) return text;
+    }
+    return null;
   }
 
   /// Table-cell boundary evidence can be checked even on a detail fragment
@@ -473,8 +614,9 @@ List<SourceParsedBook> _books(
   SourceOperation operation, {
   ParsedHtmlElement? within,
 }) {
-  final result = <SourceParsedBook>[];
-  final seen = <String>{};
+  final keys = <String>[];
+  final titles = <String, String>{};
+  final firstIndexes = <String, int>{};
   var itemIndex = 0;
   for (final anchor in document.elements.where(
     (element) => element.tag == 'a',
@@ -493,24 +635,43 @@ List<SourceParsedBook> _books(
         itemIndex: itemIndex,
       );
     }
-    final match = RegExp(r'^/book/([^/?#]+)').firstMatch(href);
+    final match = RegExp(r'^/book/([0-9]+)(?:\.htm)?(?:[?#].*)?$')
+        .firstMatch(href);
     if (match == null) continue;
-    final title = _textIn(document, anchor).trim();
-    if (title.isEmpty) {
-      _fail(
-        operation,
-        Wenku8ParseFailureKind.parse,
-        field: Wenku8ParseField.title,
-        itemIndex: itemIndex,
-      );
-    }
+    final rawTitle =
+        _textIn(document, anchor).trim().nullIfEmpty ??
+        anchor.attribute('title')?.trim() ??
+        '';
+    final title =
+        RegExp(r'^(.+?)\s*[（(].*[）)]\s*$')
+            .firstMatch(rawTitle)
+            ?.group(1)
+            ?.trim() ??
+        rawTitle;
     final key = match.group(1)!;
-    if (seen.add(key)) {
-      result.add(SourceParsedBook(providerKey: key, title: title));
+    if (!firstIndexes.containsKey(key)) {
+      keys.add(key);
+      firstIndexes[key] = itemIndex;
+    }
+    if (title.isNotEmpty && !titles.containsKey(key)) {
+      titles[key] = title;
     }
     itemIndex++;
   }
-  return result;
+  return [
+    for (final key in keys)
+      SourceParsedBook(
+        providerKey: key,
+        title:
+            titles[key] ??
+            (_fail(
+              operation,
+              Wenku8ParseFailureKind.parse,
+              field: Wenku8ParseField.title,
+              itemIndex: firstIndexes[key],
+            )),
+      ),
+  ];
 }
 
 String _textIn(ParsedHtmlDocument document, ParsedHtmlElement element) =>
@@ -544,6 +705,17 @@ String? _firstTextOfTag(ParsedHtmlDocument document, String tag) => document
     .map((element) => _textIn(document, element).trim())
     .where((value) => value.isNotEmpty)
     .firstOrNull;
+
+String? _labeledField(ParsedHtmlDocument document, String label) {
+  for (final cell in document.elements.where(
+    (element) => element.tag == 'td',
+  )) {
+    final text = _textIn(document, cell).trim();
+    final match = RegExp('$label\\s*[:：]\\s*(.+)').firstMatch(text);
+    if (match != null) return match.group(1)?.trim();
+  }
+  return null;
+}
 
 String? _headingIn(ParsedHtmlDocument document, ParsedHtmlElement parent) =>
     document.elements
