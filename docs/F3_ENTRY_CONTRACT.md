@@ -596,3 +596,27 @@ This approval does not authorize F3.6–F3.7, F3 Exit, Reader/UI work, image
 download/cache/offline work, a second real Source, plugins, or new dependencies.
 Android and iOS charset-vector runtime evidence remain **UNPROVEN**; the CI
 result does not waive the fresh deterministic F3.7 platform gate.
+
+## 23. F3.5 Wenku8 Runtime Adapter implementation checkpoint — 2026-09-23
+
+F3.5 Wenku8 Runtime Adapter is **IMPLEMENTED / HUMAN REVIEW REQUIRED** at
+baseline `ee3de2e` (full commit
+`ee3de2eda1b097d04c400d74fe9ec614fdc240b5`, recorded here after the code
+commit). The slice composes the accepted Source contract, Wenku8 request
+builder and pure parser with the F3.3 transport and one application-owned
+Source session authority. It provides deterministic search, Explore, detail,
+catalog, ordered content and explicit memory-only authentication flows with
+source-aware F2 identities, generation-bound continuations and typed redacted
+failures.
+
+Focused F3.5 tests pass **35 tests** and the full local suite passes **539
+tests**. No public-provider request is required. F3.5 does not include
+reconciliation, a second real Source, plugin runtime, Reader/UI, image
+download/cache/offline behavior, schema changes or new dependencies.
+
+F3.5 remains pending Human review. F3.6–F3.7 remain **NOT AUTHORIZED** and F3
+Exit remains **NOT APPROVED**. Windows charset runtime evidence remains PASS;
+Android and iOS charset-vector runtime evidence remain **UNPROVEN** and are not
+waived by these deterministic tests or by CI build/storage jobs. Fresh
+deterministic Android and iOS evidence remains required at the F3.7/F3 Exit
+gate.

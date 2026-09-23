@@ -261,3 +261,23 @@ schema, Reader/UI, image/offline, second real Source or plugin work is approved.
 Windows charset runtime evidence remains PASS; Android and iOS charset-vector
 runtime evidence remain **UNPROVEN** and require fresh deterministic F3.7
 validation. The successful CI build/storage jobs are not that vector evidence.
+
+## F3.5 Wenku8 Runtime Adapter implementation checkpoint — 2026-09-23
+
+F3.5 Wenku8 Runtime Adapter is **IMPLEMENTED / HUMAN REVIEW REQUIRED** at
+baseline `ee3de2e` (full commit
+`ee3de2eda1b097d04c400d74fe9ec614fdc240b5`, recorded here after the code
+commit). The adapter composes the accepted Source, request-builder, parser,
+transport and single-session contracts and provides deterministic search,
+Explore, detail, catalog, ordered content and explicit memory-only
+authentication flows.
+
+Focused F3.5 tests pass **35 tests** and the full local suite passes **539
+tests**. No public-provider request is required. This checkpoint does not
+authorize reconciliation, a second real Source, plugin runtime, Reader/UI,
+image download/cache/offline behavior, schema changes or new dependencies.
+
+F3.5 remains pending Human review. F3.6–F3.7 remain **NOT AUTHORIZED** and F3
+Exit remains **NOT APPROVED**. Windows charset runtime evidence remains PASS;
+Android and iOS charset-vector runtime evidence remain **UNPROVEN**, not a
+waiver, and must be freshly proven at the F3.7/F3 Exit platform gate.
