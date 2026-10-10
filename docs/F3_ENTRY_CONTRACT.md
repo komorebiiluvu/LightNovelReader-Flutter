@@ -668,3 +668,12 @@ above remain historical facts. F3.6 remains **IMPLEMENTED / REVIEW REQUIRED**
 until a separate Agent review is recorded; F3.7 remains **NOT AUTHORIZED** and
 F3 Exit remains **NOT APPROVED** at this checkpoint. Android and iOS charset
 runtime evidence remain **UNPROVEN**.
+
+## 27. F3.6 Agent review — 2026-10-10
+
+[The recorded Agent review](F3_6_AGENT_REVIEW.md) found blockers in the
+implementation's proof of contemporaneity, preservation of original locator
+evidence, durable receipt/version, and source-neutral conformance coverage.
+F3.6 remains **IMPLEMENTED / NOT ACCEPTED**. F3.7 remains **NOT AUTHORIZED** and
+F3 Exit remains **NOT APPROVED**. Android and iOS charset runtime evidence
+remain **UNPROVEN**.

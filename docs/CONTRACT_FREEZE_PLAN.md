@@ -325,3 +325,13 @@ Full CI and packaged smoke are run at phase exits and when the affected risk
 requires them, rather than on every push. The F3.7 deterministic iOS, Android,
 and Windows platform gate is unchanged. Android and iOS charset runtime evidence
 remain **UNPROVEN**, not PASS or waived.
+
+## F3.6 Agent review — 2026-10-10
+
+[The recorded Agent review](F3_6_AGENT_REVIEW.md) found blocking
+contemporaneity, locator-preservation, durable-receipt and neutrality evidence
+gaps at implementation baseline `5e784dc971afcc8b5b1a4499ecaeeb2a47080d4d`.
+F3.6 remains **IMPLEMENTED / NOT ACCEPTED**. Its reconciliation service has no
+production caller. F3.7 remains **NOT AUTHORIZED** and F3 Exit remains **NOT
+APPROVED**. The new review authority does not weaken the accepted section 7
+data-loss gate.
