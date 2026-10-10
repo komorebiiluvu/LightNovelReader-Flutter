@@ -142,6 +142,7 @@ void main() {
     );
     final updated = await store.get();
     expect(updated?.chapterRef, chapter);
+    expect(updated?.legacyLocator, same(locator));
     expect(
       await service.apply(repository: store, expected: updated!, plan: plan),
       LegacyReconciliationApplyDisposition.unchanged,
@@ -152,6 +153,65 @@ void main() {
       await service.apply(repository: store, expected: updated, plan: plan),
       LegacyReconciliationApplyDisposition.conflict,
     );
+  });
+
+  test('a stale or unrelated plan cannot replace current progress', () async {
+    final expected = ReadingProgressV1(
+      bookRef: book,
+      hasRead: true,
+      legacyLocator: locator,
+    );
+    final store = _MemoryStore(expected);
+    final otherLocator = LegacyChapterLocatorV1(
+      datasetId: locator.datasetId,
+      bookRef: book,
+      legacyBookId: locator.legacyBookId,
+      chapterIndex: locator.chapterIndex + 1,
+      catalogDigest: locator.catalogDigest,
+    );
+    final otherPlan = const LegacyChapterReconciliationPlanner().plan(
+      locator: otherLocator,
+      candidates: [candidate(index: 5)],
+    );
+    expect(
+      await const LegacyChapterReconciliationService().apply(
+        repository: store,
+        expected: expected,
+        plan: otherPlan,
+      ),
+      LegacyReconciliationApplyDisposition.conflict,
+    );
+    expect(store.current, same(expected));
+  });
+
+  test('existing remote ID evidence is preserved, not overwritten', () async {
+    final evidencedLocator = LegacyChapterLocatorV1(
+      datasetId: locator.datasetId,
+      bookRef: book,
+      legacyBookId: locator.legacyBookId,
+      chapterIndex: locator.chapterIndex,
+      remoteIdEvidence: chapter.chapterId.value,
+      catalogDigest: locator.catalogDigest,
+    );
+    final expected = ReadingProgressV1(
+      bookRef: book,
+      hasRead: true,
+      legacyLocator: evidencedLocator,
+    );
+    final store = _MemoryStore(expected);
+    final plan = const LegacyChapterReconciliationPlanner().plan(
+      locator: evidencedLocator,
+      candidates: [candidate()],
+    );
+    expect(
+      await const LegacyChapterReconciliationService().apply(
+        repository: store,
+        expected: expected,
+        plan: plan,
+      ),
+      LegacyReconciliationApplyDisposition.applied,
+    );
+    expect(store.current?.legacyLocator, same(evidencedLocator));
   });
 }
 

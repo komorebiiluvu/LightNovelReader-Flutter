@@ -174,7 +174,12 @@ final class LegacyChapterReconciliationService {
     required ReadingProgressV1 expected,
     required LegacyChapterResolutionPlan plan,
   }) {
-    if (!plan.canApply || plan.chapterRef == null) {
+    if (!plan.canApply ||
+        plan.chapterRef == null ||
+        expected.bookRef != plan.locator.bookRef ||
+        expected.legacyLocator != plan.locator ||
+        (expected.chapterRef != null &&
+            expected.chapterRef != plan.chapterRef)) {
       return Future.value(LegacyReconciliationApplyDisposition.conflict);
     }
     final locator = plan.locator;
@@ -182,18 +187,7 @@ final class LegacyChapterReconciliationService {
       bookRef: expected.bookRef,
       hasRead: expected.hasRead,
       chapterRef: plan.chapterRef,
-      legacyLocator: LegacyChapterLocatorV1(
-        datasetId: locator.datasetId,
-        bookRef: locator.bookRef,
-        legacyBookId: locator.legacyBookId,
-        chapterIndex: locator.chapterIndex,
-        rawOffsetKey: locator.rawOffsetKey,
-        fraction: locator.fraction,
-        remoteIdEvidence: plan.chapterRef!.chapterId.value,
-        chapterTitleEvidence: locator.chapterTitleEvidence,
-        volumeTitleEvidence: locator.volumeTitleEvidence,
-        catalogDigest: locator.catalogDigest,
-      ),
+      legacyLocator: locator,
       lastReadAt: expected.lastReadAt,
     );
     return repository.compareAndApply(

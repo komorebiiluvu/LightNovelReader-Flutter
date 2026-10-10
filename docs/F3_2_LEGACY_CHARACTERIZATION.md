@@ -93,6 +93,15 @@ workflows and platform files remain unchanged.
 | Hosts, retry and WAF | `Wenku8DataSource.kt`, `Wenku8Client.kt` | `.net` search/explore and `.cc` detail/catalog/content host policy, unapproved-host security failure, 15s connect/20s request timeout intent, bounded server-error retry, and HTTP-200 WAF. This is characterization metadata only, not transport implementation. | PRESERVE / REGRESSION_TEST |
 | Reconciliation | F2 identity baseline and adapter mapping boundary | Opaque `wk8-<aid>` examples, ordinal-only evidence, receipt shape and schema deferral. No migration, overwrite or schema code is included in F3.2. | DEFER |
 
+F3.2 provenance conclusion for F3.6: the characterized Legacy backup/snapshot
+does not prove that its chapter ordinal and any separately obtained catalog
+were captured contemporaneously. The F2 importer preserves only the ordinal
+and fraction in its locator. A matching later catalog digest, title or chapter
+count is not proof. Under accepted ADR 0009, these existing imported locators
+remain unresolved until a separately verified capture artifact supplies either
+the original progress record's remote ID or an explicit co-capture of progress
+and catalog mapping.
+
 ## Fixture manifest and harness
 
 The manifest is the source of truth for fixture membership, provenance,
