@@ -1,6 +1,7 @@
 # F3.6 Legacy reconciliation evidence
 
-Status: **REMEDIATION IMPLEMENTED / AGENT REVIEW PENDING**
+Status: **IMPLEMENTED / AGENT ACCEPTED** at
+`9bfd153b9b87d4b0686b2306b3ab1e2f41ddc808`.
 
 This slice implements source-neutral legacy progress reconciliation. F3.7 and
 F3 Exit are not approved by this evidence record.
@@ -45,7 +46,9 @@ content fixture. No second real Source is added.
 
 ## Validation status
 
-Focused reconciliation, persistence migration, and neutrality tests pass on
-Windows. Full local suite, generated-schema verification, and the appropriate
-manual platform CI are required before a final Agent F3.6 review decision.
-Android and iOS charset runtime evidence remain UNPROVEN for F3.7.
+Focused reconciliation and neutrality tests: **13 passed**. Full local suite:
+**555 passed**. Format, analysis, generated-schema verification and diff check
+passed. [The separate Agent review](F3_6_AGENT_REVIEW.md) accepted F3.6 and
+authorized F3.7. Deterministic packaged platform validation of schema v2 and
+the Source runtime remains an F3.7 gate. Android and iOS charset runtime
+evidence remain **UNPROVEN**, not PASS or waived. F3 Exit is **NOT APPROVED**.

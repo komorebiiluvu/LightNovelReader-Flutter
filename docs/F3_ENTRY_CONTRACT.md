@@ -677,3 +677,15 @@ evidence, durable receipt/version, and source-neutral conformance coverage.
 F3.6 remains **IMPLEMENTED / NOT ACCEPTED**. F3.7 remains **NOT AUTHORIZED** and
 F3 Exit remains **NOT APPROVED**. Android and iOS charset runtime evidence
 remain **UNPROVEN**.
+
+## 28. F3.6 remediation acceptance and F3.7 authorization — 2026-10-10
+
+[The separate Agent remediation review](F3_6_AGENT_REVIEW.md) accepts F3.6
+at `9bfd153b9b87d4b0686b2306b3ab1e2f41ddc808` after closing the four
+recorded blockers. **F3.6 is IMPLEMENTED / ACCEPTED; F3.7 is AUTHORIZED.**
+The 555-test local suite and generated-schema verification passed. The new
+receipt path has no production caller and current F2 locators remain unresolved
+without verified historical proof. Deterministic packaged schema/Source runtime
+validation on iOS, Android and Windows belongs to the F3.7 gate. Android and
+iOS charset runtime evidence remain **UNPROVEN**. F3 Exit remains **NOT
+APPROVED**; no platform result is inferred or waived by this acceptance.

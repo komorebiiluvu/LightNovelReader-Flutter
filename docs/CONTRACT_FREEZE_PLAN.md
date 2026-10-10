@@ -335,3 +335,13 @@ F3.6 remains **IMPLEMENTED / NOT ACCEPTED**. Its reconciliation service has no
 production caller. F3.7 remains **NOT AUTHORIZED** and F3 Exit remains **NOT
 APPROVED**. The new review authority does not weaken the accepted section 7
 data-loss gate.
+
+## F3.6 remediation acceptance and F3.7 authorization — 2026-10-10
+
+[The separate Agent remediation review](F3_6_AGENT_REVIEW.md) accepted F3.6
+at `9bfd153b9b87d4b0686b2306b3ab1e2f41ddc808`, with 555 local tests and
+generated-schema verification passing. **F3.6 is IMPLEMENTED / ACCEPTED;
+F3.7 is AUTHORIZED.** Current F2 locators remain unresolved absent verified
+historical proof. The schema v2 and Source runtime packaged matrix is still
+required at F3.7. Android and iOS charset runtime evidence remain
+**UNPROVEN**, not waived or inferred PASS. F3 Exit is **NOT APPROVED**.
