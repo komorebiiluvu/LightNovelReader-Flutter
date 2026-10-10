@@ -13,7 +13,7 @@ const databaseFilename = 'light_novel_reader.sqlite';
 void _prepare(sqlite.Database database) {
   final version =
       database.select('PRAGMA user_version').single['user_version'] as int;
-  if (version > 1) throw const PersistenceFailure.schema();
+  if (version > 2) throw const PersistenceFailure.schema();
   database.execute('PRAGMA foreign_keys = ON');
   database.execute('PRAGMA busy_timeout = 5000');
 }

@@ -11,6 +11,7 @@ import 'package:light_novel_reader/src/data/persistence/database.dart';
 import 'package:light_novel_reader/src/data/persistence/database_open.dart';
 
 import 'generated/schema.dart';
+import 'generated/schema_v1.dart' as v1;
 
 Future<void> source(AppDatabase db, String id) => db.customStatement(
   'INSERT INTO source_registrations(source_id, availability) VALUES (?, ?)',
@@ -30,17 +31,27 @@ class SyntheticPreV1Database extends AppDatabase {
   final bool fail;
 
   @override
-  Future<void> createSchema(Migrator migrator) => upgradeSchema(migrator, 0, 1);
+  Future<void> createSchema(Migrator migrator) => upgradeSchema(migrator, 0, 2);
 
   @override
   Future<void> upgradeSchema(Migrator migrator, int from, int to) async {
-    if (from != 0 || to != 1) throw StateError('unexpected test migration');
+    if (from != 0 || to != 2) throw StateError('unexpected test migration');
     await migrator.createAll();
     await customStatement(
       "INSERT INTO source_registrations(source_id, availability) SELECT id, 'unresolved' FROM synthetic_pre_v1_sources",
     );
     await customStatement('DROP TABLE synthetic_pre_v1_sources');
     if (fail) throw StateError('injected migration failure');
+  }
+}
+
+class FailingV2UpgradeDatabase extends AppDatabase {
+  FailingV2UpgradeDatabase(super.executor);
+
+  @override
+  Future<void> upgradeSchema(Migrator migrator, int from, int to) async {
+    await super.upgradeSchema(migrator, from, to);
+    throw StateError('injected v2 upgrade failure');
   }
 }
 
@@ -59,7 +70,7 @@ void main() {
   tearDown(() => db.close());
 
   test(
-    'clean v1 has complete schema, foreign keys and snapshot agreement',
+    'clean v2 has complete schema, foreign keys and snapshot agreement',
     () async {
       final tables = await db
           .customSelect("SELECT name FROM sqlite_schema WHERE type='table'")
@@ -83,6 +94,8 @@ void main() {
           'safe_legacy_values',
           'legacy_identity_mappings',
           'legacy_chapter_locators',
+          'chapter_reconciliation_receipts',
+          'chapter_reconciliation_candidates',
           'reading_progress',
           'reader_preferences',
           'app_preferences',
@@ -92,7 +105,7 @@ void main() {
         (await db.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        1,
+        2,
       );
       expect(
         (await db.customSelect('PRAGMA foreign_keys').getSingle()).read<int>(
@@ -100,7 +113,7 @@ void main() {
         ),
         1,
       );
-      await SchemaVerifier(GeneratedHelper()).migrateAndValidate(db, 1);
+      await SchemaVerifier(GeneratedHelper()).migrateAndValidate(db, 2);
       final indexes = await db
           .customSelect("PRAGMA index_list('safe_legacy_values')")
           .get();
@@ -864,7 +877,7 @@ void main() {
         final upgraded = SyntheticPreV1Database(NativeDatabase(file));
         try {
           await SchemaVerifier(GeneratedHelper())
-              .migrateAndValidate(upgraded, 1);
+              .migrateAndValidate(upgraded, 2);
           expect(
             (await upgraded
                     .customSelect('SELECT source_id FROM source_registrations')
@@ -874,6 +887,182 @@ void main() {
           );
         } finally {
           await upgraded.close();
+        }
+      },
+    );
+
+    test(
+      'v1 to v2 preserves locator and progress through close/reopen',
+      () async {
+        final file = File.fromUri(root.uri.resolve('upgrade-v1.sqlite'));
+        final old = v1.DatabaseAtV1(NativeDatabase(file));
+        try {
+          await old.customStatement(
+            "INSERT INTO source_registrations(source_id,availability) VALUES ('s','unresolved')",
+          );
+          await old.customStatement(
+            "INSERT INTO library_entries(source_id,book_id,metadata_state) VALUES ('s','b','stub')",
+          );
+          await old.customStatement(
+            "INSERT INTO migration_datasets(dataset_id) VALUES ('d')",
+          );
+          await old.customStatement(
+            "INSERT INTO legacy_chapter_locators(locator_id,dataset_id,source_id,book_id,legacy_book_id,chapter_index,fraction) VALUES ('l','d','s','b','b',2,0.25)",
+          );
+          await old.customStatement(
+            "INSERT INTO reading_progress(source_id,book_id,has_read,legacy_locator_id) VALUES ('s','b',1,'l')",
+          );
+        } finally {
+          await old.close();
+        }
+        final upgraded = AppDatabase(NativeDatabase(file));
+        try {
+          final row = await upgraded
+              .customSelect('SELECT * FROM reading_progress')
+              .getSingle();
+          expect(row.read<String>('legacy_locator_id'), 'l');
+          expect(row.readNullable<String>('chapter_id'), null);
+          expect(row.readNullable<String>('reconciliation_receipt_id'), null);
+          expect(await count(upgraded, 'chapter_reconciliation_receipts'), 0);
+          expect(await count(upgraded, 'chapter_reconciliation_candidates'), 0);
+          expect(
+            (await upgraded.customSelect('PRAGMA user_version').getSingle())
+                .read<int>('user_version'),
+            2,
+          );
+          await SchemaVerifier(GeneratedHelper())
+              .migrateAndValidate(upgraded, 2);
+        } finally {
+          await upgraded.close();
+        }
+        final reopened = AppDatabase(NativeDatabase(file));
+        try {
+          expect(await count(reopened, 'legacy_chapter_locators'), 1);
+          expect(await count(reopened, 'reading_progress'), 1);
+        } finally {
+          await reopened.close();
+        }
+      },
+    );
+
+    test('failed v2 upgrade rolls back schema and existing data', () async {
+      final file = File.fromUri(root.uri.resolve('failed-v2.sqlite'));
+      final old = v1.DatabaseAtV1(NativeDatabase(file));
+      try {
+        await old.customStatement(
+          "INSERT INTO source_registrations(source_id,availability) VALUES ('kept','unresolved')",
+        );
+      } finally {
+        await old.close();
+      }
+      final failed = FailingV2UpgradeDatabase(NativeDatabase(file));
+      try {
+        await expectLater(
+          failed.customSelect('SELECT 1').get(),
+          throwsStateError,
+        );
+      } finally {
+        await failed.close();
+      }
+      final raw = sqlite.sqlite3.open(file.path);
+      try {
+        expect(raw.userVersion, 1);
+        expect(
+          raw
+              .select("SELECT source_id FROM source_registrations")
+              .single['source_id'],
+          'kept',
+        );
+        expect(
+          raw.select(
+            "SELECT name FROM sqlite_schema WHERE name='chapter_reconciliation_receipts'",
+          ),
+          isEmpty,
+        );
+      } finally {
+        raw.close();
+      }
+      final retry = AppDatabase(NativeDatabase(file));
+      try {
+        expect(await count(retry, 'source_registrations'), 1);
+        expect(await count(retry, 'chapter_reconciliation_receipts'), 0);
+      } finally {
+        await retry.close();
+      }
+    });
+
+    test(
+      'reconciliation receipt and alternatives survive reopen with scoped FK',
+      () async {
+        final file = File.fromUri(root.uri.resolve('receipt-v2.sqlite'));
+        final initial = AppDatabase(NativeDatabase(file));
+        try {
+          await source(initial, 's');
+          await book(initial, 's', 'a');
+          await book(initial, 's', 'b');
+          await initial.customStatement(
+            "INSERT INTO migration_datasets(dataset_id) VALUES ('d')",
+          );
+          await initial.customStatement(
+            "INSERT INTO legacy_chapter_locators(locator_id,dataset_id,source_id,book_id,legacy_book_id,chapter_index) VALUES ('loc','d','s','a','a',2)",
+          );
+          await initial.customStatement(
+            'INSERT INTO chapter_reconciliation_receipts('
+            'receipt_id,dataset_id,source_id,book_id,original_locator_id,chapter_id,'
+            'mapping_version,proof_kind,artifact_digest,catalog_digest,co_capture_marker) '
+            'VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+            [
+              'receipt',
+              'd',
+              's',
+              'a',
+              'loc',
+              'chapter|α',
+              1,
+              'coCapturedCatalog',
+              'a' * 64,
+              'catalog-digest',
+              'capture-1',
+            ],
+          );
+          await initial.customStatement(
+            'INSERT INTO chapter_reconciliation_candidates('
+            'receipt_id,ordinal,source_id,book_id,chapter_id,chapter_index,'
+            'catalog_digest,mapping_version) VALUES (?,?,?,?,?,?,?,?)',
+            ['receipt', 0, 's', 'a', 'chapter|α', 2, 'catalog-digest', 1],
+          );
+          await initial.customStatement(
+            "INSERT INTO reading_progress(source_id,book_id,has_read,chapter_id,legacy_locator_id,reconciliation_receipt_id) VALUES ('s','a',1,'chapter|α','loc','receipt')",
+          );
+          await initial.customStatement(
+            "INSERT INTO reading_progress(source_id,book_id,has_read) VALUES ('s','b',0)",
+          );
+          await expectLater(
+            initial.customStatement(
+              "UPDATE reading_progress SET reconciliation_receipt_id='receipt' WHERE source_id='s' AND book_id='b'",
+            ),
+            throwsA(isA<sqlite.SqliteException>()),
+          );
+        } finally {
+          await initial.close();
+        }
+        final reopened = AppDatabase(NativeDatabase(file));
+        try {
+          final row = await reopened
+              .customSelect(
+                "SELECT chapter_id,reconciliation_receipt_id FROM reading_progress WHERE source_id='s' AND book_id='a'",
+              )
+              .getSingle();
+          expect(row.read<String>('chapter_id'), 'chapter|α');
+          expect(row.read<String>('reconciliation_receipt_id'), 'receipt');
+          expect(await count(reopened, 'chapter_reconciliation_receipts'), 1);
+          expect(await count(reopened, 'chapter_reconciliation_candidates'), 1);
+          expect(
+            await reopened.customSelect('PRAGMA foreign_key_check').get(),
+            isEmpty,
+          );
+        } finally {
+          await reopened.close();
         }
       },
     );
@@ -924,7 +1113,7 @@ void main() {
         final raw = sqlite.sqlite3.open(file.path);
         raw.execute('CREATE TABLE future_data(value TEXT)');
         raw.execute("INSERT INTO future_data VALUES ('keep-me')");
-        raw.userVersion = 2;
+        raw.userVersion = 3;
         raw.close();
         final before = await file.readAsBytes();
         await expectLater(
@@ -936,7 +1125,7 @@ void main() {
           file.path,
           mode: sqlite.OpenMode.readOnly,
         );
-        expect(check.userVersion, 2);
+        expect(check.userVersion, 3);
         expect(
           check.select('SELECT value FROM future_data').single['value'],
           'keep-me',

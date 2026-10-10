@@ -7459,6 +7459,1272 @@ class LegacyChapterLocatorsCompanion
   }
 }
 
+class ChapterReconciliationReceipts extends Table
+    with
+        TableInfo<ChapterReconciliationReceipts, ChapterReconciliationReceipt> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ChapterReconciliationReceipts(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _receiptIdMeta = const VerificationMeta(
+    'receiptId',
+  );
+  late final GeneratedColumn<String> receiptId = GeneratedColumn<String>(
+    'receipt_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL PRIMARY KEY COLLATE BINARY CHECK (length(receipt_id) > 0)',
+  );
+  static const VerificationMeta _datasetIdMeta = const VerificationMeta(
+    'datasetId',
+  );
+  late final GeneratedColumn<String> datasetId = GeneratedColumn<String>(
+    'dataset_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY',
+  );
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY',
+  );
+  static const VerificationMeta _originalLocatorIdMeta = const VerificationMeta(
+    'originalLocatorId',
+  );
+  late final GeneratedColumn<String> originalLocatorId =
+      GeneratedColumn<String>(
+        'original_locator_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL COLLATE BINARY',
+      );
+  static const VerificationMeta _chapterIdMeta = const VerificationMeta(
+    'chapterId',
+  );
+  late final GeneratedColumn<String> chapterId = GeneratedColumn<String>(
+    'chapter_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY CHECK (length(chapter_id) > 0 AND instr(chapter_id, char(0)) = 0)',
+  );
+  static const VerificationMeta _mappingVersionMeta = const VerificationMeta(
+    'mappingVersion',
+  );
+  late final GeneratedColumn<int> mappingVersion = GeneratedColumn<int>(
+    'mapping_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (mapping_version > 0)',
+  );
+  static const VerificationMeta _proofKindMeta = const VerificationMeta(
+    'proofKind',
+  );
+  late final GeneratedColumn<String> proofKind = GeneratedColumn<String>(
+    'proof_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (proof_kind IN (\'recordedRemoteId\', \'coCapturedCatalog\'))',
+  );
+  static const VerificationMeta _artifactDigestMeta = const VerificationMeta(
+    'artifactDigest',
+  );
+  late final GeneratedColumn<String> artifactDigest = GeneratedColumn<String>(
+    'artifact_digest',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(artifact_digest) = 64 AND artifact_digest NOT GLOB \'*[^0-9a-f]*\')',
+  );
+  static const VerificationMeta _catalogDigestMeta = const VerificationMeta(
+    'catalogDigest',
+  );
+  late final GeneratedColumn<String> catalogDigest = GeneratedColumn<String>(
+    'catalog_digest',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _coCaptureMarkerMeta = const VerificationMeta(
+    'coCaptureMarker',
+  );
+  late final GeneratedColumn<String> coCaptureMarker = GeneratedColumn<String>(
+    'co_capture_marker',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    receiptId,
+    datasetId,
+    sourceId,
+    bookId,
+    originalLocatorId,
+    chapterId,
+    mappingVersion,
+    proofKind,
+    artifactDigest,
+    catalogDigest,
+    coCaptureMarker,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chapter_reconciliation_receipts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChapterReconciliationReceipt> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('receipt_id')) {
+      context.handle(
+        _receiptIdMeta,
+        receiptId.isAcceptableOrUnknown(data['receipt_id']!, _receiptIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_receiptIdMeta);
+    }
+    if (data.containsKey('dataset_id')) {
+      context.handle(
+        _datasetIdMeta,
+        datasetId.isAcceptableOrUnknown(data['dataset_id']!, _datasetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_datasetIdMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookIdMeta);
+    }
+    if (data.containsKey('original_locator_id')) {
+      context.handle(
+        _originalLocatorIdMeta,
+        originalLocatorId.isAcceptableOrUnknown(
+          data['original_locator_id']!,
+          _originalLocatorIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_originalLocatorIdMeta);
+    }
+    if (data.containsKey('chapter_id')) {
+      context.handle(
+        _chapterIdMeta,
+        chapterId.isAcceptableOrUnknown(data['chapter_id']!, _chapterIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterIdMeta);
+    }
+    if (data.containsKey('mapping_version')) {
+      context.handle(
+        _mappingVersionMeta,
+        mappingVersion.isAcceptableOrUnknown(
+          data['mapping_version']!,
+          _mappingVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mappingVersionMeta);
+    }
+    if (data.containsKey('proof_kind')) {
+      context.handle(
+        _proofKindMeta,
+        proofKind.isAcceptableOrUnknown(data['proof_kind']!, _proofKindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_proofKindMeta);
+    }
+    if (data.containsKey('artifact_digest')) {
+      context.handle(
+        _artifactDigestMeta,
+        artifactDigest.isAcceptableOrUnknown(
+          data['artifact_digest']!,
+          _artifactDigestMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_artifactDigestMeta);
+    }
+    if (data.containsKey('catalog_digest')) {
+      context.handle(
+        _catalogDigestMeta,
+        catalogDigest.isAcceptableOrUnknown(
+          data['catalog_digest']!,
+          _catalogDigestMeta,
+        ),
+      );
+    }
+    if (data.containsKey('co_capture_marker')) {
+      context.handle(
+        _coCaptureMarkerMeta,
+        coCaptureMarker.isAcceptableOrUnknown(
+          data['co_capture_marker']!,
+          _coCaptureMarkerMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {receiptId};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {sourceId, bookId, receiptId},
+    {sourceId, bookId, originalLocatorId},
+  ];
+  @override
+  ChapterReconciliationReceipt map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChapterReconciliationReceipt(
+      receiptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_id'],
+      )!,
+      datasetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dataset_id'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book_id'],
+      )!,
+      originalLocatorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_locator_id'],
+      )!,
+      chapterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chapter_id'],
+      )!,
+      mappingVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mapping_version'],
+      )!,
+      proofKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}proof_kind'],
+      )!,
+      artifactDigest: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}artifact_digest'],
+      )!,
+      catalogDigest: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalog_digest'],
+      ),
+      coCaptureMarker: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}co_capture_marker'],
+      ),
+    );
+  }
+
+  @override
+  ChapterReconciliationReceipts createAlias(String alias) {
+    return ChapterReconciliationReceipts(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'UNIQUE(source_id, book_id, receipt_id)',
+    'UNIQUE(source_id, book_id, original_locator_id)',
+    'FOREIGN KEY(source_id, book_id, original_locator_id)REFERENCES legacy_chapter_locators(source_id, book_id, locator_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
+    'CHECK((proof_kind = \'recordedRemoteId\' AND catalog_digest IS NULL AND co_capture_marker IS NULL)OR(proof_kind = \'coCapturedCatalog\' AND catalog_digest IS NOT NULL AND co_capture_marker IS NOT NULL))',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ChapterReconciliationReceipt extends DataClass
+    implements Insertable<ChapterReconciliationReceipt> {
+  final String receiptId;
+  final String datasetId;
+  final String sourceId;
+  final String bookId;
+  final String originalLocatorId;
+  final String chapterId;
+  final int mappingVersion;
+  final String proofKind;
+  final String artifactDigest;
+  final String? catalogDigest;
+  final String? coCaptureMarker;
+  const ChapterReconciliationReceipt({
+    required this.receiptId,
+    required this.datasetId,
+    required this.sourceId,
+    required this.bookId,
+    required this.originalLocatorId,
+    required this.chapterId,
+    required this.mappingVersion,
+    required this.proofKind,
+    required this.artifactDigest,
+    this.catalogDigest,
+    this.coCaptureMarker,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['receipt_id'] = Variable<String>(receiptId);
+    map['dataset_id'] = Variable<String>(datasetId);
+    map['source_id'] = Variable<String>(sourceId);
+    map['book_id'] = Variable<String>(bookId);
+    map['original_locator_id'] = Variable<String>(originalLocatorId);
+    map['chapter_id'] = Variable<String>(chapterId);
+    map['mapping_version'] = Variable<int>(mappingVersion);
+    map['proof_kind'] = Variable<String>(proofKind);
+    map['artifact_digest'] = Variable<String>(artifactDigest);
+    if (!nullToAbsent || catalogDigest != null) {
+      map['catalog_digest'] = Variable<String>(catalogDigest);
+    }
+    if (!nullToAbsent || coCaptureMarker != null) {
+      map['co_capture_marker'] = Variable<String>(coCaptureMarker);
+    }
+    return map;
+  }
+
+  ChapterReconciliationReceiptsCompanion toCompanion(bool nullToAbsent) {
+    return ChapterReconciliationReceiptsCompanion(
+      receiptId: Value(receiptId),
+      datasetId: Value(datasetId),
+      sourceId: Value(sourceId),
+      bookId: Value(bookId),
+      originalLocatorId: Value(originalLocatorId),
+      chapterId: Value(chapterId),
+      mappingVersion: Value(mappingVersion),
+      proofKind: Value(proofKind),
+      artifactDigest: Value(artifactDigest),
+      catalogDigest: catalogDigest == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogDigest),
+      coCaptureMarker: coCaptureMarker == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coCaptureMarker),
+    );
+  }
+
+  factory ChapterReconciliationReceipt.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChapterReconciliationReceipt(
+      receiptId: serializer.fromJson<String>(json['receipt_id']),
+      datasetId: serializer.fromJson<String>(json['dataset_id']),
+      sourceId: serializer.fromJson<String>(json['source_id']),
+      bookId: serializer.fromJson<String>(json['book_id']),
+      originalLocatorId: serializer.fromJson<String>(
+        json['original_locator_id'],
+      ),
+      chapterId: serializer.fromJson<String>(json['chapter_id']),
+      mappingVersion: serializer.fromJson<int>(json['mapping_version']),
+      proofKind: serializer.fromJson<String>(json['proof_kind']),
+      artifactDigest: serializer.fromJson<String>(json['artifact_digest']),
+      catalogDigest: serializer.fromJson<String?>(json['catalog_digest']),
+      coCaptureMarker: serializer.fromJson<String?>(json['co_capture_marker']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'receipt_id': serializer.toJson<String>(receiptId),
+      'dataset_id': serializer.toJson<String>(datasetId),
+      'source_id': serializer.toJson<String>(sourceId),
+      'book_id': serializer.toJson<String>(bookId),
+      'original_locator_id': serializer.toJson<String>(originalLocatorId),
+      'chapter_id': serializer.toJson<String>(chapterId),
+      'mapping_version': serializer.toJson<int>(mappingVersion),
+      'proof_kind': serializer.toJson<String>(proofKind),
+      'artifact_digest': serializer.toJson<String>(artifactDigest),
+      'catalog_digest': serializer.toJson<String?>(catalogDigest),
+      'co_capture_marker': serializer.toJson<String?>(coCaptureMarker),
+    };
+  }
+
+  ChapterReconciliationReceipt copyWith({
+    String? receiptId,
+    String? datasetId,
+    String? sourceId,
+    String? bookId,
+    String? originalLocatorId,
+    String? chapterId,
+    int? mappingVersion,
+    String? proofKind,
+    String? artifactDigest,
+    Value<String?> catalogDigest = const Value.absent(),
+    Value<String?> coCaptureMarker = const Value.absent(),
+  }) => ChapterReconciliationReceipt(
+    receiptId: receiptId ?? this.receiptId,
+    datasetId: datasetId ?? this.datasetId,
+    sourceId: sourceId ?? this.sourceId,
+    bookId: bookId ?? this.bookId,
+    originalLocatorId: originalLocatorId ?? this.originalLocatorId,
+    chapterId: chapterId ?? this.chapterId,
+    mappingVersion: mappingVersion ?? this.mappingVersion,
+    proofKind: proofKind ?? this.proofKind,
+    artifactDigest: artifactDigest ?? this.artifactDigest,
+    catalogDigest: catalogDigest.present
+        ? catalogDigest.value
+        : this.catalogDigest,
+    coCaptureMarker: coCaptureMarker.present
+        ? coCaptureMarker.value
+        : this.coCaptureMarker,
+  );
+  ChapterReconciliationReceipt copyWithCompanion(
+    ChapterReconciliationReceiptsCompanion data,
+  ) {
+    return ChapterReconciliationReceipt(
+      receiptId: data.receiptId.present ? data.receiptId.value : this.receiptId,
+      datasetId: data.datasetId.present ? data.datasetId.value : this.datasetId,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      originalLocatorId: data.originalLocatorId.present
+          ? data.originalLocatorId.value
+          : this.originalLocatorId,
+      chapterId: data.chapterId.present ? data.chapterId.value : this.chapterId,
+      mappingVersion: data.mappingVersion.present
+          ? data.mappingVersion.value
+          : this.mappingVersion,
+      proofKind: data.proofKind.present ? data.proofKind.value : this.proofKind,
+      artifactDigest: data.artifactDigest.present
+          ? data.artifactDigest.value
+          : this.artifactDigest,
+      catalogDigest: data.catalogDigest.present
+          ? data.catalogDigest.value
+          : this.catalogDigest,
+      coCaptureMarker: data.coCaptureMarker.present
+          ? data.coCaptureMarker.value
+          : this.coCaptureMarker,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChapterReconciliationReceipt(')
+          ..write('receiptId: $receiptId, ')
+          ..write('datasetId: $datasetId, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('bookId: $bookId, ')
+          ..write('originalLocatorId: $originalLocatorId, ')
+          ..write('chapterId: $chapterId, ')
+          ..write('mappingVersion: $mappingVersion, ')
+          ..write('proofKind: $proofKind, ')
+          ..write('artifactDigest: $artifactDigest, ')
+          ..write('catalogDigest: $catalogDigest, ')
+          ..write('coCaptureMarker: $coCaptureMarker')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    receiptId,
+    datasetId,
+    sourceId,
+    bookId,
+    originalLocatorId,
+    chapterId,
+    mappingVersion,
+    proofKind,
+    artifactDigest,
+    catalogDigest,
+    coCaptureMarker,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChapterReconciliationReceipt &&
+          other.receiptId == this.receiptId &&
+          other.datasetId == this.datasetId &&
+          other.sourceId == this.sourceId &&
+          other.bookId == this.bookId &&
+          other.originalLocatorId == this.originalLocatorId &&
+          other.chapterId == this.chapterId &&
+          other.mappingVersion == this.mappingVersion &&
+          other.proofKind == this.proofKind &&
+          other.artifactDigest == this.artifactDigest &&
+          other.catalogDigest == this.catalogDigest &&
+          other.coCaptureMarker == this.coCaptureMarker);
+}
+
+class ChapterReconciliationReceiptsCompanion
+    extends UpdateCompanion<ChapterReconciliationReceipt> {
+  final Value<String> receiptId;
+  final Value<String> datasetId;
+  final Value<String> sourceId;
+  final Value<String> bookId;
+  final Value<String> originalLocatorId;
+  final Value<String> chapterId;
+  final Value<int> mappingVersion;
+  final Value<String> proofKind;
+  final Value<String> artifactDigest;
+  final Value<String?> catalogDigest;
+  final Value<String?> coCaptureMarker;
+  final Value<int> rowid;
+  const ChapterReconciliationReceiptsCompanion({
+    this.receiptId = const Value.absent(),
+    this.datasetId = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.originalLocatorId = const Value.absent(),
+    this.chapterId = const Value.absent(),
+    this.mappingVersion = const Value.absent(),
+    this.proofKind = const Value.absent(),
+    this.artifactDigest = const Value.absent(),
+    this.catalogDigest = const Value.absent(),
+    this.coCaptureMarker = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChapterReconciliationReceiptsCompanion.insert({
+    required String receiptId,
+    required String datasetId,
+    required String sourceId,
+    required String bookId,
+    required String originalLocatorId,
+    required String chapterId,
+    required int mappingVersion,
+    required String proofKind,
+    required String artifactDigest,
+    this.catalogDigest = const Value.absent(),
+    this.coCaptureMarker = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : receiptId = Value(receiptId),
+       datasetId = Value(datasetId),
+       sourceId = Value(sourceId),
+       bookId = Value(bookId),
+       originalLocatorId = Value(originalLocatorId),
+       chapterId = Value(chapterId),
+       mappingVersion = Value(mappingVersion),
+       proofKind = Value(proofKind),
+       artifactDigest = Value(artifactDigest);
+  static Insertable<ChapterReconciliationReceipt> custom({
+    Expression<String>? receiptId,
+    Expression<String>? datasetId,
+    Expression<String>? sourceId,
+    Expression<String>? bookId,
+    Expression<String>? originalLocatorId,
+    Expression<String>? chapterId,
+    Expression<int>? mappingVersion,
+    Expression<String>? proofKind,
+    Expression<String>? artifactDigest,
+    Expression<String>? catalogDigest,
+    Expression<String>? coCaptureMarker,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (receiptId != null) 'receipt_id': receiptId,
+      if (datasetId != null) 'dataset_id': datasetId,
+      if (sourceId != null) 'source_id': sourceId,
+      if (bookId != null) 'book_id': bookId,
+      if (originalLocatorId != null) 'original_locator_id': originalLocatorId,
+      if (chapterId != null) 'chapter_id': chapterId,
+      if (mappingVersion != null) 'mapping_version': mappingVersion,
+      if (proofKind != null) 'proof_kind': proofKind,
+      if (artifactDigest != null) 'artifact_digest': artifactDigest,
+      if (catalogDigest != null) 'catalog_digest': catalogDigest,
+      if (coCaptureMarker != null) 'co_capture_marker': coCaptureMarker,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChapterReconciliationReceiptsCompanion copyWith({
+    Value<String>? receiptId,
+    Value<String>? datasetId,
+    Value<String>? sourceId,
+    Value<String>? bookId,
+    Value<String>? originalLocatorId,
+    Value<String>? chapterId,
+    Value<int>? mappingVersion,
+    Value<String>? proofKind,
+    Value<String>? artifactDigest,
+    Value<String?>? catalogDigest,
+    Value<String?>? coCaptureMarker,
+    Value<int>? rowid,
+  }) {
+    return ChapterReconciliationReceiptsCompanion(
+      receiptId: receiptId ?? this.receiptId,
+      datasetId: datasetId ?? this.datasetId,
+      sourceId: sourceId ?? this.sourceId,
+      bookId: bookId ?? this.bookId,
+      originalLocatorId: originalLocatorId ?? this.originalLocatorId,
+      chapterId: chapterId ?? this.chapterId,
+      mappingVersion: mappingVersion ?? this.mappingVersion,
+      proofKind: proofKind ?? this.proofKind,
+      artifactDigest: artifactDigest ?? this.artifactDigest,
+      catalogDigest: catalogDigest ?? this.catalogDigest,
+      coCaptureMarker: coCaptureMarker ?? this.coCaptureMarker,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (receiptId.present) {
+      map['receipt_id'] = Variable<String>(receiptId.value);
+    }
+    if (datasetId.present) {
+      map['dataset_id'] = Variable<String>(datasetId.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<String>(bookId.value);
+    }
+    if (originalLocatorId.present) {
+      map['original_locator_id'] = Variable<String>(originalLocatorId.value);
+    }
+    if (chapterId.present) {
+      map['chapter_id'] = Variable<String>(chapterId.value);
+    }
+    if (mappingVersion.present) {
+      map['mapping_version'] = Variable<int>(mappingVersion.value);
+    }
+    if (proofKind.present) {
+      map['proof_kind'] = Variable<String>(proofKind.value);
+    }
+    if (artifactDigest.present) {
+      map['artifact_digest'] = Variable<String>(artifactDigest.value);
+    }
+    if (catalogDigest.present) {
+      map['catalog_digest'] = Variable<String>(catalogDigest.value);
+    }
+    if (coCaptureMarker.present) {
+      map['co_capture_marker'] = Variable<String>(coCaptureMarker.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChapterReconciliationReceiptsCompanion(')
+          ..write('receiptId: $receiptId, ')
+          ..write('datasetId: $datasetId, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('bookId: $bookId, ')
+          ..write('originalLocatorId: $originalLocatorId, ')
+          ..write('chapterId: $chapterId, ')
+          ..write('mappingVersion: $mappingVersion, ')
+          ..write('proofKind: $proofKind, ')
+          ..write('artifactDigest: $artifactDigest, ')
+          ..write('catalogDigest: $catalogDigest, ')
+          ..write('coCaptureMarker: $coCaptureMarker, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class ChapterReconciliationCandidates extends Table
+    with
+        TableInfo<
+          ChapterReconciliationCandidates,
+          ChapterReconciliationCandidate
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ChapterReconciliationCandidates(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _receiptIdMeta = const VerificationMeta(
+    'receiptId',
+  );
+  late final GeneratedColumn<String> receiptId = GeneratedColumn<String>(
+    'receipt_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY REFERENCES chapter_reconciliation_receipts(receipt_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
+  );
+  static const VerificationMeta _ordinalMeta = const VerificationMeta(
+    'ordinal',
+  );
+  late final GeneratedColumn<int> ordinal = GeneratedColumn<int>(
+    'ordinal',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (ordinal >= 0)',
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY',
+  );
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY',
+  );
+  static const VerificationMeta _chapterIdMeta = const VerificationMeta(
+    'chapterId',
+  );
+  late final GeneratedColumn<String> chapterId = GeneratedColumn<String>(
+    'chapter_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL COLLATE BINARY CHECK (length(chapter_id) > 0 AND instr(chapter_id, char(0)) = 0)',
+  );
+  static const VerificationMeta _chapterIndexMeta = const VerificationMeta(
+    'chapterIndex',
+  );
+  late final GeneratedColumn<int> chapterIndex = GeneratedColumn<int>(
+    'chapter_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (chapter_index >= 0)',
+  );
+  static const VerificationMeta _catalogDigestMeta = const VerificationMeta(
+    'catalogDigest',
+  );
+  late final GeneratedColumn<String> catalogDigest = GeneratedColumn<String>(
+    'catalog_digest',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _mappingVersionMeta = const VerificationMeta(
+    'mappingVersion',
+  );
+  late final GeneratedColumn<int> mappingVersion = GeneratedColumn<int>(
+    'mapping_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (mapping_version > 0)',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    receiptId,
+    ordinal,
+    sourceId,
+    bookId,
+    chapterId,
+    chapterIndex,
+    catalogDigest,
+    mappingVersion,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chapter_reconciliation_candidates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChapterReconciliationCandidate> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('receipt_id')) {
+      context.handle(
+        _receiptIdMeta,
+        receiptId.isAcceptableOrUnknown(data['receipt_id']!, _receiptIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_receiptIdMeta);
+    }
+    if (data.containsKey('ordinal')) {
+      context.handle(
+        _ordinalMeta,
+        ordinal.isAcceptableOrUnknown(data['ordinal']!, _ordinalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ordinalMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookIdMeta);
+    }
+    if (data.containsKey('chapter_id')) {
+      context.handle(
+        _chapterIdMeta,
+        chapterId.isAcceptableOrUnknown(data['chapter_id']!, _chapterIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterIdMeta);
+    }
+    if (data.containsKey('chapter_index')) {
+      context.handle(
+        _chapterIndexMeta,
+        chapterIndex.isAcceptableOrUnknown(
+          data['chapter_index']!,
+          _chapterIndexMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterIndexMeta);
+    }
+    if (data.containsKey('catalog_digest')) {
+      context.handle(
+        _catalogDigestMeta,
+        catalogDigest.isAcceptableOrUnknown(
+          data['catalog_digest']!,
+          _catalogDigestMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_catalogDigestMeta);
+    }
+    if (data.containsKey('mapping_version')) {
+      context.handle(
+        _mappingVersionMeta,
+        mappingVersion.isAcceptableOrUnknown(
+          data['mapping_version']!,
+          _mappingVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mappingVersionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {receiptId, ordinal};
+  @override
+  ChapterReconciliationCandidate map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChapterReconciliationCandidate(
+      receiptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_id'],
+      )!,
+      ordinal: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ordinal'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book_id'],
+      )!,
+      chapterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chapter_id'],
+      )!,
+      chapterIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter_index'],
+      )!,
+      catalogDigest: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalog_digest'],
+      )!,
+      mappingVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mapping_version'],
+      )!,
+    );
+  }
+
+  @override
+  ChapterReconciliationCandidates createAlias(String alias) {
+    return ChapterReconciliationCandidates(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(receipt_id, ordinal)',
+    'FOREIGN KEY(source_id, book_id)REFERENCES library_entries(source_id, book_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ChapterReconciliationCandidate extends DataClass
+    implements Insertable<ChapterReconciliationCandidate> {
+  final String receiptId;
+  final int ordinal;
+  final String sourceId;
+  final String bookId;
+  final String chapterId;
+  final int chapterIndex;
+  final String catalogDigest;
+  final int mappingVersion;
+  const ChapterReconciliationCandidate({
+    required this.receiptId,
+    required this.ordinal,
+    required this.sourceId,
+    required this.bookId,
+    required this.chapterId,
+    required this.chapterIndex,
+    required this.catalogDigest,
+    required this.mappingVersion,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['receipt_id'] = Variable<String>(receiptId);
+    map['ordinal'] = Variable<int>(ordinal);
+    map['source_id'] = Variable<String>(sourceId);
+    map['book_id'] = Variable<String>(bookId);
+    map['chapter_id'] = Variable<String>(chapterId);
+    map['chapter_index'] = Variable<int>(chapterIndex);
+    map['catalog_digest'] = Variable<String>(catalogDigest);
+    map['mapping_version'] = Variable<int>(mappingVersion);
+    return map;
+  }
+
+  ChapterReconciliationCandidatesCompanion toCompanion(bool nullToAbsent) {
+    return ChapterReconciliationCandidatesCompanion(
+      receiptId: Value(receiptId),
+      ordinal: Value(ordinal),
+      sourceId: Value(sourceId),
+      bookId: Value(bookId),
+      chapterId: Value(chapterId),
+      chapterIndex: Value(chapterIndex),
+      catalogDigest: Value(catalogDigest),
+      mappingVersion: Value(mappingVersion),
+    );
+  }
+
+  factory ChapterReconciliationCandidate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChapterReconciliationCandidate(
+      receiptId: serializer.fromJson<String>(json['receipt_id']),
+      ordinal: serializer.fromJson<int>(json['ordinal']),
+      sourceId: serializer.fromJson<String>(json['source_id']),
+      bookId: serializer.fromJson<String>(json['book_id']),
+      chapterId: serializer.fromJson<String>(json['chapter_id']),
+      chapterIndex: serializer.fromJson<int>(json['chapter_index']),
+      catalogDigest: serializer.fromJson<String>(json['catalog_digest']),
+      mappingVersion: serializer.fromJson<int>(json['mapping_version']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'receipt_id': serializer.toJson<String>(receiptId),
+      'ordinal': serializer.toJson<int>(ordinal),
+      'source_id': serializer.toJson<String>(sourceId),
+      'book_id': serializer.toJson<String>(bookId),
+      'chapter_id': serializer.toJson<String>(chapterId),
+      'chapter_index': serializer.toJson<int>(chapterIndex),
+      'catalog_digest': serializer.toJson<String>(catalogDigest),
+      'mapping_version': serializer.toJson<int>(mappingVersion),
+    };
+  }
+
+  ChapterReconciliationCandidate copyWith({
+    String? receiptId,
+    int? ordinal,
+    String? sourceId,
+    String? bookId,
+    String? chapterId,
+    int? chapterIndex,
+    String? catalogDigest,
+    int? mappingVersion,
+  }) => ChapterReconciliationCandidate(
+    receiptId: receiptId ?? this.receiptId,
+    ordinal: ordinal ?? this.ordinal,
+    sourceId: sourceId ?? this.sourceId,
+    bookId: bookId ?? this.bookId,
+    chapterId: chapterId ?? this.chapterId,
+    chapterIndex: chapterIndex ?? this.chapterIndex,
+    catalogDigest: catalogDigest ?? this.catalogDigest,
+    mappingVersion: mappingVersion ?? this.mappingVersion,
+  );
+  ChapterReconciliationCandidate copyWithCompanion(
+    ChapterReconciliationCandidatesCompanion data,
+  ) {
+    return ChapterReconciliationCandidate(
+      receiptId: data.receiptId.present ? data.receiptId.value : this.receiptId,
+      ordinal: data.ordinal.present ? data.ordinal.value : this.ordinal,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      chapterId: data.chapterId.present ? data.chapterId.value : this.chapterId,
+      chapterIndex: data.chapterIndex.present
+          ? data.chapterIndex.value
+          : this.chapterIndex,
+      catalogDigest: data.catalogDigest.present
+          ? data.catalogDigest.value
+          : this.catalogDigest,
+      mappingVersion: data.mappingVersion.present
+          ? data.mappingVersion.value
+          : this.mappingVersion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChapterReconciliationCandidate(')
+          ..write('receiptId: $receiptId, ')
+          ..write('ordinal: $ordinal, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('bookId: $bookId, ')
+          ..write('chapterId: $chapterId, ')
+          ..write('chapterIndex: $chapterIndex, ')
+          ..write('catalogDigest: $catalogDigest, ')
+          ..write('mappingVersion: $mappingVersion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    receiptId,
+    ordinal,
+    sourceId,
+    bookId,
+    chapterId,
+    chapterIndex,
+    catalogDigest,
+    mappingVersion,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChapterReconciliationCandidate &&
+          other.receiptId == this.receiptId &&
+          other.ordinal == this.ordinal &&
+          other.sourceId == this.sourceId &&
+          other.bookId == this.bookId &&
+          other.chapterId == this.chapterId &&
+          other.chapterIndex == this.chapterIndex &&
+          other.catalogDigest == this.catalogDigest &&
+          other.mappingVersion == this.mappingVersion);
+}
+
+class ChapterReconciliationCandidatesCompanion
+    extends UpdateCompanion<ChapterReconciliationCandidate> {
+  final Value<String> receiptId;
+  final Value<int> ordinal;
+  final Value<String> sourceId;
+  final Value<String> bookId;
+  final Value<String> chapterId;
+  final Value<int> chapterIndex;
+  final Value<String> catalogDigest;
+  final Value<int> mappingVersion;
+  final Value<int> rowid;
+  const ChapterReconciliationCandidatesCompanion({
+    this.receiptId = const Value.absent(),
+    this.ordinal = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.chapterId = const Value.absent(),
+    this.chapterIndex = const Value.absent(),
+    this.catalogDigest = const Value.absent(),
+    this.mappingVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChapterReconciliationCandidatesCompanion.insert({
+    required String receiptId,
+    required int ordinal,
+    required String sourceId,
+    required String bookId,
+    required String chapterId,
+    required int chapterIndex,
+    required String catalogDigest,
+    required int mappingVersion,
+    this.rowid = const Value.absent(),
+  }) : receiptId = Value(receiptId),
+       ordinal = Value(ordinal),
+       sourceId = Value(sourceId),
+       bookId = Value(bookId),
+       chapterId = Value(chapterId),
+       chapterIndex = Value(chapterIndex),
+       catalogDigest = Value(catalogDigest),
+       mappingVersion = Value(mappingVersion);
+  static Insertable<ChapterReconciliationCandidate> custom({
+    Expression<String>? receiptId,
+    Expression<int>? ordinal,
+    Expression<String>? sourceId,
+    Expression<String>? bookId,
+    Expression<String>? chapterId,
+    Expression<int>? chapterIndex,
+    Expression<String>? catalogDigest,
+    Expression<int>? mappingVersion,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (receiptId != null) 'receipt_id': receiptId,
+      if (ordinal != null) 'ordinal': ordinal,
+      if (sourceId != null) 'source_id': sourceId,
+      if (bookId != null) 'book_id': bookId,
+      if (chapterId != null) 'chapter_id': chapterId,
+      if (chapterIndex != null) 'chapter_index': chapterIndex,
+      if (catalogDigest != null) 'catalog_digest': catalogDigest,
+      if (mappingVersion != null) 'mapping_version': mappingVersion,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChapterReconciliationCandidatesCompanion copyWith({
+    Value<String>? receiptId,
+    Value<int>? ordinal,
+    Value<String>? sourceId,
+    Value<String>? bookId,
+    Value<String>? chapterId,
+    Value<int>? chapterIndex,
+    Value<String>? catalogDigest,
+    Value<int>? mappingVersion,
+    Value<int>? rowid,
+  }) {
+    return ChapterReconciliationCandidatesCompanion(
+      receiptId: receiptId ?? this.receiptId,
+      ordinal: ordinal ?? this.ordinal,
+      sourceId: sourceId ?? this.sourceId,
+      bookId: bookId ?? this.bookId,
+      chapterId: chapterId ?? this.chapterId,
+      chapterIndex: chapterIndex ?? this.chapterIndex,
+      catalogDigest: catalogDigest ?? this.catalogDigest,
+      mappingVersion: mappingVersion ?? this.mappingVersion,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (receiptId.present) {
+      map['receipt_id'] = Variable<String>(receiptId.value);
+    }
+    if (ordinal.present) {
+      map['ordinal'] = Variable<int>(ordinal.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<String>(bookId.value);
+    }
+    if (chapterId.present) {
+      map['chapter_id'] = Variable<String>(chapterId.value);
+    }
+    if (chapterIndex.present) {
+      map['chapter_index'] = Variable<int>(chapterIndex.value);
+    }
+    if (catalogDigest.present) {
+      map['catalog_digest'] = Variable<String>(catalogDigest.value);
+    }
+    if (mappingVersion.present) {
+      map['mapping_version'] = Variable<int>(mappingVersion.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChapterReconciliationCandidatesCompanion(')
+          ..write('receiptId: $receiptId, ')
+          ..write('ordinal: $ordinal, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('bookId: $bookId, ')
+          ..write('chapterId: $chapterId, ')
+          ..write('chapterIndex: $chapterIndex, ')
+          ..write('catalogDigest: $catalogDigest, ')
+          ..write('mappingVersion: $mappingVersion, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class ReadingProgress extends Table
     with TableInfo<ReadingProgress, ReadingProgressData> {
   @override
@@ -7530,6 +8796,17 @@ class ReadingProgress extends Table
     requiredDuringInsert: false,
     $customConstraints: 'COLLATE BINARY',
   );
+  static const VerificationMeta _reconciliationReceiptIdMeta =
+      const VerificationMeta('reconciliationReceiptId');
+  late final GeneratedColumn<String> reconciliationReceiptId =
+      GeneratedColumn<String>(
+        'reconciliation_receipt_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: 'COLLATE BINARY',
+      );
   static const VerificationMeta _lastReadAtMeta = const VerificationMeta(
     'lastReadAt',
   );
@@ -7549,6 +8826,7 @@ class ReadingProgress extends Table
     hasRead,
     chapterId,
     legacyLocatorId,
+    reconciliationReceiptId,
     lastReadAt,
   ];
   @override
@@ -7608,6 +8886,15 @@ class ReadingProgress extends Table
         ),
       );
     }
+    if (data.containsKey('reconciliation_receipt_id')) {
+      context.handle(
+        _reconciliationReceiptIdMeta,
+        reconciliationReceiptId.isAcceptableOrUnknown(
+          data['reconciliation_receipt_id']!,
+          _reconciliationReceiptIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('last_read_at')) {
       context.handle(
         _lastReadAtMeta,
@@ -7650,6 +8937,10 @@ class ReadingProgress extends Table
         DriftSqlType.string,
         data['${effectivePrefix}legacy_locator_id'],
       ),
+      reconciliationReceiptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reconciliation_receipt_id'],
+      ),
       lastReadAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}last_read_at'],
@@ -7667,6 +8958,7 @@ class ReadingProgress extends Table
     'PRIMARY KEY(source_id, book_id)',
     'FOREIGN KEY(source_id, book_id)REFERENCES library_entries(source_id, book_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
     'FOREIGN KEY(source_id, book_id, legacy_locator_id)REFERENCES legacy_chapter_locators(source_id, book_id, locator_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
+    'FOREIGN KEY(source_id, book_id, reconciliation_receipt_id)REFERENCES chapter_reconciliation_receipts(source_id, book_id, receipt_id)ON UPDATE RESTRICT ON DELETE RESTRICT',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -7680,6 +8972,7 @@ class ReadingProgressData extends DataClass
   final int hasRead;
   final String? chapterId;
   final String? legacyLocatorId;
+  final String? reconciliationReceiptId;
   final String? lastReadAt;
   const ReadingProgressData({
     required this.sourceId,
@@ -7688,6 +8981,7 @@ class ReadingProgressData extends DataClass
     required this.hasRead,
     this.chapterId,
     this.legacyLocatorId,
+    this.reconciliationReceiptId,
     this.lastReadAt,
   });
   @override
@@ -7702,6 +8996,11 @@ class ReadingProgressData extends DataClass
     }
     if (!nullToAbsent || legacyLocatorId != null) {
       map['legacy_locator_id'] = Variable<String>(legacyLocatorId);
+    }
+    if (!nullToAbsent || reconciliationReceiptId != null) {
+      map['reconciliation_receipt_id'] = Variable<String>(
+        reconciliationReceiptId,
+      );
     }
     if (!nullToAbsent || lastReadAt != null) {
       map['last_read_at'] = Variable<String>(lastReadAt);
@@ -7721,6 +9020,9 @@ class ReadingProgressData extends DataClass
       legacyLocatorId: legacyLocatorId == null && nullToAbsent
           ? const Value.absent()
           : Value(legacyLocatorId),
+      reconciliationReceiptId: reconciliationReceiptId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reconciliationReceiptId),
       lastReadAt: lastReadAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastReadAt),
@@ -7739,6 +9041,9 @@ class ReadingProgressData extends DataClass
       hasRead: serializer.fromJson<int>(json['has_read']),
       chapterId: serializer.fromJson<String?>(json['chapter_id']),
       legacyLocatorId: serializer.fromJson<String?>(json['legacy_locator_id']),
+      reconciliationReceiptId: serializer.fromJson<String?>(
+        json['reconciliation_receipt_id'],
+      ),
       lastReadAt: serializer.fromJson<String?>(json['last_read_at']),
     );
   }
@@ -7752,6 +9057,9 @@ class ReadingProgressData extends DataClass
       'has_read': serializer.toJson<int>(hasRead),
       'chapter_id': serializer.toJson<String?>(chapterId),
       'legacy_locator_id': serializer.toJson<String?>(legacyLocatorId),
+      'reconciliation_receipt_id': serializer.toJson<String?>(
+        reconciliationReceiptId,
+      ),
       'last_read_at': serializer.toJson<String?>(lastReadAt),
     };
   }
@@ -7763,6 +9071,7 @@ class ReadingProgressData extends DataClass
     int? hasRead,
     Value<String?> chapterId = const Value.absent(),
     Value<String?> legacyLocatorId = const Value.absent(),
+    Value<String?> reconciliationReceiptId = const Value.absent(),
     Value<String?> lastReadAt = const Value.absent(),
   }) => ReadingProgressData(
     sourceId: sourceId ?? this.sourceId,
@@ -7773,6 +9082,9 @@ class ReadingProgressData extends DataClass
     legacyLocatorId: legacyLocatorId.present
         ? legacyLocatorId.value
         : this.legacyLocatorId,
+    reconciliationReceiptId: reconciliationReceiptId.present
+        ? reconciliationReceiptId.value
+        : this.reconciliationReceiptId,
     lastReadAt: lastReadAt.present ? lastReadAt.value : this.lastReadAt,
   );
   ReadingProgressData copyWithCompanion(ReadingProgressCompanion data) {
@@ -7785,6 +9097,9 @@ class ReadingProgressData extends DataClass
       legacyLocatorId: data.legacyLocatorId.present
           ? data.legacyLocatorId.value
           : this.legacyLocatorId,
+      reconciliationReceiptId: data.reconciliationReceiptId.present
+          ? data.reconciliationReceiptId.value
+          : this.reconciliationReceiptId,
       lastReadAt: data.lastReadAt.present
           ? data.lastReadAt.value
           : this.lastReadAt,
@@ -7800,6 +9115,7 @@ class ReadingProgressData extends DataClass
           ..write('hasRead: $hasRead, ')
           ..write('chapterId: $chapterId, ')
           ..write('legacyLocatorId: $legacyLocatorId, ')
+          ..write('reconciliationReceiptId: $reconciliationReceiptId, ')
           ..write('lastReadAt: $lastReadAt')
           ..write(')'))
         .toString();
@@ -7813,6 +9129,7 @@ class ReadingProgressData extends DataClass
     hasRead,
     chapterId,
     legacyLocatorId,
+    reconciliationReceiptId,
     lastReadAt,
   );
   @override
@@ -7825,6 +9142,7 @@ class ReadingProgressData extends DataClass
           other.hasRead == this.hasRead &&
           other.chapterId == this.chapterId &&
           other.legacyLocatorId == this.legacyLocatorId &&
+          other.reconciliationReceiptId == this.reconciliationReceiptId &&
           other.lastReadAt == this.lastReadAt);
 }
 
@@ -7835,6 +9153,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
   final Value<int> hasRead;
   final Value<String?> chapterId;
   final Value<String?> legacyLocatorId;
+  final Value<String?> reconciliationReceiptId;
   final Value<String?> lastReadAt;
   final Value<int> rowid;
   const ReadingProgressCompanion({
@@ -7844,6 +9163,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     this.hasRead = const Value.absent(),
     this.chapterId = const Value.absent(),
     this.legacyLocatorId = const Value.absent(),
+    this.reconciliationReceiptId = const Value.absent(),
     this.lastReadAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -7854,6 +9174,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     required int hasRead,
     this.chapterId = const Value.absent(),
     this.legacyLocatorId = const Value.absent(),
+    this.reconciliationReceiptId = const Value.absent(),
     this.lastReadAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : sourceId = Value(sourceId),
@@ -7866,6 +9187,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     Expression<int>? hasRead,
     Expression<String>? chapterId,
     Expression<String>? legacyLocatorId,
+    Expression<String>? reconciliationReceiptId,
     Expression<String>? lastReadAt,
     Expression<int>? rowid,
   }) {
@@ -7876,6 +9198,8 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
       if (hasRead != null) 'has_read': hasRead,
       if (chapterId != null) 'chapter_id': chapterId,
       if (legacyLocatorId != null) 'legacy_locator_id': legacyLocatorId,
+      if (reconciliationReceiptId != null)
+        'reconciliation_receipt_id': reconciliationReceiptId,
       if (lastReadAt != null) 'last_read_at': lastReadAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7888,6 +9212,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     Value<int>? hasRead,
     Value<String?>? chapterId,
     Value<String?>? legacyLocatorId,
+    Value<String?>? reconciliationReceiptId,
     Value<String?>? lastReadAt,
     Value<int>? rowid,
   }) {
@@ -7898,6 +9223,8 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
       hasRead: hasRead ?? this.hasRead,
       chapterId: chapterId ?? this.chapterId,
       legacyLocatorId: legacyLocatorId ?? this.legacyLocatorId,
+      reconciliationReceiptId:
+          reconciliationReceiptId ?? this.reconciliationReceiptId,
       lastReadAt: lastReadAt ?? this.lastReadAt,
       rowid: rowid ?? this.rowid,
     );
@@ -7924,6 +9251,11 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     if (legacyLocatorId.present) {
       map['legacy_locator_id'] = Variable<String>(legacyLocatorId.value);
     }
+    if (reconciliationReceiptId.present) {
+      map['reconciliation_receipt_id'] = Variable<String>(
+        reconciliationReceiptId.value,
+      );
+    }
     if (lastReadAt.present) {
       map['last_read_at'] = Variable<String>(lastReadAt.value);
     }
@@ -7942,6 +9274,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
           ..write('hasRead: $hasRead, ')
           ..write('chapterId: $chapterId, ')
           ..write('legacyLocatorId: $legacyLocatorId, ')
+          ..write('reconciliationReceiptId: $reconciliationReceiptId, ')
           ..write('lastReadAt: $lastReadAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -9095,6 +10428,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       LegacyIdentityMappings(this);
   late final LegacyChapterLocators legacyChapterLocators =
       LegacyChapterLocators(this);
+  late final ChapterReconciliationReceipts chapterReconciliationReceipts =
+      ChapterReconciliationReceipts(this);
+  late final ChapterReconciliationCandidates chapterReconciliationCandidates =
+      ChapterReconciliationCandidates(this);
   late final ReadingProgress readingProgress = ReadingProgress(this);
   late final ReaderPreferences readerPreferences = ReaderPreferences(this);
   late final AppPreferences appPreferences = AppPreferences(this);
@@ -9120,6 +10457,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     safeLegacyValuesOneAcceptedBaseline,
     legacyIdentityMappings,
     legacyChapterLocators,
+    chapterReconciliationReceipts,
+    chapterReconciliationCandidates,
     readingProgress,
     readerPreferences,
     appPreferences,

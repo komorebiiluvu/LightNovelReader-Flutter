@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
 import '../../../domain/identity/opaque_ids.dart';
@@ -46,23 +47,104 @@ final class DriftProgressRepository
     required SourceBookRef bookRef,
     required ReadingProgressV1 expected,
     required ReadingProgressV1 replacement,
+    required LegacyChapterResolutionPlan plan,
   }) => _access.run(() async {
-    if (expected.bookRef != bookRef || replacement.bookRef != bookRef) {
+    if (expected.bookRef != bookRef ||
+        replacement.bookRef != bookRef ||
+        !plan.canApply ||
+        plan.locator != expected.legacyLocator ||
+        plan.locator != replacement.legacyLocator ||
+        plan.chapterRef != replacement.chapterRef ||
+        plan.proof?.locator != plan.locator) {
       throw RepositoryFailure(RepositoryFailureReason.invalidInput);
     }
     final current = await _getWithinTransaction(bookRef);
     if (current == null) return LegacyReconciliationApplyDisposition.notFound;
+    final receiptId = _receiptId(plan);
+    final progressRows = await _access.rows(
+      'SELECT reconciliation_receipt_id FROM reading_progress WHERE source_id=? AND book_id=?',
+      RepositoryAccess.keys(bookRef),
+    );
+    final storedReceipt = progressRows.single.readNullable<String>(
+      'reconciliation_receipt_id',
+    );
     if (current == replacement) {
-      return LegacyReconciliationApplyDisposition.unchanged;
+      return storedReceipt == receiptId
+          ? LegacyReconciliationApplyDisposition.unchanged
+          : LegacyReconciliationApplyDisposition.conflict;
     }
     if (current != expected) {
       return LegacyReconciliationApplyDisposition.conflict;
     }
-    await _saveWithinTransaction(replacement);
+    final existing = await _access.rows(
+      'SELECT receipt_id FROM chapter_reconciliation_receipts '
+      'WHERE source_id=? AND book_id=? AND original_locator_id=?',
+      [...RepositoryAccess.keys(bookRef), _locatorId(plan.locator)],
+    );
+    if (existing.isNotEmpty || storedReceipt != null) {
+      return LegacyReconciliationApplyDisposition.conflict;
+    }
+    final proof = plan.proof!;
+    final trustedRuns = await _access.rows(
+      'SELECT 1 FROM migration_runs WHERE dataset_id=? AND input_digest=? '
+      "AND mapping_version=? AND state='complete'",
+      [
+        plan.locator.datasetId.value,
+        proof.artifactDigest,
+        proof.mappingVersion,
+      ],
+    );
+    if (trustedRuns.isEmpty) {
+      return LegacyReconciliationApplyDisposition.conflict;
+    }
+    await _access.write(
+      'INSERT INTO chapter_reconciliation_receipts('
+      'receipt_id,dataset_id,source_id,book_id,original_locator_id,'
+      'chapter_id,mapping_version,proof_kind,artifact_digest,'
+      'catalog_digest,co_capture_marker) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+      [
+        receiptId,
+        plan.locator.datasetId.value,
+        bookRef.sourceId.value,
+        bookRef.bookId.value,
+        _locatorId(plan.locator),
+        plan.chapterRef!.chapterId.value,
+        proof.mappingVersion,
+        proof.kind.name,
+        proof.artifactDigest,
+        proof.catalogDigest,
+        proof.coCaptureMarker,
+      ],
+    );
+    for (var index = 0; index < plan.candidates.length; index++) {
+      final candidate = plan.candidates[index];
+      await _access.write(
+        'INSERT INTO chapter_reconciliation_candidates('
+        'receipt_id,ordinal,source_id,book_id,chapter_id,chapter_index,'
+        'catalog_digest,mapping_version) VALUES (?,?,?,?,?,?,?,?)',
+        [
+          receiptId,
+          index,
+          candidate.chapterRef.sourceId.value,
+          candidate.chapterRef.bookId.value,
+          candidate.chapterRef.chapterId.value,
+          candidate.chapterIndex,
+          candidate.catalogDigest,
+          candidate.mappingVersion,
+        ],
+      );
+    }
+    await _saveWithinTransaction(
+      replacement,
+      reconciliationReceiptId: receiptId,
+    );
     return LegacyReconciliationApplyDisposition.applied;
   });
 
-  Future<void> _saveWithinTransaction(ReadingProgressV1 progress) async {
+  Future<void> _saveWithinTransaction(
+    ReadingProgressV1 progress, {
+    String? reconciliationReceiptId,
+  }) async {
     await _access.requireBook(progress.bookRef);
     final locator = progress.legacyLocator;
     String? locatorId;
@@ -99,17 +181,21 @@ final class DriftProgressRepository
     }
     await _access.write(
       'INSERT INTO reading_progress('
-      'source_id,book_id,version,has_read,chapter_id,legacy_locator_id,last_read_at) '
-      'VALUES (?,?,1,?,?,?,?) '
+      'source_id,book_id,version,has_read,chapter_id,legacy_locator_id,'
+      'reconciliation_receipt_id,last_read_at) '
+      'VALUES (?,?,1,?,?,?,?,?) '
       'ON CONFLICT(source_id,book_id) DO UPDATE SET '
       'version=1,has_read=excluded.has_read,chapter_id=excluded.chapter_id,'
-      'legacy_locator_id=excluded.legacy_locator_id,last_read_at=excluded.last_read_at',
+      'legacy_locator_id=excluded.legacy_locator_id,'
+      'reconciliation_receipt_id=excluded.reconciliation_receipt_id,'
+      'last_read_at=excluded.last_read_at',
       [
         progress.bookRef.sourceId.value,
         progress.bookRef.bookId.value,
         progress.hasRead ? 1 : 0,
         progress.chapterRef?.chapterId.value,
         locatorId,
+        reconciliationReceiptId,
         progress.lastReadAt == null
             ? null
             : encodeCanonicalUtc(progress.lastReadAt!),
@@ -190,6 +276,20 @@ final class DriftProgressRepository
     }
     return value;
   }
+}
+
+String _receiptId(LegacyChapterResolutionPlan plan) {
+  final proof = plan.proof!;
+  final bytes = utf8.encode(
+    jsonEncode([
+      plan.locator.toJson(),
+      plan.chapterRef!.toJson(),
+      proof.kind.name,
+      proof.mappingVersion,
+      proof.artifactDigest,
+    ]),
+  );
+  return 'chapterReconciliation.v1.${sha256.convert(bytes)}';
 }
 
 String _locatorId(LegacyChapterLocatorV1 locator) {

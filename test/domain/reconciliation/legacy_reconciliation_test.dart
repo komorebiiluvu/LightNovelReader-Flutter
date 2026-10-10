@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:light_novel_reader/src/domain/identity/opaque_ids.dart';
 import 'package:light_novel_reader/src/domain/identity/source_refs.dart';
@@ -18,17 +21,25 @@ void main() {
     chapterIndex: 4,
     fraction: .25,
     chapterTitleEvidence: '旧标题',
-    catalogDigest: 'catalog-v1',
   );
   final chapter = SourceChapterRef(
     sourceId: book.sourceId,
     bookId: book.bookId,
     chapterId: ChapterId('第4章|remote'),
   );
+  String catalogDigestFor(int index, String id) => sha256
+      .convert(
+        utf8.encode(
+          jsonEncode([
+            {'chapterId': id, 'chapterIndex': index},
+          ]),
+        ),
+      )
+      .toString();
   LegacyChapterCandidate candidate({
     SourceBookRef? candidateBook,
     int index = 4,
-    String digest = 'catalog-v1',
+    String? digest,
     String id = '第4章|remote',
     int mappingVersion = 1,
   }) => LegacyChapterCandidate(
@@ -38,29 +49,65 @@ void main() {
       chapterId: ChapterId(id),
     ),
     chapterIndex: index,
-    catalogDigest: digest,
+    catalogDigest: digest ?? catalogDigestFor(4, chapter.chapterId.value),
     mappingVersion: mappingVersion,
     title: '新标题',
   );
+  LegacyChapterResolutionProof proof({
+    LegacyChapterLocatorV1? forLocator,
+    SourceChapterRef? forChapter,
+  }) {
+    final selectedLocator = forLocator ?? locator;
+    final selectedChapter = forChapter ?? chapter;
+    final catalog = [
+      {
+        'chapterId': selectedChapter.chapterId.value,
+        'chapterIndex': selectedLocator.chapterIndex,
+      },
+    ];
+    final bytes = utf8.encode(
+      jsonEncode({
+        'kind': 'legacyChapterCapture',
+        'version': 1,
+        'datasetId': selectedLocator.datasetId.value,
+        'sourceId': selectedLocator.bookRef.sourceId.value,
+        'bookId': selectedLocator.bookRef.bookId.value,
+        'legacyBookId': selectedLocator.legacyBookId.value,
+        'chapterIndex': selectedLocator.chapterIndex,
+        'locatorDigest': sha256
+            .convert(utf8.encode(jsonEncode(selectedLocator.toJson())))
+            .toString(),
+        'mappingVersion': 1,
+        'captureId': 'same-atomic-capture',
+        'proofKind': 'coCapturedCatalog',
+        'catalog': catalog,
+      }),
+    );
+    final verified = const LegacyChapterCaptureVerifier().verify(
+      locator: selectedLocator,
+      artifactBytes: bytes,
+      trustedArtifactDigest: sha256.convert(bytes).toString(),
+    );
+    expect(verified, isNotNull);
+    return verified!.proof;
+  }
+
+  test('resolves opaque, nonnumeric ID only with verified capture', () {
+    final plan = const LegacyChapterReconciliationPlanner().plan(
+      locator: locator,
+      candidates: [candidate()],
+      proof: proof(),
+    );
+    expect(plan.state, LegacyResolutionState.resolved);
+    expect(plan.chapterRef, chapter);
+    expect(
+      plan.reason,
+      LegacyResolutionReason.resolvedByContemporaneousCatalog,
+    );
+  });
 
   test(
-    'resolves opaque, reordered, nonnumeric IDs only with matching digest',
-    () {
-      final plan = const LegacyChapterReconciliationPlanner().plan(
-        locator: locator,
-        candidates: [candidate(index: 1), candidate(), candidate(index: 9)],
-      );
-      expect(plan.state, LegacyResolutionState.resolved);
-      expect(plan.chapterRef, chapter);
-      expect(
-        plan.reason,
-        LegacyResolutionReason.resolvedByContemporaneousCatalog,
-      );
-    },
-  );
-
-  test(
-    'title, position, or a current catalog cannot resolve without digest',
+    'title, position, digest or a current catalog cannot resolve without proof',
     () {
       final plan = const LegacyChapterReconciliationPlanner().plan(
         locator: LegacyChapterLocatorV1(
@@ -74,14 +121,65 @@ void main() {
         candidates: [candidate()],
       );
       expect(plan.state, LegacyResolutionState.unresolved);
-      expect(plan.reason, LegacyResolutionReason.missingCatalogDigest);
+      expect(plan.reason, LegacyResolutionReason.missingVerifiedProof);
     },
   );
+
+  test('recorded remote ID requires matching preserved evidence and proof', () {
+    final recorded = LegacyChapterLocatorV1(
+      datasetId: locator.datasetId,
+      bookRef: book,
+      legacyBookId: locator.legacyBookId,
+      chapterIndex: locator.chapterIndex,
+      remoteIdEvidence: chapter.chapterId.value,
+    );
+    final bytes = utf8.encode(
+      jsonEncode({
+        'kind': 'legacyChapterCapture',
+        'version': 1,
+        'datasetId': recorded.datasetId.value,
+        'sourceId': book.sourceId.value,
+        'bookId': book.bookId.value,
+        'legacyBookId': recorded.legacyBookId.value,
+        'chapterIndex': recorded.chapterIndex,
+        'locatorDigest': sha256
+            .convert(utf8.encode(jsonEncode(recorded.toJson())))
+            .toString(),
+        'mappingVersion': 1,
+        'captureId': 'recorded-with-progress',
+        'proofKind': 'recordedRemoteId',
+        'remoteId': chapter.chapterId.value,
+      }),
+    );
+    final attestation = const LegacyChapterCaptureVerifier().verify(
+      locator: recorded,
+      artifactBytes: bytes,
+      trustedArtifactDigest: sha256.convert(bytes).toString(),
+    );
+    expect(attestation, isNotNull);
+    final plan = const LegacyChapterReconciliationPlanner().plan(
+      locator: recorded,
+      candidates: const [],
+      proof: attestation!.proof,
+    );
+    expect(plan.state, LegacyResolutionState.resolved);
+    expect(plan.reason, LegacyResolutionReason.resolvedByRecordedRemoteId);
+    expect(plan.chapterRef, chapter);
+
+    final mismatch = const LegacyChapterReconciliationPlanner().plan(
+      locator: locator,
+      candidates: const [],
+      proof: attestation.proof,
+    );
+    expect(mismatch.state, LegacyResolutionState.conflict);
+    expect(mismatch.reason, LegacyResolutionReason.proofMismatch);
+  });
 
   test('digest mismatch and cross-source candidates never resolve', () {
     final mismatch = const LegacyChapterReconciliationPlanner().plan(
       locator: locator,
       candidates: [candidate(digest: 'new-catalog')],
+      proof: proof(),
     );
     expect(mismatch.state, LegacyResolutionState.unresolved);
     expect(mismatch.reason, LegacyResolutionReason.catalogDigestMismatch);
@@ -93,6 +191,7 @@ void main() {
     final crossSource = const LegacyChapterReconciliationPlanner().plan(
       locator: locator,
       candidates: [candidate(candidateBook: otherBook)],
+      proof: proof(),
     );
     expect(crossSource.state, LegacyResolutionState.conflict);
     expect(crossSource.reason, LegacyResolutionReason.sourceMismatch);
@@ -105,9 +204,10 @@ void main() {
         candidate(mappingVersion: 1),
         candidate(index: 3, mappingVersion: 2),
       ],
+      proof: proof(),
     );
     expect(plan.state, LegacyResolutionState.conflict);
-    expect(plan.reason, LegacyResolutionReason.mappingVersionMismatch);
+    expect(plan.reason, LegacyResolutionReason.proofMismatch);
     expect(plan.candidates, hasLength(2));
   });
 
@@ -118,9 +218,49 @@ void main() {
         candidate(),
         candidate(id: 'different-remote-id'),
       ],
+      proof: proof(),
     );
     expect(plan.state, LegacyResolutionState.conflict);
-    expect(plan.reason, LegacyResolutionReason.ambiguousChapterAtLegacyIndex);
+    expect(plan.reason, LegacyResolutionReason.proofMismatch);
+    final unverified = const LegacyChapterReconciliationPlanner().plan(
+      locator: locator,
+      candidates: [
+        candidate(),
+        candidate(id: 'another|id'),
+      ],
+    );
+    expect(unverified.state, LegacyResolutionState.conflict);
+    expect(
+      unverified.reason,
+      LegacyResolutionReason.ambiguousChapterAtLegacyIndex,
+    );
+  });
+
+  test('capture verifier rejects untrusted hash and secret-bearing fields', () {
+    final raw = utf8.encode(
+      jsonEncode({
+        'kind': 'legacyChapterCapture',
+        'version': 1,
+        'Authorization': 'Bearer unexpected',
+      }),
+    );
+    final verifier = const LegacyChapterCaptureVerifier();
+    expect(
+      verifier.verify(
+        locator: locator,
+        artifactBytes: raw,
+        trustedArtifactDigest: sha256.convert(raw).toString(),
+      ),
+      null,
+    );
+    expect(
+      verifier.verify(
+        locator: locator,
+        artifactBytes: raw,
+        trustedArtifactDigest: '0' * 64,
+      ),
+      null,
+    );
   });
 
   test('atomic apply is idempotent and rejects later user edits', () async {
@@ -133,6 +273,7 @@ void main() {
     final plan = const LegacyChapterReconciliationPlanner().plan(
       locator: locator,
       candidates: [candidate()],
+      proof: proof(),
     );
     const service = LegacyChapterReconciliationService();
 
@@ -167,11 +308,17 @@ void main() {
       bookRef: book,
       legacyBookId: locator.legacyBookId,
       chapterIndex: locator.chapterIndex + 1,
-      catalogDigest: locator.catalogDigest,
+      catalogDigest: null,
     );
     final otherPlan = const LegacyChapterReconciliationPlanner().plan(
       locator: otherLocator,
-      candidates: [candidate(index: 5)],
+      candidates: [
+        candidate(
+          index: 5,
+          digest: proof(forLocator: otherLocator).catalogDigest,
+        ),
+      ],
+      proof: proof(forLocator: otherLocator),
     );
     expect(
       await const LegacyChapterReconciliationService().apply(
@@ -191,7 +338,7 @@ void main() {
       legacyBookId: locator.legacyBookId,
       chapterIndex: locator.chapterIndex,
       remoteIdEvidence: chapter.chapterId.value,
-      catalogDigest: locator.catalogDigest,
+      catalogDigest: null,
     );
     final expected = ReadingProgressV1(
       bookRef: book,
@@ -202,6 +349,7 @@ void main() {
     final plan = const LegacyChapterReconciliationPlanner().plan(
       locator: evidencedLocator,
       candidates: [candidate()],
+      proof: proof(forLocator: evidencedLocator),
     );
     expect(
       await const LegacyChapterReconciliationService().apply(
@@ -227,6 +375,7 @@ final class _MemoryStore implements LegacyProgressReconciliationRepository {
     required SourceBookRef bookRef,
     required ReadingProgressV1 expected,
     required ReadingProgressV1 replacement,
+    required LegacyChapterResolutionPlan plan,
   }) async {
     if (current == null) {
       return LegacyReconciliationApplyDisposition.notFound;

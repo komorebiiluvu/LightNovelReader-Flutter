@@ -1,49 +1,50 @@
 # F3.6 Legacy reconciliation evidence
 
-Status: **IMPLEMENTED / HUMAN REVIEW REQUIRED**
+Status: **REMEDIATION IMPLEMENTED / AGENT REVIEW PENDING**
 
-This slice implements the source-neutral reconciliation foundation for preserved
-legacy reading progress. It does not accept F3.6, start F3.7, or approve F3 Exit.
+This slice implements source-neutral legacy progress reconciliation. F3.7 and
+F3 Exit are not approved by this evidence record.
 
-## Resolution policy
+## Proof and identity
 
-`LegacyChapterReconciliationPlanner` resolves a legacy chapter ordinal only when
-all reviewed candidates have:
+The existing F2 importer stores an ordinal and fraction, without a trusted
+remote chapter ID or contemporaneous catalog. Such locators remain unresolved.
+The planner requires a verified capture proof before resolving. The capture
+verifier checks a bounded, strict source-neutral JSON envelope against a trusted
+SHA-256 artifact digest, the exact original locator, dataset, source/book,
+mapping version and either an original progress remote ID or an explicit
+co-captured catalog mapping. A later catalog, title, count or matching digest
+alone cannot create a proof. The persistence boundary also requires a completed
+migration run with the same dataset, digest and mapping version before applying.
 
-- the same non-empty catalog digest recorded by the legacy locator;
-- the same source-aware `SourceBookRef` as the preserved locator; and
-- one unambiguous chapter at the preserved index.
+The original `LegacyChapterLocatorV1` is retained byte-for-byte at the domain
+level. Chapter ordinal remains ordering evidence, never a modern ChapterId.
+Unresolved/conflict plans retain their safe alternatives for review. No Source
+specific branch is present in Core or Domain.
 
-A title, volume label, chapter count, current catalog, or numeric-looking ID is
-never sufficient by itself. Missing or mismatched digest evidence is unresolved;
-wrong-source/book candidates, duplicate index evidence, and mixed mapping versions
-remain conflicts. Candidate evidence is retained in the resolution plan for review.
+## Atomic receipt and schema v2
 
-The plan carries a mapping version on every candidate. This prevents evidence from
-different mapping revisions being silently combined. No provider selector,
-network call, credential, cookie, or raw secret enters the reconciliation layer.
+Accepted ADR 0009 defines an additive Drift schema v2. A versioned upgrade
+preserves v1 data, locators and progress; injected failure rolls back to intact
+v1. Applied reconciliation stores an immutable typed receipt, mapping version,
+proof kind/digest and ordered candidate alternatives. The receipt pointer and
+chapter progress update occur in the same expected-current-state transaction.
+Repetition is a no-op; stale plans and later user edits conflict. A normal user
+progress save clears the active receipt pointer while retaining the historical
+receipt. Close/reopen and cross-book foreign-key tests prove durable ownership.
 
-## Atomic application
+## Source neutrality
 
-`LegacyProgressReconciliationRepository.compareAndApply` applies a resolved
-replacement only when the stored progress still equals the expected snapshot. It
-returns `notFound`, `unchanged`, `conflict`, or `applied` and performs the read/
-compare/write inside one Drift transaction. Repeating an already-applied plan is
-idempotent; a later user edit wins and blocks the stale plan. The original dataset,
-legacy book key, ordinal, fraction, catalog digest, and safe evidence fields remain
-attached to the replacement locator.
+Shared conformance checks run against two test-only Sources with identical
+opaque book/chapter IDs across different SourceIds, delimiter and Unicode IDs,
+label-only grouping, reversed provider ordinals, unsupported authentication,
+paginated search and image-only content. The same catalog/content invariants
+run against the fixture-backed Wenku8 adapter, including the six-node ordered
+content fixture. No second real Source is added.
 
-## Source neutrality evidence
+## Validation status
 
-The focused tests use opaque, nonnumeric, delimiter-bearing and Unicode IDs,
-identical book IDs across different sources, reordered chapters, duplicate
-candidates, and a fake repository. They exercise the same domain planner and
-repository boundary used by any Source adapter; no second real Source is added and
-no Wenku8-specific branch exists in Core or Domain reconciliation code.
-
-## Validation
-
-- focused reconciliation tests: recorded with the implementation commit
-- full suite: required before Human F3.6 review
-- static analysis and formatting: required before Human F3.6 review
-- F3.7 platform/exit evidence: still pending
+Focused reconciliation, persistence migration, and neutrality tests pass on
+Windows. Full local suite, generated-schema verification, and the appropriate
+manual platform CI are required before a final Agent F3.6 review decision.
+Android and iOS charset runtime evidence remain UNPROVEN for F3.7.
