@@ -221,8 +221,9 @@ bool _hasOnlyKeys(Map<String, dynamic> value, Set<String> allowed) =>
     value.keys.every(allowed.contains);
 
 /// Sanitized chapter evidence produced by a reviewed Source catalog read.
-/// The catalog digest is the contemporaneity boundary; titles and volume labels
-/// are retained for review but never resolve a chapter by themselves.
+/// A catalog digest identifies candidates but does not prove contemporaneity.
+/// Titles and volume labels are retained for review but never resolve a chapter
+/// by themselves.
 final class LegacyChapterCandidate {
   LegacyChapterCandidate({
     required this.chapterRef,
