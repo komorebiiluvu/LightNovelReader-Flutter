@@ -74,7 +74,7 @@ class AppDatabase extends _$AppDatabase {
           proof_kind TEXT NOT NULL CHECK(proof_kind IN ('recordedRemoteId', 'coCapturedCatalog')),
           artifact_digest TEXT NOT NULL CHECK(length(artifact_digest) = 64 AND artifact_digest NOT GLOB '*[^0-9a-f]*'),
           catalog_digest TEXT,
-          co_capture_marker TEXT,
+          co_capture_marker TEXT CHECK(co_capture_marker IS NULL OR (length(co_capture_marker) = 64 AND co_capture_marker NOT GLOB '*[^0-9a-f]*')),
           UNIQUE(source_id, book_id, receipt_id),
           UNIQUE(source_id, book_id, original_locator_id),
           FOREIGN KEY(source_id, book_id, original_locator_id) REFERENCES legacy_chapter_locators(source_id, book_id, locator_id) ON DELETE RESTRICT ON UPDATE RESTRICT,

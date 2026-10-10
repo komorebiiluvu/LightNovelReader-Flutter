@@ -2,6 +2,8 @@
 
 Status: **ACCEPTED**
 
+Revision: **2** — Agent-reviewed hardening of co-capture marker persistence.
+
 Decision date: **2026-10-10**
 
 Review authority: Agent under ADR 0008. This decision addresses the blockers in
@@ -49,7 +51,8 @@ are:
 
 - `chapter_reconciliation_receipts`: immutable receipt ID, dataset/source/book,
   original locator ID, resolved chapter ID, mapping version, proof kind,
-  verified artifact digest, and optional catalog digest. A unique key prevents
+  verified artifact digest, optional catalog digest, and a SHA-256 digest of
+  the co-capture marker. The raw marker is never persisted. A unique key prevents
   remapping one locator. A composite foreign key binds the receipt to the exact
   original locator.
 - `chapter_reconciliation_candidates`: ordered, source-aware candidate chapter

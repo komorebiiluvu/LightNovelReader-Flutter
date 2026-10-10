@@ -27,7 +27,8 @@ specific branch is present in Core or Domain.
 Accepted ADR 0009 defines an additive Drift schema v2. A versioned upgrade
 preserves v1 data, locators and progress; injected failure rolls back to intact
 v1. Applied reconciliation stores an immutable typed receipt, mapping version,
-proof kind/digest and ordered candidate alternatives. The receipt pointer and
+proof kind/digest, hashed co-capture marker and ordered candidate alternatives.
+The raw marker is not persisted. The receipt pointer and
 chapter progress update occur in the same expected-current-state transaction.
 Repetition is a no-op; stale plans and later user edits conflict. A normal user
 progress save clears the active receipt pointer while retaining the historical

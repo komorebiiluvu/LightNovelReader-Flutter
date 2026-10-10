@@ -44,7 +44,7 @@ final class LegacyChapterResolutionProof {
         chapterRef.bookId != locator.bookRef.bookId ||
         (kind == LegacyChapterProofKind.coCapturedCatalog &&
             (coCaptureMarker == null ||
-                coCaptureMarker!.isEmpty ||
+                !RegExp(r'^[0-9a-f]{64}$').hasMatch(coCaptureMarker!) ||
                 catalogDigest == null ||
                 catalogDigest!.isEmpty))) {
       throw ArgumentError('Invalid reconciliation proof');
@@ -120,7 +120,7 @@ final class LegacyChapterCaptureVerifier {
       if (version is! int ||
           version < 1 ||
           captureId is! String ||
-          captureId.isEmpty) {
+          !RegExp(r'^[A-Za-z0-9._-]{1,80}$').hasMatch(captureId)) {
         return null;
       }
       final kind = switch (decoded['proofKind']) {
@@ -205,7 +205,7 @@ final class LegacyChapterCaptureVerifier {
           chapterRef: atIndex.single.chapterRef,
           mappingVersion: version,
           artifactDigest: trustedArtifactDigest,
-          coCaptureMarker: captureId,
+          coCaptureMarker: sha256.convert(utf8.encode(captureId)).toString(),
           catalogDigest: catalogDigest,
         ),
         List.unmodifiable(candidates),

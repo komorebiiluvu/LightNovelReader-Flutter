@@ -1582,7 +1582,7 @@ class ChapterReconciliationReceipts extends Table with TableInfo {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    $customConstraints: '',
+    $customConstraints: 'CHECK (co_capture_marker IS NULL OR(length(co_capture_marker) = 64 AND co_capture_marker NOT GLOB \'*[^0-9a-f]*\'))',
   );
   @override
   List<GeneratedColumn> get $columns => [

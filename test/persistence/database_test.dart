@@ -1022,7 +1022,7 @@ void main() {
               'coCapturedCatalog',
               'a' * 64,
               'catalog-digest',
-              'capture-1',
+              'b' * 64,
             ],
           );
           await initial.customStatement(

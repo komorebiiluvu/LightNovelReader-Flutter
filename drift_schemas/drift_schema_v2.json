@@ -1694,7 +1694,7 @@
             "getter_name": "coCaptureMarker",
             "moor_type": "string",
             "nullable": true,
-            "customConstraints": "",
+            "customConstraints": "CHECK (co_capture_marker IS NULL OR(length(co_capture_marker) = 64 AND co_capture_marker NOT GLOB '*[^0-9a-f]*'))",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -2344,7 +2344,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"chapter_reconciliation_receipts\" (\"receipt_id\" TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK (length(receipt_id) > 0), \"dataset_id\" TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id)ON UPDATE RESTRICT ON DELETE RESTRICT, \"source_id\" TEXT NOT NULL COLLATE BINARY, \"book_id\" TEXT NOT NULL COLLATE BINARY, \"original_locator_id\" TEXT NOT NULL COLLATE BINARY, \"chapter_id\" TEXT NOT NULL COLLATE BINARY CHECK (length(chapter_id) > 0 AND instr(chapter_id, char(0)) = 0), \"mapping_version\" INTEGER NOT NULL CHECK (mapping_version > 0), \"proof_kind\" TEXT NOT NULL CHECK (proof_kind IN ('recordedRemoteId', 'coCapturedCatalog')), \"artifact_digest\" TEXT NOT NULL CHECK (length(artifact_digest) = 64 AND artifact_digest NOT GLOB '*[^0-9a-f]*'), \"catalog_digest\" TEXT, \"co_capture_marker\" TEXT, UNIQUE(source_id, book_id, receipt_id), UNIQUE(source_id, book_id, original_locator_id), FOREIGN KEY(source_id, book_id, original_locator_id)REFERENCES legacy_chapter_locators(source_id, book_id, locator_id)ON UPDATE RESTRICT ON DELETE RESTRICT, CHECK((proof_kind = 'recordedRemoteId' AND catalog_digest IS NULL AND co_capture_marker IS NULL)OR(proof_kind = 'coCapturedCatalog' AND catalog_digest IS NOT NULL AND co_capture_marker IS NOT NULL)));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"chapter_reconciliation_receipts\" (\"receipt_id\" TEXT NOT NULL PRIMARY KEY COLLATE BINARY CHECK (length(receipt_id) > 0), \"dataset_id\" TEXT NOT NULL COLLATE BINARY REFERENCES migration_datasets(dataset_id)ON UPDATE RESTRICT ON DELETE RESTRICT, \"source_id\" TEXT NOT NULL COLLATE BINARY, \"book_id\" TEXT NOT NULL COLLATE BINARY, \"original_locator_id\" TEXT NOT NULL COLLATE BINARY, \"chapter_id\" TEXT NOT NULL COLLATE BINARY CHECK (length(chapter_id) > 0 AND instr(chapter_id, char(0)) = 0), \"mapping_version\" INTEGER NOT NULL CHECK (mapping_version > 0), \"proof_kind\" TEXT NOT NULL CHECK (proof_kind IN ('recordedRemoteId', 'coCapturedCatalog')), \"artifact_digest\" TEXT NOT NULL CHECK (length(artifact_digest) = 64 AND artifact_digest NOT GLOB '*[^0-9a-f]*'), \"catalog_digest\" TEXT, \"co_capture_marker\" TEXT CHECK (co_capture_marker IS NULL OR(length(co_capture_marker) = 64 AND co_capture_marker NOT GLOB '*[^0-9a-f]*')), UNIQUE(source_id, book_id, receipt_id), UNIQUE(source_id, book_id, original_locator_id), FOREIGN KEY(source_id, book_id, original_locator_id)REFERENCES legacy_chapter_locators(source_id, book_id, locator_id)ON UPDATE RESTRICT ON DELETE RESTRICT, CHECK((proof_kind = 'recordedRemoteId' AND catalog_digest IS NULL AND co_capture_marker IS NULL)OR(proof_kind = 'coCapturedCatalog' AND catalog_digest IS NOT NULL AND co_capture_marker IS NOT NULL)));"
         }
       ]
     },

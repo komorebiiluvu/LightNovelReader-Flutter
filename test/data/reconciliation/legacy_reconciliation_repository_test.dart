@@ -156,7 +156,7 @@ void main() {
       expect(await progress.get(book), replacement);
       final receipts = await db
           .customSelect(
-            'SELECT chapter_id,mapping_version,proof_kind,artifact_digest '
+            'SELECT chapter_id,mapping_version,proof_kind,artifact_digest,co_capture_marker '
             'FROM chapter_reconciliation_receipts',
           )
           .get();
@@ -168,6 +168,10 @@ void main() {
       expect(receipts.single.read<int>('mapping_version'), 1);
       expect(receipts.single.read<String>('proof_kind'), 'coCapturedCatalog');
       expect(receipts.single.read<String>('artifact_digest'), hasLength(64));
+      expect(
+        receipts.single.read<String>('co_capture_marker'),
+        sha256.convert(utf8.encode('captured-progress')).toString(),
+      );
       final alternatives = await db
           .customSelect(
             'SELECT chapter_id,chapter_index FROM chapter_reconciliation_candidates '
