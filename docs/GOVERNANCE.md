@@ -1,4 +1,4 @@
-# Governance Specification v0.2
+# Governance Specification v0.3
 
 Status: **Active for Foundation Development**
 
@@ -40,7 +40,7 @@ An ADR is required when changing any of the following:
 
 Agents may propose such changes but must not adopt them silently.
 
-An ADR cannot override the Constitution. Changing a Constitution-level rule requires explicit human approval and synchronized updates to the Constitution, ADR, and all affected governance documents in the same change. An accepted ADR alone does not authorize first-party native product implementations forbidden by the Constitution.
+An ADR cannot override the Constitution. Changing a Constitution-level rule requires an explicit decision record and synchronized updates to the Constitution, ADR, and all affected governance documents in the same change. An accepted ADR alone does not authorize first-party native product implementations forbidden by the Constitution. Under [ADR 0008](adr/0008-agent-review-and-validation-cadence.md), the project owner has delegated review and approval of future implementation and architecture decisions to the Agent; the Agent must record its reasoning and evidence before accepting a change.
 
 ## 3. Required synchronization
 
@@ -60,7 +60,7 @@ Documentation drift is a defect.
 
 ## 4. Governance status
 
-Version: **0.2**
+Version: **0.3**
 
 Status: **Active for Foundation Development**
 
@@ -104,8 +104,16 @@ Any accepted unresolved issue, with:
 - follow-up phase/task
 
 ### Exit Approval
-The phase must not self-advance automatically.
-A human owner explicitly approves exit after reviewing evidence.
+The phase must not self-advance merely because implementation tasks are complete.
+The Agent reviews the exit evidence, records a PASS or precise blockers, and may approve the phase and authorize its successor. The reviewer and implementer may be the same Agent, but the review must be a distinct recorded step with the tested revision and unresolved risks. Historical human approvals remain historical facts.
+
+## 5.1 Review and validation cadence
+
+Every code change receives a diff review for scope, contract fit, data/security risk, and meaningful tests. For routine changes, run formatting, analysis, and focused tests covering the affected behavior. Run the full local suite when the change spans boundaries, modifies shared contracts, or closes a phase. Use a failure to guide additional checks; do not repeat passing checks without a new reason.
+
+The cross-platform CI matrix and packaged/device smoke are milestone evidence, not a per-commit ritual. Trigger the manual workflow at a phase exit or when a change materially affects platform integration, dependencies, persistence/migrations, secrets/session handling, generated runners, or other behavior that local tests cannot establish. Run only the relevant platform smoke for an isolated platform change; use all three targets for a cross-platform phase exit. Record the exact revision, results, and gaps. A build or another platform's PASS never substitutes for required runtime evidence.
+
+An Agent approval may leave a named, nonblocking evidence gap for a later gate. It may not label that gap PASS, waive a frozen data/security invariant, or claim release readiness without the required platform evidence. CI failure on a relevant gate is a blocker until fixed or dispositioned in a documented ADR.
 
 ## 6. Phase entry rule
 
@@ -133,6 +141,6 @@ If two agents disagree:
 2. apply the precedence order;
 3. if ambiguity remains, stop implementation;
 4. propose the smallest clarifying documentation change or ADR;
-5. obtain human approval before continuing.
+5. record the Agent's review and decision before continuing; escalate to the project owner only when a decision requires product intent the repository cannot establish.
 
 Agents must not resolve ambiguity by silently choosing the easier implementation.

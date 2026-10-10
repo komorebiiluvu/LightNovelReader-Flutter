@@ -310,3 +310,18 @@ real Source, change schema, add dependencies, or start F3.7.
 Seven focused reconciliation tests and the full local suite of **546 tests**
 pass. Android and iOS charset runtime evidence remain **UNPROVEN** and are not
 waived. F3.7 remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+
+## Prospective governance delegation — 2026-10-10
+
+The Human project owner accepted [ADR 0008](adr/0008-agent-review-and-validation-cadence.md)
+on **2026-10-10**. From this checkpoint, the Agent may review and approve a
+slice, authorize the next slice, and approve a phase after recording the exact
+baseline, scope, validation, risks, and decision. Prior human approvals and
+historical status entries above remain unchanged. F3.6 is still **IMPLEMENTED /
+REVIEW REQUIRED** until its separate Agent review is recorded; F3.7 is **NOT
+AUTHORIZED** and F3 Exit is **NOT APPROVED** at this checkpoint.
+
+Full CI and packaged smoke are run at phase exits and when the affected risk
+requires them, rather than on every push. The F3.7 deterministic iOS, Android,
+and Windows platform gate is unchanged. Android and iOS charset runtime evidence
+remain **UNPROVEN**, not PASS or waived.

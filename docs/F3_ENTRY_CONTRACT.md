@@ -192,7 +192,8 @@ restore of that record until recovery. Restart/deletion-failure semantics must b
 demonstrated by the chosen secure-storage design before acceptance.
 
 Critical networking and secure-storage dependencies require a separate accepted
-dependency ADR and explicit human approval **before addition/use**. Assess exact
+dependency ADR and recorded approval **before addition/use**. ADR 0008 delegates
+future approval to the Agent. Assess exact
 versions, maintenance, current Flutter compatibility, licensing, iOS/Android/
 Windows runtime support and failure/fallback behavior. SDK-only transport is also
 an explicit implementation choice requiring review; it is not an approval bypass.
@@ -257,7 +258,7 @@ Default review sequence is the following, with evidence before advancing.
 | F3.4 Wenku8 Pure Parser + Request Builder | Pure encoding/DOM normalization and request construction using F3.2 evidence | Exact normalized fixtures, safe query encoding/host construction, malformed/error discrimination, ordered node/identity assertions; no runtime orchestration |
 | F3.5 Wenku8 Runtime Adapter | Compose contracts, builder/parser, transport/session; explicit auth and paginated service flows | Deterministic end-to-end scripted search/explore/detail/catalog/content/auth; cancellation/late-result and transport-failure coverage; no feature/Reader UI |
 | F3.6 Legacy Reconciliation + Source Neutrality Proof | Evidence-based chapter/source resolution plans and safe application through repositories; synthetic alternate-source conformance suite | Exact proof cases, ambiguous/reordered catalog stays unresolved, idempotency/reopen/rollback/user-edit conflict protection; no real second Source |
-| F3.7 Cross-platform Validation + Exit Evidence | Final contract synchronization, deterministic platform builds/runtime smoke, optional bounded manual live-smoke record and F3 exit record | Section 9 matrix, final-revision evidence, risk dispositions and explicit human exit approval; no automatic F4 entry |
+| F3.7 Cross-platform Validation + Exit Evidence | Final contract synchronization, deterministic platform builds/runtime smoke, optional bounded manual live-smoke record and F3 exit record | Section 9 matrix, final-revision evidence, risk dispositions and recorded Agent exit approval under ADR 0008; no automatic F4 entry |
 
 F3.1 is contract scaffolding, not permission to bypass the fixture-first Source
 migration sequence. F3.2 must establish all production parser expectations first.
@@ -300,7 +301,7 @@ currently authorized slice starts merely because this document is committed.
 
 | Decision / owner | Latest gate / consequence |
 | --- | --- |
-| HTTP and secure-storage package/backend choices, F3 owner + human reviewer | ADR 0005 accepted for `dio: 5.11.1`, `flutter_secure_storage: 11.2.0` and no cookie manager; future changes require an amended Human-approved dependency decision |
+| HTTP and secure-storage package/backend choices, F3 owner + reviewer | ADR 0005 accepted for `dio: 5.11.1`, `flutter_secure_storage: 11.2.0` and no cookie manager; future changes require an amended, reviewed dependency decision under ADR 0008 |
 | Decoder/DOM libraries and byte normalization, F3.2 owner | Accepted ADR 0007 governs the project-owned charset foundation; accepted ADR 0006 governs `html: 0.15.7`; independent fixtures and platform evidence remain required before F3.4/F3.7 acceptance |
 | Stable volume/asset locator mapping, provenance proof and numeric resource bounds, F3.2 owner | Reviewed specification before F3.3/F3.4 consumers; persistence changes need separate approved migration design |
 | Concrete API signatures, F3.1 owner | Reviewed against section 3 before consumers; semantic changes require updated proposal/ADR |
@@ -355,7 +356,7 @@ must pass on iOS, Android and Windows without public-network access. CI must not
 depend on Wenku8 availability.
 
 Controlled Wenku8 live smoke is supplemental evidence, not a required F3 exit
-gate and never a CI gate. If a human reviewer elects to run it, it is bounded,
+gate and never a CI gate. If a reviewer elects to run it, it is bounded,
 manual, opt-in and separate from fixture tests: record host-policy verification,
 operation outcomes, platform/toolchain and revision without bodies or secrets;
 use a reviewer-provided test account only where needed; never Legacy bundled
@@ -366,7 +367,7 @@ does not turn a deterministic failure into a pass, and deterministic success doe
 not claim current provider availability. Record network/provider failures
 separately from parser failures. No platform PASS is inferred from another
 platform. Any proposal to make live smoke a release-specific condition requires
-an explicit human decision and scope; the F2 waiver does not apply.
+an explicit reviewed decision and scope; the F2 waiver does not apply.
 
 The F3 exit record must contain the governance fields:
 
@@ -377,12 +378,12 @@ The F3 exit record must contain the governance fields:
 | Required Automated Tests | Format, analyze, full test suite plus fixture/conformance/security/reconciliation tests with exact counts and commands |
 | Required Platform Validation | Deterministic builds and runtime results on all three targets; optional live-smoke evidence is supplemental and must state limitations |
 | Evidence / Artifacts | Tested SHA, Flutter/Dart/OS/device, lockfile, CI/run links, fixture hashes and expected/actual assertions; sanitized output only |
-| Known Exceptions | Owner, scope, reason, human disposition and follow-up; unavailable/waived is never PASS |
-| Exit Approval | Explicit human F3 exit approval after evidence; F4 requires its own entry review |
+| Known Exceptions | Owner, scope, reason, reviewed disposition and follow-up; unavailable/waived is never PASS |
+| Exit Approval | Recorded Agent F3 exit review and approval after evidence under ADR 0008; F4 requires its own entry review |
 
 Before exit, synchronize accepted semantics into SOURCE_API, ARCHITECTURE where
 needed, CONTRACT_FREEZE_PLAN, tests/regression docs and ADR statuses through
-human review. This draft does not freeze future contracts by itself.
+recorded review. This draft does not freeze future contracts by itself.
 
 ## 10. Risk register
 
@@ -393,10 +394,10 @@ human review. This draft does not freeze future contracts by itself.
 | R3 Cookie leakage or stale auth resurrection | Per-target cookie policy, generation checks, sentinel tests, logout/restart proof | F3.3; security blocker |
 | R4 Secure storage differs across platforms | Approved package matrix plus packaged failure/restart tests; explicit memory-only mode | F3.3/F3.7; dependency and exit blocker |
 | R5 False chapter/volume/asset identity | No ordinal identity; reviewed durable mapping and provenance; ambiguous stays unresolved | F3.2/F3.6; identity/data-loss blocker |
-| R6 Fixtures reproduce defects or lose byte semantics | Human-reviewed classifications, independent expectations, provenance/sanitization checks | F3.2; parser entry blocker |
+| R6 Fixtures reproduce defects or lose byte semantics | Reviewed classifications, independent expectations, provenance/sanitization checks | F3.2; parser entry blocker |
 | R7 Retry/cancel races or unbounded responses | Bounded policies, fake clock and deliberate late completions | F3.3/F3.5; runtime blocker |
 | R8 Scope leaks into Reader/images/plugins | Slice diff/import review; service-only acceptance | Every slice reviewer; scope blocker |
-| R9 Platform evidence incomplete | Final-SHA builds and packaged tests; unavailable stays pending | F3.7 + human owner; exit blocker |
+| R9 Platform evidence incomplete | Final-SHA builds and packaged tests; unavailable stays pending | F3.7 Agent review; exit blocker |
 | R10 Reconciliation overwrites user changes | Atomic receipt/current-state check, reopen/rollback/idempotency tests; schema review if needed | F3.6; data-loss blocker |
 
 ## 11. Entry-contract baseline validation
@@ -656,3 +657,14 @@ Seven focused reconciliation tests and the full local suite of **546 tests**
 pass. Android and iOS charset runtime evidence remain **UNPROVEN**, not waived;
 fresh deterministic evidence is still required at the F3.7 platform gate. F3.7
 remains **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+
+## 26. Prospective review delegation — 2026-10-10
+
+The Human project owner accepted [ADR 0008](adr/0008-agent-review-and-validation-cadence.md)
+on **2026-10-10**, delegating subsequent slice and phase review/approval to the
+Agent. This changes the reviewer and validation cadence, not the F3 technical
+contract or its deterministic platform exit gate. Historical human decisions
+above remain historical facts. F3.6 remains **IMPLEMENTED / REVIEW REQUIRED**
+until a separate Agent review is recorded; F3.7 remains **NOT AUTHORIZED** and
+F3 Exit remains **NOT APPROVED** at this checkpoint. Android and iOS charset
+runtime evidence remain **UNPROVEN**.

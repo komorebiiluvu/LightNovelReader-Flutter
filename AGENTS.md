@@ -210,15 +210,14 @@ Split by responsibility, not line count.
 
 ## 15. Required checks
 
-Normal Dart/Flutter task:
+For ordinary Dart/Flutter changes, run formatting, analysis, and focused tests
+for affected behavior. Run the full suite for broad/shared changes and phase
+exits. Trigger the manual CI matrix and relevant packaged smoke at phase exits
+or when platform, dependency, persistence, or security risk calls for it, as
+defined in `docs/GOVERNANCE.md` and `docs/TESTING.md`.
 
-```bash
-dart format --set-exit-if-changed .
-flutter analyze
-flutter test
-```
-
-Platform-sensitive work must be validated on every affected target.
+Platform-sensitive work must be validated on every affected target at its
+relevant gate. Untested behavior remains `UNPROVEN` until then.
 
 ## 16. Definition of done
 
@@ -256,7 +255,7 @@ When rules conflict:
 
 Do not weaken a higher-level rule to make a task easier.
 
-Any exception to a normative architecture rule requires an ADR and human approval.
+Any exception to a normative architecture rule requires an ADR and recorded Agent review/approval under `docs/GOVERNANCE.md`. The project owner's prospective delegation is recorded in ADR 0008. A task-specific instruction from the owner still controls the task.
 
 The frozen legacy behavior reference is defined in `docs/LEGACY_BASELINE.md`.
 

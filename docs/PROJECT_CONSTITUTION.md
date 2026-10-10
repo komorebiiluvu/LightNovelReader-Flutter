@@ -486,7 +486,7 @@ Core Feature Freeze means:
 - no unresolved architecture exception lacks an ADR
 - release-critical documentation reflects actual implementation
 
-Only after explicit human approval of F12 may F13 UI/UX Redesign begin.
+Only after a recorded F12 exit review and approval under `docs/GOVERNANCE.md` may F13 UI/UX Redesign begin. The project owner delegated Agent review and approval prospectively in ADR 0008; this does not change F12 exit criteria.
 
 ### F13 — UI/UX Redesign exit
 

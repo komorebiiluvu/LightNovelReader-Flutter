@@ -62,7 +62,7 @@ Required for:
 - background/foreground
 - profile/release performance
 
-## 2. Commands
+## 2. Commands and cadence
 
 Normal checks:
 
@@ -71,6 +71,17 @@ dart format --set-exit-if-changed .
 flutter analyze
 flutter test
 ```
+
+For routine edits, run formatting, analysis, and focused tests for affected
+behavior. Run the full suite for shared-contract or broad changes and at phase
+exit. Select extra checks from the actual risk of the change; do not run the
+whole platform matrix after each small edit.
+
+The GitHub Actions workflow is dispatched manually for milestone exits and
+material platform, dependency, storage/migration, or security changes. Its
+packaged smoke checks are required only at the relevant platform gate. Record
+untested platforms as `UNPROVEN`; never infer PASS from a build or another
+platform. The accepted phase contract may impose stricter final evidence.
 
 Integration:
 
