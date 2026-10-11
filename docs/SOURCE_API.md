@@ -74,13 +74,13 @@ and immutable `SourceFilterDescriptor` values where applicable. Descriptor IDs
 and values remain opaque metadata; discovery is local and does not perform
 networking.
 
-## 4. Contract sketch
+## 4. Implemented F3 contract
 
 ```dart
 abstract interface class BookSource {
   SourceDescriptor get descriptor;
 
-  Future<SourcePage<SourceBookSummary>> search(
+  Future<SearchResult> search(
     SearchQuery query,
     SourceOperationContext context,
   );
@@ -107,10 +107,13 @@ abstract interface class BookSource {
 }
 ```
 
-Methods may be optional/capability-gated rather than returning meaningless empty
-defaults. Every returned SourceBook, catalog entry, chapter ref and content
-value must be owned by the Source instance's descriptor ID. The catalog method
-is the source-aware contract for both flat and volume-grouped chapter listings;
+`SearchResult` is the `SourcePage<SourceBookSummary>` typedef. The v1 interface
+declares every operation; a Source without the required capability throws a
+typed `unsupportedCapability` failure before provider I/O, rather than
+returning an empty success. Every returned SourceBook, catalog entry, chapter
+ref and content value must be owned by the Source instance's descriptor ID.
+The catalog method is the source-aware contract for both flat and
+volume-grouped chapter listings;
 it does not require a SourceVolumeRef when the provider has no stable volume ID.
 
 The F3.1 dependency-free API uses `SourceOperationContext` for operation kind,
