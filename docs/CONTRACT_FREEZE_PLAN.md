@@ -345,3 +345,13 @@ F3.7 is AUTHORIZED.** Current F2 locators remain unresolved absent verified
 historical proof. The schema v2 and Source runtime packaged matrix is still
 required at F3.7. Android and iOS charset runtime evidence remain
 **UNPROVEN**, not waived or inferred PASS. F3 Exit is **NOT APPROVED**.
+
+## F3.7 implementation checkpoint — 2026-10-11
+
+F3.7 deterministic packaged Source, charset, secure-store, session and schema
+smoke is **IN PROGRESS / EXIT REVIEW PENDING**. The evidence and exact platform
+limits are recorded in [F3.7 Platform Evidence](F3_7_PLATFORM_EVIDENCE.md) and
+[F3 Exit Evidence](F3_EXIT_EVIDENCE.md). F3 Exit remains **NOT APPROVED**;
+Android/iOS process-restart evidence is **UNPROVEN** until the final mobile
+runtime matrix passes. [The F4 Entry proposal](F4_ENTRY_CONTRACT.md) is
+**PROPOSED / F4 NOT AUTHORIZED** and does not change this gate.

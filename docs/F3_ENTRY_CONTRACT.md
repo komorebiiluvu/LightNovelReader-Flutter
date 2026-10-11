@@ -7,8 +7,8 @@ F3 Entry: **APPROVED**.
 F3.1: **IMPLEMENTED / ACCEPTED**.
 F3.2: **IMPLEMENTED / ACCEPTED**.
 F3.3: **IMPLEMENTED / ACCEPTED**.
-F3.4: **IMPLEMENTED / ACCEPTED**. F3.5: **AUTHORIZED**.
-F3.6–F3.7: **NOT AUTHORIZED**.
+F3.4–F3.6: **IMPLEMENTED / ACCEPTED**.
+F3.7: **IN PROGRESS / EXIT REVIEW PENDING**.
 F3 Exit: **NOT APPROVED**.
 
 This accepted contract and [ADR 0004](adr/0004-f3-source-foundation.md) record
@@ -244,8 +244,8 @@ Code inspection is not an executed Legacy oracle; record that distinction.
 
 ## 6. Slices, deliverables and local gates
 
-F3.1–F3.4 are **IMPLEMENTED / ACCEPTED**. F3.5 is **AUTHORIZED**;
-F3.6–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT APPROVED**.
+Current checkpoint: F3.1–F3.6 are **IMPLEMENTED / ACCEPTED**. F3.7 is
+**IN PROGRESS / EXIT REVIEW PENDING** and F3 Exit remains **NOT APPROVED**.
 ADR 0005 authorizes only its exact F3.3
 dependencies; F3.3 acceptance does not approve F3 exit.
 Default review sequence is the following, with evidence before advancing.
