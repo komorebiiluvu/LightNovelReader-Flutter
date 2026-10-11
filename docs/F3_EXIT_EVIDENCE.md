@@ -45,9 +45,9 @@ and read launches on Windows. The candidate's Quality CI job passed formatting,
 generated Drift schema/code verification, analysis, and the full test suite.
 The candidate's Windows and Android debug jobs also passed. Android passed
 all 10 packaged Source/runtime tests; its separate secure-store read failed
-after a second `flutter test` launch found no value. That path does not
-isolate process restart from the test tool's installation lifecycle, so
-Android process-restart behavior remains UNPROVEN.
+after a second `flutter test` launch found no value. Flutter 3.47.4's
+integration test runner uninstalls the app by default, so Android
+process-restart behavior remains UNPROVEN.
 The mobile workflow now uses `flutter drive --keep-app-running` for the write
 launch, followed by a new read launch. This revised gate must run before F3
 Exit. The iOS result from the old run is recorded separately when terminal.

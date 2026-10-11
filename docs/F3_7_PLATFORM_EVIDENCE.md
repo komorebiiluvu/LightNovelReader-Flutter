@@ -15,8 +15,9 @@ after logout. The
 Flutter processes: the first writes a synthetic value, the second reads and
 deletes it. The existing CI device runners execute both stages on the same
 target with a run-scoped key. Mobile restart checks use `flutter drive` with
-`--keep-app-running` for the write stage, then launch the read stage after the
-first process is stopped. An uninstall/reinstall is not a process-restart test.
+`--keep-app-running` for the write stage, explicitly stop that application
+process, then launch the read stage. An uninstall/reinstall is not a
+process-restart test.
 
 | Platform | Runtime evidence | Result |
 | --- | --- | --- |
@@ -29,8 +30,9 @@ does not establish Android/iOS PASS. The new secure-storage adapter instance
 alone is not restart evidence; the separate write/read process launches provide
 that Windows evidence. The injected failure proves the Source-neutral wrapper's
 typed/redacted error path; it does not simulate every native plugin failure
-mode. The old Android read failure does not isolate an ordinary process
-restart from test-tool installation lifecycle effects. Android and iOS
+mode. Flutter 3.47.4's `flutter test` integration runner defaults to uninstalling
+the app after a test, so the old Android read failure did not test ordinary
+process restart. Android and iOS
 process-restart results remain **UNPROVEN** until
 the updated workflow completes at the exact tested revision.
 

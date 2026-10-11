@@ -135,6 +135,7 @@ jobs:
             set -e
             flutter test integration_test/storage_smoke_test.dart -d emulator-5554 --no-pub
             flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --keep-app-running --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
+            adb -s emulator-5554 shell am force-stop com.komorebiiluvu.light_novel_reader
             flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
 
       - name: Build iOS debug without signing
@@ -165,6 +166,8 @@ jobs:
         if: matrix.check == 'iOS debug unsigned'
         run: |
           flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --keep-app-running --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          xcrun simctl terminate "$env:IOS_SMOKE_DEVICE" com.komorebiiluvu.lightNovelReader
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
