@@ -20,8 +20,10 @@ migration run with the same dataset, digest and mapping version before applying.
 
 The original `LegacyChapterLocatorV1` is retained byte-for-byte at the domain
 level. Chapter ordinal remains ordering evidence, never a modern ChapterId.
-Unresolved/conflict plans retain their safe alternatives for review. No Source
-specific branch is present in Core or Domain.
+Unresolved/conflict plans retain their safe alternatives for review. The new
+reconciliation and shared Source logic add no provider-name branch. The
+isolated F2 Legacy importer still recognizes historical Wenku8 aliases; that
+compatibility path is not a general Core Source branch.
 
 ## Atomic receipt and schema v2
 

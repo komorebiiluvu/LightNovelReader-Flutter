@@ -10,8 +10,9 @@ This ADR records the accepted F3.4 parser dependency decision. Its HTML parser
 decision remains active. The decoder dependency decision for
 `charset_codec: 0.1.1` is superseded by accepted ADR 0007; the current
 implementation uses the project-owned charset foundation and does not add
-`charset_codec`. F3.5–F3.7 remain **NOT AUTHORIZED** and F3 Exit remains **NOT
-APPROVED**.
+`charset_codec`. At this ADR's 2026-09-18 approval checkpoint, F3.5–F3.7
+were **NOT AUTHORIZED** and F3 Exit was **NOT APPROVED**. Later slice decisions
+are recorded in the [F3 Entry Contract](../F3_ENTRY_CONTRACT.md).
 
 ## Context
 

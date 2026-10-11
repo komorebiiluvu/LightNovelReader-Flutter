@@ -7,8 +7,9 @@ Proposal date: **2026-09-18**. Source baseline:
 `8eec93a6d6fc8842a24f8cc060215e6d0bf0b8a7`.
 
 This ADR records the Human-approved controlled project-owned charset strategy.
-It authorizes the charset foundation only; it does not accept F3.4, authorize
-the Wenku8 parser or runtime, or approve F3 Exit. The decoder portion of ADR
+At its approval checkpoint it authorized the charset foundation only; it did
+not accept F3.4, authorize the Wenku8 parser or runtime, or approve F3 Exit.
+The decoder portion of ADR
 0006 is superseded by this ADR. No dependency is added or required by this
 decision.
 
