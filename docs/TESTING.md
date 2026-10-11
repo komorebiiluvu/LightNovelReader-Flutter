@@ -77,11 +77,13 @@ behavior. Run the full suite for shared-contract or broad changes and at phase
 exit. Select extra checks from the actual risk of the change; do not run the
 whole platform matrix after each small edit.
 
-The GitHub Actions workflow is dispatched manually for milestone exits and
-material platform, dependency, storage/migration, or security changes. Its
-packaged smoke checks are required only at the relevant platform gate. Record
-untested platforms as `UNPROVEN`; never infer PASS from a build or another
-platform. The accepted phase contract may impose stricter final evidence.
+The GitHub Actions workflow is normally dispatched once for a phase-exit
+candidate. An earlier targeted run needs a concrete risk that local tests
+cannot bound before work continues. Let dispatched jobs run asynchronously;
+do not repeat passing checks or wait for them before independent work. Packaged
+smoke remains required at its phase gate. Record untested platforms as
+`UNPROVEN`; never infer PASS from a build or another platform. The accepted
+phase contract may impose stricter final evidence.
 
 Integration:
 

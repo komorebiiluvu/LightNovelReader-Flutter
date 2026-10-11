@@ -212,9 +212,10 @@ Split by responsibility, not line count.
 
 For ordinary Dart/Flutter changes, run formatting, analysis, and focused tests
 for affected behavior. Run the full suite for broad/shared changes and phase
-exits. Trigger the manual CI matrix and relevant packaged smoke at phase exits
-or when platform, dependency, persistence, or security risk calls for it, as
-defined in `docs/GOVERNANCE.md` and `docs/TESTING.md`.
+exits. Normally trigger the manual CI matrix and packaged smoke once for a
+phase-exit candidate. Earlier targeted platform checks require a concrete risk
+that local tests cannot bound before work continues, as defined in
+`docs/GOVERNANCE.md` and `docs/TESTING.md`.
 
 Platform-sensitive work must be validated on every affected target at its
 relevant gate. Untested behavior remains `UNPROVEN` until then.

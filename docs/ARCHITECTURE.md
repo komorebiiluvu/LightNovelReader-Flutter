@@ -190,7 +190,10 @@ Platform folders contain Flutter-generated runner/bootstrap code and required bu
 
 Third-party packages may contain native internals only when their Dart API and required functionality support iOS, Android, and Windows. Those internals do not authorize project-owned native product implementations or custom platform-channel core feature implementations.
 
-An ADR cannot override the Constitution. Changing a Constitution-level rule requires explicit human approval and synchronized governance updates as defined in `docs/GOVERNANCE.md`.
+An ADR cannot override the Constitution. Changing a Constitution-level rule
+requires an explicit decision record and synchronized governance updates under
+`docs/GOVERNANCE.md`. ADR 0008 delegates prospective review and approval to the
+Agent; historical Human approvals remain unchanged.
 
 ## 13. Packages
 
