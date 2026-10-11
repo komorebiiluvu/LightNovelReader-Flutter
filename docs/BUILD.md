@@ -85,7 +85,11 @@ Do not require one OS runner to prove another OS build.
 
 ### F1 workflow
 
-`.github/workflows/flutter.yml` runs on push, pull request, or manual dispatch.
+`.github/workflows/flutter.yml` runs by manual dispatch under ADR 0008's
+milestone validation cadence. Its current matrix also runs packaged storage
+and F3 Source smoke on Android, Windows and iOS. The table below describes the
+original F1 build baseline; consult the workflow and phase evidence for the
+current runtime matrix.
 It pins Flutter in `FLUTTER_VERSION`, restores the committed `pubspec.lock` with
 `flutter pub get --enforce-lockfile`, and uses four independent jobs:
 
