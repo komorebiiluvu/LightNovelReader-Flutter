@@ -467,6 +467,36 @@ void main() {
       ),
     );
   });
+
+  testWidgets('packaged Source suppresses caller-cancelled search', (_) async {
+    final sessions = SourceSessionManager();
+    final sourceId = SourceId('builtin.wenku8');
+    final transport = _DelayedPackagedSourceTransport();
+    final source = Wenku8Source(transport: transport, sessions: sessions);
+    final cancellation = SourceCancellation();
+    final pending = source.search(
+      SearchQuery(text: '中文'),
+      SourceOperationContext(
+        sourceId: sourceId,
+        operation: SourceOperation.search,
+        sessionGeneration: sessions.snapshot(sourceId).generation,
+        cancellation: cancellation,
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    cancellation.cancel();
+    transport.complete();
+    await expectLater(
+      pending,
+      throwsA(
+        isA<SourceFailure>().having(
+          (failure) => failure.code,
+          'code',
+          SourceFailureCode.cancelled,
+        ),
+      ),
+    );
+  });
 }
 
 final class _PackagedSourceTransport implements SourceTransport {

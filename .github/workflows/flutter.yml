@@ -97,6 +97,14 @@ jobs:
         if: matrix.check == 'Windows debug'
         run: flutter test integration_test/storage_smoke_test.dart -d windows --no-pub
 
+      - name: Windows secure-store process restart
+        if: matrix.check == 'Windows debug'
+        run: |
+          flutter test integration_test/secure_store_restart_test.dart -d windows --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          flutter test integration_test/secure_store_restart_test.dart -d windows --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Enable Android emulator acceleration
         if: matrix.check == 'Android storage smoke'
         shell: bash
@@ -123,7 +131,11 @@ jobs:
           profile: pixel_2
           disk-size: '1024M'
           disable-animations: true
-          script: flutter test integration_test/storage_smoke_test.dart -d emulator-5554 --no-pub
+          script: |
+            set -e
+            flutter test integration_test/storage_smoke_test.dart -d emulator-5554 --no-pub
+            flutter test integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
+            flutter test integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
 
       - name: Build iOS debug without signing
         if: matrix.check == 'iOS debug unsigned'
@@ -148,3 +160,11 @@ jobs:
       - name: iOS simulator packaged storage smoke
         if: matrix.check == 'iOS debug unsigned'
         run: flutter test integration_test/storage_smoke_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub
+
+      - name: iOS secure-store process restart
+        if: matrix.check == 'iOS debug unsigned'
+        run: |
+          flutter test integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          flutter test integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
