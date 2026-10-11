@@ -43,8 +43,14 @@ steps. Windows packaged `storage_smoke_test.dart` passed **10 tests** at the
 candidate. The separate secure-store process-restart test passed both write
 and read launches on Windows. The candidate's Quality CI job passed formatting,
 generated Drift schema/code verification, analysis, and the full test suite.
-The candidate's Windows and Android debug jobs have also passed; Android
-packaged smoke and the iOS job are still running as of this record.
+The candidate's Windows and Android debug jobs also passed. Android passed
+all 10 packaged Source/runtime tests; its separate secure-store read failed
+after a second `flutter test` launch found no value. That path does not
+isolate process restart from the test tool's installation lifecycle, so
+Android process-restart behavior remains UNPROVEN.
+The mobile workflow now uses `flutter drive --keep-app-running` for the write
+launch, followed by a new read launch. This revised gate must run before F3
+Exit. The iOS result from the old run is recorded separately when terminal.
 
 The manually dispatched final-candidate CI run is
 [38125926148](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/38125926148).
@@ -57,10 +63,10 @@ tested `f1883c3` and cannot certify the later process-restart change.
 | Required gate | iOS | Android | Windows |
 | --- | --- | --- | --- |
 | Locked unsigned/debug build | PENDING | PASS at candidate | PASS at candidate |
-| Packaged Source search/explore/detail/catalog/ordered content | UNPROVEN | UNPROVEN | PASS, local scripted smoke |
-| Transport, secure store, charset and schema v2 runtime | UNPROVEN | UNPROVEN | PASS for local assertions |
+| Packaged Source search/explore/detail/catalog/ordered content | UNPROVEN | PASS, 10-test scripted smoke at prior candidate | PASS, local scripted smoke |
+| Transport, secure store, charset and schema v2 runtime | UNPROVEN | PASS for listed Android packaged assertions; restart pending | PASS for local assertions |
 | Separate-process secure-store persistence | UNPROVEN | UNPROVEN | PASS, local and candidate CI write/read launches |
-| Session isolation, caller cancellation, late-response rejection | UNPROVEN | UNPROVEN | PASS, local scripted smoke |
+| Session isolation, caller cancellation, late-response rejection | UNPROVEN | PASS, 10-test Android scripted smoke | PASS, local scripted smoke |
 
 These results do not claim real Wenku8 availability. Optional controlled live
 smoke is supplemental and not a required F3 exit gate.

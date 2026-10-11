@@ -134,8 +134,8 @@ jobs:
           script: |
             set -e
             flutter test integration_test/storage_smoke_test.dart -d emulator-5554 --no-pub
-            flutter test integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
-            flutter test integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --keep-app-running --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d emulator-5554 --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$GITHUB_RUN_ID
 
       - name: Build iOS debug without signing
         if: matrix.check == 'iOS debug unsigned'
@@ -164,7 +164,7 @@ jobs:
       - name: iOS secure-store process restart
         if: matrix.check == 'iOS debug unsigned'
         run: |
-          flutter test integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --keep-app-running --dart-define=F3_7_SECURE_RESTART_STAGE=write --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          flutter test integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
+          flutter drive --driver=test_driver/integration_test.dart --target=integration_test/secure_store_restart_test.dart -d "$env:IOS_SMOKE_DEVICE" --no-pub --dart-define=F3_7_SECURE_RESTART_STAGE=read --dart-define=F3_7_SECURE_RESTART_ID=$env:GITHUB_RUN_ID
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

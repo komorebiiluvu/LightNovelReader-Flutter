@@ -14,12 +14,14 @@ after logout. The
 `integration_test/secure_store_restart_test.dart` test runs in two separate
 Flutter processes: the first writes a synthetic value, the second reads and
 deletes it. The existing CI device runners execute both stages on the same
-target with a run-scoped key.
+target with a run-scoped key. Mobile restart checks use `flutter drive` with
+`--keep-app-running` for the write stage, then launch the read stage after the
+first process is stopped. An uninstall/reinstall is not a process-restart test.
 
 | Platform | Runtime evidence | Result |
 | --- | --- | --- |
 | Windows | Windows NT 10.0.26200.0, Flutter 3.47.4, Dart 3.13.3, desktop target; `flutter test integration_test/storage_smoke_test.dart -d windows --no-pub` passed 10 tests; separate `secure_store_restart_test.dart` write and read launches each passed 1 test | **PASS for listed scripted packaged and process-restart smoke** |
-| Android | Existing manual CI emulator job runs this same integration test; current revision has not yet completed there | **UNPROVEN** |
+| Android | Run [38125926148](https://github.com/komorebiiluvu/LightNovelReader-Flutter/actions/runs/38125926148) passed all 10 packaged Source/runtime checks, then its separate `flutter test` read launch found no stored value. The retained-installation restart workflow has not yet run on Android. | **PASS for 10 listed packaged checks; restart UNPROVEN** |
 | iOS | Existing manual CI simulator job runs this same integration test; current revision has not yet completed there | **UNPROVEN** |
 
 The Windows result is execution evidence only for the listed assertions. It
@@ -27,8 +29,10 @@ does not establish Android/iOS PASS. The new secure-storage adapter instance
 alone is not restart evidence; the separate write/read process launches provide
 that Windows evidence. The injected failure proves the Source-neutral wrapper's
 typed/redacted error path; it does not simulate every native plugin failure
-mode. Android and iOS process-restart results remain **UNPROVEN** until the
-updated workflow completes at the exact tested revision.
+mode. The old Android read failure does not isolate an ordinary process
+restart from test-tool installation lifecycle effects. Android and iOS
+process-restart results remain **UNPROVEN** until
+the updated workflow completes at the exact tested revision.
 
 The broader F3.7 gate also requires locked builds, the full deterministic
 suite, generated-schema verification, relevant session/cancellation/security
